@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ModelType } from "@shared/schema";
 import { v4 as uuidv4 } from "uuid";
-import { Send, StopCircle, MicIcon, FileText, RotateCcw, X } from "lucide-react";
+import { Send, StopCircle, Mic as MicIcon, FileText, RotateCcw, X } from "lucide-react";
+import useMobile from "@/hooks/use-mobile";
 
 interface ChatInterfaceProps {
   title?: string;
@@ -35,6 +36,7 @@ export default function ChatInterface({
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useMobile();
   
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState(externalInputValue || "");
@@ -355,85 +357,171 @@ export default function ChatInterface({
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Input area */}
+      {/* Input area - Different layouts for mobile and desktop */}
       <div className="border-t p-3 bg-background">
-        <div className="flex items-end gap-2">
-          <div className="relative flex-1">
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setInputValue(newValue);
-                // If parent component provided onInputChange handler, call it
-                if (onInputChange) onInputChange(newValue);
-              }}
-              onKeyDown={handleKeyPress}
-              placeholder={placeholder}
-              className="min-h-[60px] max-h-[200px] resize-none pr-10 py-3"
-              disabled={isProcessing}
-            />
-            {inputValue && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 h-6 w-6 opacity-70 hover:opacity-100"
-                onClick={() => setInputValue("")}
-                tabIndex={-1}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            {/* Document upload button */}
-            <div className="relative">
-              <input
-                type="file"
-                id="file-upload"
-                className="sr-only"
-                accept=".pdf,.jpeg,.jpg,.png,.tiff,.tif,.gif"
-                onChange={handleDocumentUpload}
-                disabled={isProcessing || isUploading}
+        {isMobile ? (
+          /* Mobile Layout */
+          <div className="flex flex-col gap-2">
+            {/* Full-width textarea for mobile */}
+            <div className="relative w-full">
+              <Textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setInputValue(newValue);
+                  // If parent component provided onInputChange handler, call it
+                  if (onInputChange) onInputChange(newValue);
+                }}
+                onKeyDown={handleKeyPress}
+                placeholder={placeholder}
+                className="min-h-[60px] max-h-[120px] resize-none pr-10 py-3 w-full"
+                disabled={isProcessing}
               />
+              {inputValue && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 h-6 w-6 opacity-70 hover:opacity-100"
+                  onClick={() => setInputValue("")}
+                  tabIndex={-1}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {/* Button row below textarea on mobile */}
+            <div className="flex justify-between items-center mt-1 w-full">
+              {/* Left-aligned buttons on mobile */}
+              <div className="flex gap-2">
+                {/* Document upload button */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="sr-only"
+                    accept=".pdf,.jpeg,.jpg,.png,.tiff,.tif,.gif"
+                    onChange={handleDocumentUpload}
+                    disabled={isProcessing || isUploading}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    disabled={isProcessing || isUploading}
+                    className={isUploading ? "animate-pulse" : ""}
+                    onClick={() => document.getElementById("file-upload")?.click()}
+                  >
+                    <FileText className="h-5 w-5" />
+                  </Button>
+                </div>
+                
+                {/* Voice input button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isProcessing}
+                  className={isListening ? "bg-red-100 text-red-700 animate-pulse" : ""}
+                  onClick={handleVoiceInput}
+                >
+                  <MicIcon className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Right-aligned send button */}
+              <Button
+                type="submit"
+                disabled={!inputValue.trim() || isProcessing}
+                onClick={handleSendMessage}
+              >
+                {isProcessing ? (
+                  <StopCircle className="h-5 w-5" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Desktop Layout */
+          <div className="flex items-end gap-2">
+            <div className="relative flex-1">
+              <Textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setInputValue(newValue);
+                  // If parent component provided onInputChange handler, call it
+                  if (onInputChange) onInputChange(newValue);
+                }}
+                onKeyDown={handleKeyPress}
+                placeholder={placeholder}
+                className="min-h-[60px] max-h-[200px] resize-none pr-10 py-3"
+                disabled={isProcessing}
+              />
+              {inputValue && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 h-6 w-6 opacity-70 hover:opacity-100"
+                  onClick={() => setInputValue("")}
+                  tabIndex={-1}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex gap-2">
+              {/* Document upload button */}
+              <div className="relative">
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="sr-only"
+                  accept=".pdf,.jpeg,.jpg,.png,.tiff,.tif,.gif"
+                  onChange={handleDocumentUpload}
+                  disabled={isProcessing || isUploading}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isProcessing || isUploading}
+                  className={isUploading ? "animate-pulse" : ""}
+                  onClick={() => document.getElementById("file-upload")?.click()}
+                >
+                  <FileText className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Voice input button */}
               <Button
                 variant="outline"
                 size="icon"
-                disabled={isProcessing || isUploading}
-                className={isUploading ? "animate-pulse" : ""}
-                onClick={() => document.getElementById("file-upload")?.click()}
+                disabled={isProcessing}
+                className={isListening ? "bg-red-100 text-red-700 animate-pulse" : ""}
+                onClick={handleVoiceInput}
               >
-                <FileText className="h-5 w-5" />
+                <MicIcon className="h-5 w-5" />
+              </Button>
+              
+              {/* Send button */}
+              <Button
+                type="submit"
+                disabled={!inputValue.trim() || isProcessing}
+                onClick={handleSendMessage}
+              >
+                {isProcessing ? (
+                  <StopCircle className="h-5 w-5" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
               </Button>
             </div>
-            
-            {/* Voice input button */}
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={isProcessing}
-              className={isListening ? "bg-red-100 text-red-700 animate-pulse" : ""}
-              onClick={handleVoiceInput}
-            >
-              <MicIcon className="h-5 w-5" />
-            </Button>
-            
-            {/* Send button */}
-            <Button
-              type="submit"
-              disabled={!inputValue.trim() || isProcessing}
-              onClick={handleSendMessage}
-            >
-              {isProcessing ? (
-                <StopCircle className="h-5 w-5" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </Button>
           </div>
-        </div>
+        )}
         
         {/* Helper text */}
         <div className="text-xs text-gray-500 mt-2 text-center">
