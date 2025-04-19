@@ -24,9 +24,16 @@ const anthropic = new Anthropic({
 // Temporary directory for storing files
 const TEMP_DIR = path.join(process.cwd(), 'tmp');
 
+import * as mammoth from 'mammoth';
+
 /**
  * Medical OCR Service
  * Specialized in processing medical documents with OCR and extracting structured information
+ * Supports various document formats including:
+ * - PDF
+ * - Images (JPEG, PNG, TIFF, GIF)
+ * - Word documents (DOCX, DOC)
+ * - Text documents (TXT, CSV, RTF)
  */
 class OCRService {
   /**

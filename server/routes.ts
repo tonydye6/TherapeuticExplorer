@@ -6,6 +6,8 @@ import { researchService } from "./services/researchService";
 import { clinicalTrialService } from "./services/clinicalTrialService";
 import { documentService } from "./services/documentService";
 import { vectorService } from "./services/vectorService";
+import { medicalTermService } from "./services/medicalTermService";
+import { ocrService } from "./services/ocrService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -32,13 +34,19 @@ const upload = multer({
       'image/jpeg',
       'image/png',
       'image/tiff',
-      'image/gif'
+      'image/gif',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
+      'application/msword', // doc
+      'text/plain', // txt
+      'text/csv', // csv
+      'application/rtf', // rtf
+      'text/rtf' // rtf alternative
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, JPEG, PNG, TIFF and GIF files are allowed.') as any, false);
+      cb(new Error('Invalid file type. Supported files: PDF, DOC, DOCX, TXT, CSV, RTF, JPEG, PNG, TIFF and GIF.') as any, false);
     }
   }
 });
@@ -433,6 +441,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing uploaded document:", error);
       res.status(500).json({ message: "Failed to process document upload" });
+    }
+  });
+  
+  // Medical term highlighting route
+  app.post("/api/medical-terms/highlight", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ message: "Text content is required" });
+      }
+      
+      // Use the medical term service to highlight terms
+      const result = await medicalTermService.highlightMedicalTerms(text);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error highlighting medical terms:", error);
+      res.status(500).json({ 
+        message: "Failed to highlight medical terms",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   

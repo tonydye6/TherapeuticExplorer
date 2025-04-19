@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Tooltip } from '@/components/ui/tooltip';
 import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { MedicalTermCategory } from '@/lib/types';
+import { MedicalTermCategory } from '../lib/types';
 
 interface MedicalTermHighlighterProps {
   html: string;
