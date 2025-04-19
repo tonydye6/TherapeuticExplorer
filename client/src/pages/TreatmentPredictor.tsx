@@ -523,8 +523,11 @@ const TreatmentPredictor = () => {
                               <p className="text-sm text-gray-500">{prediction.treatmentType}</p>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className={getEvidenceBadgeColor(prediction.evidenceLevel)}>
-                                {prediction.evidenceLevel.charAt(0).toUpperCase() + prediction.evidenceLevel.slice(1)} Evidence
+                              <Badge variant="outline" className={getEvidenceBadgeColor(prediction.evidenceLevel || 'unknown')}>
+                                {prediction.evidenceLevel ? 
+                                  `${prediction.evidenceLevel.charAt(0).toUpperCase()}${prediction.evidenceLevel.slice(1)} Evidence` :
+                                  'Evidence Level Unknown'
+                                }
                               </Badge>
                               <span className="font-semibold">{prediction.effectivenessScore}%</span>
                               {expandedTreatment === prediction.treatmentName ? (
@@ -551,20 +554,20 @@ const TreatmentPredictor = () => {
                                 
                                 <h4 className="font-medium mb-2">Key Supporting Factors</h4>
                                 <ul className="list-disc list-inside text-sm space-y-1 mb-4">
-                                  {prediction.keySupportingFactors.map((factor, i) => (
+                                  {prediction.keySupportingFactors?.map((factor, i) => (
                                     <li key={i} className="text-green-700">
                                       {factor}
                                     </li>
-                                  ))}
+                                  )) || <li className="text-gray-500">No supporting factors provided</li>}
                                 </ul>
                                 
                                 <h4 className="font-medium mb-2">Potential Challenges</h4>
                                 <ul className="list-disc list-inside text-sm space-y-1">
-                                  {prediction.potentialChallenges.map((challenge, i) => (
+                                  {prediction.potentialChallenges?.map((challenge, i) => (
                                     <li key={i} className="text-red-700">
                                       {challenge}
                                     </li>
-                                  ))}
+                                  )) || <li className="text-gray-500">No potential challenges identified</li>}
                                 </ul>
                               </div>
                               
@@ -572,11 +575,13 @@ const TreatmentPredictor = () => {
                                 <h4 className="font-medium mb-2">Effectiveness Analysis</h4>
                                 <div className="space-y-2 text-sm mb-4">
                                   <p>
-                                    <span className="font-medium">Effectiveness Score:</span> {prediction.effectivenessScore}% 
-                                    (Confidence Interval: {prediction.confidenceInterval[0]}-{prediction.confidenceInterval[1]}%)
+                                    <span className="font-medium">Effectiveness Score:</span> {prediction.effectivenessScore ?? 'N/A'}% 
+                                    {prediction.confidenceInterval ? 
+                                      ` (Confidence Interval: ${prediction.confidenceInterval[0]}-${prediction.confidenceInterval[1]}%)` :
+                                      ''}
                                   </p>
                                   <p>
-                                    <span className="font-medium">Compared to Standard Care:</span> {prediction.comparisonToStandard}
+                                    <span className="font-medium">Compared to Standard Care:</span> {prediction.comparisonToStandard || 'Comparison not available'}
                                   </p>
                                   {prediction.estimatedSurvivalBenefit && (
                                     <p>
@@ -592,25 +597,29 @@ const TreatmentPredictor = () => {
                                 
                                 <h4 className="font-medium mb-2">References</h4>
                                 <div className="space-y-2 text-sm">
-                                  {prediction.references.map((ref, i) => (
-                                    <div key={i} className="text-sm">
-                                      <p className="font-medium">{ref.title}</p>
-                                      {ref.authors && <p className="text-xs">{ref.authors}</p>}
-                                      <p className="text-xs text-gray-500">
-                                        {ref.publication} {ref.year && `(${ref.year})`}
-                                      </p>
-                                      {ref.url && (
-                                        <a 
-                                          href={ref.url} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="text-blue-600 hover:underline text-xs"
-                                        >
-                                          View Source
-                                        </a>
-                                      )}
-                                    </div>
-                                  ))}
+                                  {prediction.references?.length ? (
+                                    prediction.references.map((ref, i) => (
+                                      <div key={i} className="text-sm">
+                                        <p className="font-medium">{ref.title}</p>
+                                        {ref.authors && <p className="text-xs">{ref.authors}</p>}
+                                        <p className="text-xs text-gray-500">
+                                          {ref.publication} {ref.year && `(${ref.year})`}
+                                        </p>
+                                        {ref.url && (
+                                          <a 
+                                            href={ref.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline text-xs"
+                                          >
+                                            View Source
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-gray-500">No references available</p>
+                                  )}
                                 </div>
                               </div>
                             </div>
