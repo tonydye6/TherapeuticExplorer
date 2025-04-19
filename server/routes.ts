@@ -191,6 +191,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Toggle favorite status for a research item
+  app.post("/api/research/:id/toggle-favorite", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid research item ID" });
+      }
+      
+      const updatedItem = await storage.toggleResearchItemFavorite(id);
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error toggling research item favorite status:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to toggle favorite status" });
+    }
+  });
+  
   app.post("/api/research/search", async (req, res) => {
     try {
       const { query } = req.body;

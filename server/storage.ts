@@ -39,6 +39,7 @@ export interface IStorage {
   getResearchItems(userId: number): Promise<ResearchItem[]>;
   getResearchItemById(id: number): Promise<ResearchItem | undefined>;
   createResearchItem(item: InsertResearchItem): Promise<ResearchItem>;
+  toggleResearchItemFavorite(id: number): Promise<ResearchItem>;
   
   // Treatment methods
   getTreatments(userId: number): Promise<Treatment[]>;
@@ -219,6 +220,22 @@ export class MemStorage implements IStorage {
     
     this.researchItems.set(id, item);
     return item;
+  }
+  
+  async toggleResearchItemFavorite(id: number): Promise<ResearchItem> {
+    const item = await this.getResearchItemById(id);
+    
+    if (!item) {
+      throw new Error(`Research item with ID ${id} not found`);
+    }
+    
+    const updatedItem = { 
+      ...item, 
+      isFavorite: item.isFavorite === undefined ? true : !item.isFavorite 
+    };
+    
+    this.researchItems.set(id, updatedItem);
+    return updatedItem;
   }
   
   // Treatment methods
