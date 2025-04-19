@@ -1,23 +1,55 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResearchItem } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, BookOpen, FlaskRound, FlaskConical } from "lucide-react";
+import { Search, Filter, BookOpen, FlaskRound, FlaskConical, Star } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import ResearchSummaryCard from "@/components/ResearchSummaryCard";
 
 export default function SavedResearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [evidenceFilter, setEvidenceFilter] = useState("all");
+  const [favoritesTab, setFavoritesTab] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Fetch saved research items
   const { data: researchItems, isLoading, error } = useQuery<ResearchItem[]>({
     queryKey: ['/api/research'],
     throwOnError: true,
+  });
+  
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest(`/api/research/${id}/toggle-favorite`, { method: 'POST' });
+    },
+    onSuccess: (data) => {
+      // Update the cache with the modified item
+      queryClient.setQueryData<ResearchItem[]>(['/api/research'], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map(item => item.id === data.id ? data : item);
+      });
+      
+      toast({
+        title: data.isFavorite ? "Added to Favorites" : "Removed from Favorites",
+        description: `"${data.title}" has been ${data.isFavorite ? 'added to' : 'removed from'} your favorites.`,
+        variant: "default"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
   
   // Filter research items based on search query and filters
@@ -36,12 +68,18 @@ export default function SavedResearch() {
     return matchesSearch && matchesSource && matchesEvidence;
   });
   
-  // Group research items by source type
+  // Group research items by source type and favorite status
+  const favoriteItems = filteredItems?.filter(item => item.isFavorite === true);
   const treatmentItems = filteredItems?.filter(item => item.sourceType === 'treatment');
   const clinicalTrialItems = filteredItems?.filter(item => item.sourceType === 'clinical_trial');
   const literatureItems = filteredItems?.filter(item => 
     item.sourceType === 'pubmed' || item.sourceType === 'book' || item.sourceType === 'journal'
   );
+  
+  // Toggle favorite handler
+  const handleToggleFavorite = (id: number) => {
+    toggleFavoriteMutation.mutate(id);
+  };
   
   // Helper function for item icons
   const getItemIcon = (sourceType: string) => {
@@ -128,6 +166,7 @@ export default function SavedResearch() {
           <Tabs defaultValue="all">
             <TabsList className="mb-6">
               <TabsTrigger value="all">All Research</TabsTrigger>
+              <TabsTrigger value="favorites">Favorites</TabsTrigger>
               <TabsTrigger value="treatments">Treatments</TabsTrigger>
               <TabsTrigger value="trials">Clinical Trials</TabsTrigger>
               <TabsTrigger value="literature">Literature</TabsTrigger>
@@ -137,9 +176,21 @@ export default function SavedResearch() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredItems?.map((item) => (
                   <Card key={item.id} className="overflow-hidden">
-                    <CardHeader className="bg-gray-50 py-3 flex flex-row items-center space-y-0 gap-2">
-                      {getItemIcon(item.sourceType)}
-                      <CardTitle className="text-base">{item.title}</CardTitle>
+                    <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between space-y-0">
+                      <div className="flex items-center gap-2">
+                        {getItemIcon(item.sourceType)}
+                        <CardTitle className="text-base">{item.title}</CardTitle>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleToggleFavorite(item.id)}
+                        className="h-8 w-8 p-0 rounded-full"
+                      >
+                        <Star 
+                          className={`h-5 w-5 ${item.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                        />
+                      </Button>
                     </CardHeader>
                     <CardContent className="p-4">
                       <p className="text-sm line-clamp-3">{item.content}</p>
@@ -155,6 +206,46 @@ export default function SavedResearch() {
               </div>
             </TabsContent>
             
+            <TabsContent value="favorites" className="space-y-6">
+              {favoriteItems?.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Star className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-lg font-medium">No favorites yet</p>
+                  <p className="text-sm mt-2">Mark items as favorites to see them here.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {favoriteItems?.map((item) => (
+                    <Card key={item.id} className="overflow-hidden">
+                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between space-y-0">
+                        <div className="flex items-center gap-2">
+                          {getItemIcon(item.sourceType)}
+                          <CardTitle className="text-base">{item.title}</CardTitle>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleToggleFavorite(item.id)}
+                          className="h-8 w-8 p-0 rounded-full"
+                        >
+                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <p className="text-sm line-clamp-3">{item.content}</p>
+                        <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
+                          <span className="text-xs text-gray-500">
+                            {new Date(item.dateAdded).toLocaleDateString()}
+                          </span>
+                          <Button variant="outline" size="sm">View Details</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
             <TabsContent value="treatments" className="space-y-6">
               {treatmentItems?.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -164,9 +255,21 @@ export default function SavedResearch() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {treatmentItems?.map((item) => (
                     <Card key={item.id} className="overflow-hidden">
-                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center space-y-0 gap-2">
-                        <FlaskRound className="h-5 w-5 text-blue-500" />
-                        <CardTitle className="text-base">{item.title}</CardTitle>
+                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between space-y-0">
+                        <div className="flex items-center gap-2">
+                          <FlaskRound className="h-5 w-5 text-blue-500" />
+                          <CardTitle className="text-base">{item.title}</CardTitle>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleToggleFavorite(item.id)}
+                          className="h-8 w-8 p-0 rounded-full"
+                        >
+                          <Star 
+                            className={`h-5 w-5 ${item.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                          />
+                        </Button>
                       </CardHeader>
                       <CardContent className="p-4">
                         <p className="text-sm line-clamp-3">{item.content}</p>

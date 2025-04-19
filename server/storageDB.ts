@@ -89,6 +89,27 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return item;
   }
+  
+  async toggleResearchItemFavorite(id: number): Promise<ResearchItem> {
+    // Get the current research item to check its favorite status
+    const item = await this.getResearchItemById(id);
+    
+    if (!item) {
+      throw new Error(`Research item with ID ${id} not found`);
+    }
+    
+    // Toggle the favorite status
+    const newFavoriteStatus = !item.isFavorite;
+    
+    // Update the research item in the database
+    const [updatedItem] = await db
+      .update(researchItems)
+      .set({ isFavorite: newFavoriteStatus })
+      .where(eq(researchItems.id, id))
+      .returning();
+      
+    return updatedItem;
+  }
 
   // Treatment methods
   async getTreatments(userId: number): Promise<Treatment[]> {
