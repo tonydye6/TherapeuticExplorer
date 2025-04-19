@@ -262,9 +262,45 @@ export default function TreatmentTracker() {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            console.log("Viewing details for treatment:", treatment);
-                            // You can add navigation or modal display logic here
-                            // For now, we'll just log the treatment details
+                            const dialog = document.createElement('dialog');
+                            dialog.className = 'fixed inset-0 z-50 bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto mt-20';
+                            
+                            dialog.innerHTML = `
+                              <div class="flex justify-between items-start mb-4">
+                                <div>
+                                  <h2 class="text-xl font-bold">${treatment.name}</h2>
+                                  <p class="text-gray-500">${treatment.type}</p>
+                                </div>
+                                <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('dialog').close()">
+                                  ✕
+                                </button>
+                              </div>
+                              <div class="space-y-4">
+                                <div>
+                                  <h3 class="font-medium">Start Date</h3>
+                                  <p>${new Date(treatment.startDate!).toLocaleDateString()}</p>
+                                </div>
+                                ${treatment.endDate ? `
+                                  <div>
+                                    <h3 class="font-medium">End Date</h3>
+                                    <p>${new Date(treatment.endDate).toLocaleDateString()}</p>
+                                  </div>
+                                ` : ''}
+                                ${treatment.notes ? `
+                                  <div>
+                                    <h3 class="font-medium">Notes</h3>
+                                    <p class="whitespace-pre-wrap">${treatment.notes}</p>
+                                  </div>
+                                ` : ''}
+                              </div>
+                            `;
+
+                            document.body.appendChild(dialog);
+                            dialog.showModal();
+
+                            dialog.addEventListener('close', () => {
+                              dialog.remove();
+                            });
                           }}
                         >
                           View Details
