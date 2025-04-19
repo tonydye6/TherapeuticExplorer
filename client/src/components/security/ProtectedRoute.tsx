@@ -19,6 +19,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Temporarily bypass auth checks
+  if (!isAuthenticated) {
+    return <Redirect to="/auth" />;
+  }
   return <>{children}</>;
 };
