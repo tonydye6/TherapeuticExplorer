@@ -69,9 +69,7 @@ class SecurityService {
    */
   verifyToken(token: string): any {
     try {
-      // Create secret key buffer for jwt.verify
-      const secretKey = Buffer.from(this.JWT_SECRET, 'utf-8');
-      return jwt.verify(token, secretKey);
+      return jwt.verify(token, this.JWT_SECRET);
     } catch (error) {
       console.error('Token verification failed:', error);
       return null;
