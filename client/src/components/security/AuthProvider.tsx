@@ -37,8 +37,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check if the user is authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("AuthProvider: Checking authentication, token:", token ? "exists" : "null");
+      
       if (token) {
         try {
+          console.log("AuthProvider: Fetching user profile with token");
           const response = await fetch('/api/user/profile', {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -47,8 +50,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (response.ok) {
             const userData = await response.json();
+            console.log("AuthProvider: Authentication successful, user data:", userData);
             setUser(userData);
           } else {
+            console.log("AuthProvider: Authentication failed - token invalid or expired");
             // Token is invalid or expired
             localStorage.removeItem('auth_token');
             setToken(null);
@@ -58,7 +63,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem('auth_token');
           setToken(null);
         }
+      } else {
+        console.log("AuthProvider: No token found");
       }
+      
       setIsLoading(false);
     };
 

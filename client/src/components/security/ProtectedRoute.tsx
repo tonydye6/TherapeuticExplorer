@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Redirect } from 'wouter';
 import { useAuth } from './AuthProvider';
 import { Loader2 } from 'lucide-react';
@@ -8,9 +8,15 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  console.log("ProtectedRoute rendering");
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  useEffect(() => {
+    console.log("ProtectedRoute state:", { isAuthenticated, isLoading, user });
+  }, [isAuthenticated, isLoading, user]);
 
   if (isLoading) {
+    console.log("ProtectedRoute: Loading authentication status...");
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -20,8 +26,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log("ProtectedRoute: Not authenticated, redirecting to /auth");
     return <Redirect to="/auth" />;
   }
 
+  console.log("ProtectedRoute: Authentication verified, rendering children");
   return <>{children}</>;
 };
