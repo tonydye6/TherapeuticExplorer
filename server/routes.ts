@@ -732,13 +732,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.patch("/api/user/profile", async (req, res) => {
     try {
-      const { displayName, diagnosis, diagnosisStage, diagnosisDate } = req.body;
+      const { displayName, diagnosis, diagnosisStage, diagnosisDate, address } = req.body;
       
       const updatedUser = await storage.updateUserProfile(1, {
         displayName,
         diagnosis,
         diagnosisStage,
-        diagnosisDate
+        diagnosisDate,
+        address
       });
       
       res.json(updatedUser);
