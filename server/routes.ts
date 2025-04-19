@@ -259,8 +259,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/treatments", async (req, res) => {
     try {
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      // Handle date conversion for startDate and endDate if they exist as strings
+      if (requestData.startDate && typeof requestData.startDate === 'string') {
+        requestData.startDate = new Date(requestData.startDate);
+      }
+      
+      if (requestData.endDate && typeof requestData.endDate === 'string') {
+        requestData.endDate = new Date(requestData.endDate);
+      }
+      
       const treatmentData = insertTreatmentSchema.parse({
-        ...req.body,
+        ...requestData,
         userId: 1 // Default user ID
       });
       
