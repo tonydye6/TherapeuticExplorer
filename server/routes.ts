@@ -11,7 +11,6 @@ import { ocrService } from "./services/ocrService";
 import { treatmentPredictionService } from "./services/treatmentPredictionService";
 import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
-import { companionService } from "./services/companionService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -811,87 +810,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating treatment timeline:", error);
       res.status(500).json({ 
         message: "Failed to generate treatment timeline", 
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
-  // Treatment Companion Routes
-  
-  // Get personalized companion response
-  app.post("/api/companion/message", async (req, res) => {
-    try {
-      const { message, previousMessages, options } = req.body;
-      const userId = 1; // Default user ID for now
-      
-      if (!message) {
-        return res.status(400).json({
-          message: "Message content is required"
-        });
-      }
-      
-      const response = await companionService.generateCompanionResponse(
-        userId,
-        message,
-        previousMessages || [],
-        options
-      );
-      
-      res.json({ content: response });
-    } catch (error) {
-      console.error("Error generating companion response:", error);
-      res.status(500).json({
-        message: "Failed to generate companion response",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
-  // Generate follow-up question for treatment
-  app.post("/api/companion/follow-up", async (req, res) => {
-    try {
-      const { treatmentName } = req.body;
-      const userId = 1; // Default user ID
-      
-      if (!treatmentName) {
-        return res.status(400).json({
-          message: "Treatment name is required for follow-up question"
-        });
-      }
-      
-      const followUpQuestion = await companionService.generateFollowUpQuestion(
-        userId,
-        treatmentName
-      );
-      
-      res.json({ question: followUpQuestion });
-    } catch (error) {
-      console.error("Error generating follow-up question:", error);
-      res.status(500).json({
-        message: "Failed to generate follow-up question",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
-  // Generate coping strategies
-  app.post("/api/companion/coping-strategies", async (req, res) => {
-    try {
-      const { concern } = req.body;
-      
-      if (!concern) {
-        return res.status(400).json({
-          message: "Concern or symptom is required for coping strategies"
-        });
-      }
-      
-      const strategies = await companionService.generateCopingStrategies(concern);
-      
-      res.json(strategies);
-    } catch (error) {
-      console.error("Error generating coping strategies:", error);
-      res.status(500).json({
-        message: "Failed to generate coping strategies",
         error: error instanceof Error ? error.message : String(error)
       });
     }
