@@ -10,8 +10,10 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 // Security enhancements
-app.use(helmet()); // Adds various security headers
-app.use(hipaaSecurityHeaders); // Add HIPAA-specific security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // We'll handle CSP in our own middleware
+})); 
+app.use(hipaaSecurityHeaders); // Add HIPAA-specific security headers for CSP
 app.use(cookieParser()); // For secure cookie handling
 
 // Rate limiting for sensitive endpoints
