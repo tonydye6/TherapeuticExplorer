@@ -1,24 +1,46 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uuid, pgEnum, vector } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uuid, pgEnum, vector, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
 // User profile information
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: varchar("id").primaryKey().notNull(), // Changed to varchar for Replit Auth user id
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: text("email").unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  bio: text("bio"),
+  profileImageUrl: text("profile_image_url"),
   displayName: text("display_name"),
   diagnosis: text("diagnosis"),
   diagnosisStage: text("diagnosis_stage"),
   diagnosisDate: timestamp("diagnosis_date"),
   address: text("address"),
   preferences: jsonb("preferences"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
   username: true,
-  password: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  bio: true,
+  profileImageUrl: true,
   displayName: true,
   diagnosis: true,
   diagnosisStage: true,
@@ -27,10 +49,20 @@ export const insertUserSchema = createInsertSchema(users).pick({
   preferences: true,
 });
 
+export const upsertUserSchema = createInsertSchema(users).pick({
+  id: true,
+  username: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  bio: true,
+  profileImageUrl: true,
+});
+
 // Chat messages
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
   content: text("content").notNull(),
   role: text("role").notNull(), // 'user' or 'assistant'
   timestamp: timestamp("timestamp").defaultNow().notNull(),
@@ -194,6 +226,7 @@ export const documentsRelations = relations(documents, ({ one }) => ({
 // Define types for easy use in application
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
