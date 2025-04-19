@@ -1,6 +1,7 @@
 import { ModelType, QueryType } from "@shared/schema";
 import * as openaiService from "./openai-service";
 import * as anthropicService from "./anthropic-service";
+import * as geminiService from "./gemini-service";
 
 // Type definitions
 export type QueryResponse = {
@@ -111,8 +112,22 @@ class AIRouter {
       lowerQuery.includes('publication')
     ) {
       queryType = QueryType.RESEARCH;
-      // Claude is better for deep research
-      modelType = ModelType.CLAUDE;
+      
+      // Use Gemini for deep research synthesis, especially when comparing multiple sources or studies
+      if (
+        lowerQuery.includes('compare') ||
+        lowerQuery.includes('synthesis') ||
+        lowerQuery.includes('multiple') ||
+        lowerQuery.includes('studies') ||
+        lowerQuery.includes('literature review') ||
+        lowerQuery.includes('meta-analysis') ||
+        lowerQuery.includes('consensus')
+      ) {
+        modelType = ModelType.GEMINI;
+      } else {
+        // Claude for standard research questions
+        modelType = ModelType.CLAUDE;
+      }
     }
     
     return {
@@ -132,7 +147,7 @@ class AIRouter {
       let response: QueryResponse;
       
       // Check if we have API keys before using actual models
-      if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+      if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.GOOGLE_GEMINI_API_KEY) {
         // Fall back to simulated responses if no API keys are available
         console.warn("No API keys found. Using simulated responses instead.");
         return this.generateSimulatedResponse(query, queryType, modelType);
@@ -169,7 +184,10 @@ class AIRouter {
         }
       } 
       else if (queryType === QueryType.RESEARCH) {
-        if (modelType === ModelType.CLAUDE && process.env.ANTHROPIC_API_KEY) {
+        if (modelType === ModelType.GEMINI && process.env.GOOGLE_GEMINI_API_KEY) {
+          const result = await geminiService.processDeepResearchQuery(query);
+          return this.formatGeminiResearchResponse(result);
+        } else if (modelType === ModelType.CLAUDE && process.env.ANTHROPIC_API_KEY) {
           const result = await anthropicService.processResearchQuery(query);
           return this.formatAnthropicResearchResponse(result);
         } else if (modelType === ModelType.GPT && process.env.OPENAI_API_KEY) {
@@ -300,6 +318,49 @@ class AIRouter {
       content,
       sources,
       modelUsed: "claude"
+    };
+  }
+
+  // Format responses from Gemini
+  private formatGeminiResearchResponse(result: any): QueryResponse {
+    // Format sources from the structured response
+    const sources = result.sources?.map((source: any) => ({
+      title: source.title,
+      type: "journal_article",
+      date: source.year?.toString() || undefined
+    })) || null;
+    
+    // Construct a well-formatted research synthesis response
+    let content = result.synthesis || "";
+    
+    // Add key themes section if available
+    if (result.key_themes && result.key_themes.length > 0) {
+      content += "\n\n## Key Research Themes\n";
+      content += result.key_themes.map((theme: any, index: number) => 
+        `${index + 1}. **${theme.theme}**\n   Evidence: ${theme.evidence_summary}\n   Research quality: ${theme.research_quality}\n   Consensus level: ${theme.consensus_level}`
+      ).join('\n\n');
+    }
+    
+    // Add comparisons section if available
+    if (result.comparisons && result.comparisons.length > 0) {
+      content += "\n\n## Comparative Analysis\n";
+      content += result.comparisons.map((comparison: any, index: number) => 
+        `${index + 1}. **${comparison.aspect}**\n   Approach A: ${comparison.approach_a}\n   Approach B: ${comparison.approach_b}\n   Analysis: ${comparison.comparative_analysis}`
+      ).join('\n\n');
+    }
+    
+    // Add knowledge gaps section if available
+    if (result.knowledge_gaps && result.knowledge_gaps.length > 0) {
+      content += "\n\n## Research Gaps\n";
+      content += result.knowledge_gaps.map((gap: string, index: number) => 
+        `${index + 1}. ${gap}`
+      ).join('\n');
+    }
+    
+    return {
+      content,
+      sources,
+      modelUsed: "gemini"
     };
   }
 
