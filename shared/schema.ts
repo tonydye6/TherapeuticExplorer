@@ -56,6 +56,7 @@ export const researchItems = pgTable("research_items", {
   dateAdded: timestamp("date_added").defaultNow().notNull(),
   tags: jsonb("tags"),
   evidenceLevel: text("evidence_level"), // 'high', 'medium', 'low'
+  isFavorite: boolean("is_favorite").default(false).notNull(),
 });
 
 export const insertResearchItemSchema = createInsertSchema(researchItems).pick({
@@ -67,6 +68,7 @@ export const insertResearchItemSchema = createInsertSchema(researchItems).pick({
   sourceName: true,
   tags: true,
   evidenceLevel: true,
+  isFavorite: true,
 });
 
 // Treatments
