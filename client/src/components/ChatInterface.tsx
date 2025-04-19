@@ -10,12 +10,15 @@ import { Send, StopCircle, MicIcon, FileText, RotateCcw, X } from "lucide-react"
 
 interface ChatInterfaceProps {
   title?: string;
+  description?: string;
   placeholder?: string;
   initialMessages?: Message[];
   onSendMessage?: (message: string) => Promise<any>;
   onClearChat?: () => void;
   preferredModel?: ModelType;
   className?: string;
+  inputValue?: string;
+  onInputChange?: (value: string) => void;
 }
 
 export default function ChatInterface({
@@ -25,17 +28,26 @@ export default function ChatInterface({
   onSendMessage,
   onClearChat,
   preferredModel,
-  className
+  className,
+  inputValue: externalInputValue,
+  onInputChange
 }: ChatInterfaceProps) {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(externalInputValue || "");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Effect to update inputValue when externalInputValue changes
+  useEffect(() => {
+    if (externalInputValue !== undefined) {
+      setInputValue(externalInputValue);
+    }
+  }, [externalInputValue]);
   
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -350,7 +362,12 @@ export default function ChatInterface({
             <Textarea
               ref={textareaRef}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setInputValue(newValue);
+                // If parent component provided onInputChange handler, call it
+                if (onInputChange) onInputChange(newValue);
+              }}
               onKeyDown={handleKeyPress}
               placeholder={placeholder}
               className="min-h-[60px] max-h-[200px] resize-none pr-10 py-3"
