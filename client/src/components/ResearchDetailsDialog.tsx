@@ -71,6 +71,7 @@ export default function ResearchDetailsDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{researchItem.title}</DialogTitle>
+          <DialogDescription className="sr-only">Research item details</DialogDescription>
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge variant="outline" className="bg-blue-50 text-blue-700">
               {getSourceTypeLabel(researchItem.sourceType)}
@@ -116,14 +117,15 @@ export default function ResearchDetailsDialog({
                   {Array.isArray(researchItem.tags) ? 
                     researchItem.tags.map((tag, idx) => (
                       <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
+                        {String(tag)}
                       </Badge>
                     )) : 
-                    Object.keys(researchItem.tags as object).map((tag, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))
+                    typeof researchItem.tags === 'object' && researchItem.tags !== null ?
+                      Object.keys(researchItem.tags).map((tag, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      )) : null
                   }
                 </div>
               </div>

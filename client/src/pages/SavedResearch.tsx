@@ -114,6 +114,13 @@ export default function SavedResearch() {
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {/* Research details dialog */}
+      <ResearchDetailsDialog 
+        isOpen={isDialogOpen}
+        onClose={handleCloseDetails}
+        researchItem={selectedItem}
+      />
+      
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Saved Research</h1>
