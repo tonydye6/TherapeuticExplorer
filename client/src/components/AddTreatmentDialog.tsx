@@ -95,9 +95,18 @@ export default function AddTreatmentDialog({
       console.log("Submitting treatment with values:", values);
       setIsSubmitting(true);
       
+      // Process dates before sending to server
+      // The server expects startDate and endDate as ISO strings, not Date objects
+      const processedValues = {
+        ...values,
+        // Convert Date objects to ISO strings for API submission
+        startDate: values.startDate ? values.startDate.toISOString() : undefined,
+        endDate: values.endDate ? values.endDate.toISOString() : undefined
+      };
+      
       // Add userId to the values
       const treatmentData = {
-        ...values,
+        ...processedValues,
         userId: 1 // Default user ID
       };
       
