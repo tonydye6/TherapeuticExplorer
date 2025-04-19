@@ -1123,6 +1123,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // One-Click Medical Terminology Translator endpoints
+  
+  // Translate medical text into patient-friendly language
+  app.post("/api/medical-terms/translate-text", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ message: "Text content is required" });
+      }
+      
+      // Implementation with timeout for reliability
+      const timeoutDuration = 15000; // 15 seconds timeout
+      
+      // Create a promise that rejects after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Translation timed out")), timeoutDuration);
+      });
+      
+      // Create the actual work promise
+      const translationPromise = medicalTermService.translateMedicalText(text);
+      
+      try {
+        // Race the promises - whichever resolves/rejects first wins
+        const translatedText = await Promise.race([translationPromise, timeoutPromise]) as string;
+        res.json({ translatedText });
+      } catch (timeoutError) {
+        console.warn("Medical text translation timed out:", timeoutError);
+        res.status(504).json({ 
+          message: "Translation timed out. Please try with a shorter text.",
+          originalText: text
+        });
+      }
+    } catch (error) {
+      console.error("Error translating medical text:", error);
+      res.status(500).json({ message: "Failed to translate medical text" });
+    }
+  });
+  
+  // Translate a single medical term with detailed explanation
+  app.post("/api/medical-terms/translate-term", async (req, res) => {
+    try {
+      const { term } = req.body;
+      
+      if (!term || typeof term !== 'string') {
+        return res.status(400).json({ message: "Term parameter is required" });
+      }
+      
+      const explanation = await medicalTermService.translateMedicalTerm(term);
+      res.json({ term, explanation });
+    } catch (error) {
+      console.error("Error translating medical term:", error);
+      res.status(500).json({ message: "Failed to translate medical term" });
+    }
+  });
 
   const httpServer = createServer(app);
 
