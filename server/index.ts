@@ -1,8 +1,7 @@
-import 'dotenv/config'; // Load environment variables from .env file
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, authRateLimit, sensitiveRouteRateLimit } from "./middleware/authMiddleware";
+import { hipaaSecurityHeaders, rateLimit } from "./middleware/authMiddleware";
 import { securityService } from "./services/securityService";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -10,18 +9,15 @@ import cookieParser from "cookie-parser";
 // Initialize express app
 const app = express();
 
-// Trust proxy - required for rate limiting to work correctly in the Replit environment
-app.set('trust proxy', 1);
-
 // Security enhancements
 app.use(helmet()); // Adds various security headers
-app.use(securityHeaders); // Add HIPAA-specific security headers
+app.use(hipaaSecurityHeaders); // Add HIPAA-specific security headers
 app.use(cookieParser()); // For secure cookie handling
 
 // Rate limiting for sensitive endpoints
-app.use('/api/login', authRateLimit); // Strict rate limiting for auth endpoints
-app.use('/api/register', authRateLimit); // Strict rate limiting for auth endpoints
-app.use('/api/user', sensitiveRouteRateLimit); // Rate limiting for sensitive data
+app.use('/api/login', rateLimit(15 * 60 * 1000, 5)); // 5 requests per 15 minutes
+app.use('/api/register', rateLimit(60 * 60 * 1000, 3)); // 3 requests per hour
+app.use('/api/user', rateLimit(5 * 60 * 1000, 20)); // 20 requests per 5 minutes
 
 // Standard middleware
 app.use(express.json({ limit: '1mb' })); // Limit body size to prevent DoS attacks

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -35,33 +34,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
+  // Check if the user is authenticated on mount
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        // For development, initialize with a demo user
-        const demoUser = {
-          id: 1,
-          username: "demo_user",
-          displayName: "Demo User",
-        };
-        
-        setUser(demoUser);
-        // Store a demo token
-        const demoToken = 'demo_token';
-        localStorage.setItem('auth_token', demoToken);
-        setToken(demoToken);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem('auth_token');
-      } finally {
-        setIsLoading(false);
+    const checkAuth = async () => {
+      if (token) {
+        try {
+          const response = await fetch('/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // Token is invalid or expired
+            localStorage.removeItem('auth_token');
+            setToken(null);
+          }
+        } catch (error) {
+          console.error('Authentication check failed:', error);
+          localStorage.removeItem('auth_token');
+          setToken(null);
+        }
       }
+      setIsLoading(false);
     };
 
-    initAuth();
-  }, []);
+    checkAuth();
+  }, [token]);
 
   const login = async (username: string, password: string) => {
     try {
@@ -74,6 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ username, password }),
       });
 
+      // Store token in localStorage
       localStorage.setItem('auth_token', response.token);
       setToken(response.token);
       setUser(response.user);
@@ -105,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ username, password, displayName }),
       });
 
+      // Store token in localStorage
       localStorage.setItem('auth_token', response.token);
       setToken(response.token);
       setUser(response.user);

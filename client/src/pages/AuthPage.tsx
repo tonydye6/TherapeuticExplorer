@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/components/security/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -37,11 +37,10 @@ const AuthPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to home if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      setLocation('/');
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
+  if (isAuthenticated && !isLoading) {
+    setLocation('/');
+    return null;
+  }
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginForm({
