@@ -70,10 +70,18 @@ export default function AddTreatmentDialog({
 
   const createTreatmentMutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      return await apiRequest("/api/treatments", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
+      console.log("Sending treatment data to API:", values);
+      try {
+        const response = await apiRequest("/api/treatments", {
+          method: "POST",
+          body: JSON.stringify(values),
+        });
+        console.log("API response:", response);
+        return response;
+      } catch (error) {
+        console.error("API error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/treatments"] });
@@ -285,8 +293,12 @@ export default function AddTreatmentDialog({
                 Cancel
               </Button>
               <Button 
-                type="submit" 
+                type="button" 
                 disabled={createTreatmentMutation.isPending}
+                onClick={() => {
+                  console.log("Manual submit clicked");
+                  form.handleSubmit(onSubmit)();
+                }}
               >
                 {createTreatmentMutation.isPending ? "Adding..." : "Add Treatment"}
               </Button>
