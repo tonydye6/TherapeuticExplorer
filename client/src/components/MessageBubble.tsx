@@ -66,8 +66,15 @@ export default function MessageBubble({
   sources = [],
   treatments = [],
   clinicalTrials = [],
-  researchSummary
+  researchSummary,
+  modelUsed
 }: MessageBubbleProps) {
+  // Use state to track whether structured data is expanded
+  const [expandStructured, setExpandStructured] = useState(false);
+  
+  // Try to parse structured research content from Gemini responses
+  const structuredContent = modelUsed === "gemini" ? parseResearchContent(content) : null;
+  
   // Extract structured parts from markdown if content contains them
   // This is a simplified approach - in a real app, you'd use a proper markdown parser
 
@@ -117,10 +124,35 @@ export default function MessageBubble({
             : "bg-white text-gray-800"
         )}
       >
-        <div 
-          className={isUser ? "" : "mb-4"} 
-          dangerouslySetInnerHTML={{ __html: processText(content) }} 
-        />
+        {/* Model badge - only show for assistant messages and if model is specified */}
+        {!isUser && modelUsed && (
+          <div className="flex justify-between items-center mb-3">
+            <ModelBadge modelType={modelUsed} />
+          </div>
+        )}
+        
+        {/* Regular content when it's not a Gemini deep research response */}
+        {(!structuredContent || !expandStructured) && (
+          <div 
+            className={isUser ? "" : "mb-4"} 
+            dangerouslySetInnerHTML={{ __html: processText(content) }} 
+          />
+        )}
+        
+        {/* Structured content for Gemini deep research (if available) */}
+        {structuredContent && expandStructured && (
+          <ResearchTabs content={structuredContent} />
+        )}
+        
+        {/* Toggle button to switch between text view and structured view (only for Gemini responses) */}
+        {structuredContent && (
+          <button 
+            onClick={() => setExpandStructured(!expandStructured)}
+            className="text-xs text-blue-600 hover:text-blue-800 mt-2 mb-3 underline"
+          >
+            {expandStructured ? "View as text" : "View structured research data"}
+          </button>
+        )}
         
         {/* Treatments section */}
         {treatments && treatments.length > 0 && (

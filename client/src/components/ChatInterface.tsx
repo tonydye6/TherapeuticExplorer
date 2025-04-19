@@ -88,6 +88,7 @@ export default function ChatInterface({ title, description }: ChatInterfaceProps
             role={message.role}
             content={message.content}
             sources={message.sources}
+            modelUsed={message.modelUsed}
           />
         ))}
         
