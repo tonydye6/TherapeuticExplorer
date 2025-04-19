@@ -1,28 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { hipaaSecurityHeaders, rateLimit } from "./middleware/authMiddleware";
-import { securityService } from "./services/securityService";
-import helmet from "helmet";
-import cookieParser from "cookie-parser";
 
-// Initialize express app
 const app = express();
-
-// Security enhancements
-app.use(helmet({
-  contentSecurityPolicy: false, // We'll handle CSP in our own middleware
-})); 
-app.use(hipaaSecurityHeaders); // Add HIPAA-specific security headers for CSP
-app.use(cookieParser()); // For secure cookie handling
-
-// Rate limiting for sensitive endpoints
-app.use('/api/login', rateLimit(15 * 60 * 1000, 5)); // 5 requests per 15 minutes
-app.use('/api/register', rateLimit(60 * 60 * 1000, 3)); // 3 requests per hour
-app.use('/api/user', rateLimit(5 * 60 * 1000, 20)); // 20 requests per 5 minutes
-
-// Standard middleware
-app.use(express.json({ limit: '1mb' })); // Limit body size to prevent DoS attacks
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
