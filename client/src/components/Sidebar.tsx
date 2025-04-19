@@ -16,7 +16,8 @@ import {
   BarChart3,
   AlertTriangle,
   Calendar,
-  Heart
+  Heart,
+  Languages
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -32,6 +33,7 @@ export default function Sidebar() {
     { href: "/side-effect-analyzer", label: "Side Effect Analyzer", icon: <AlertTriangle className="h-5 w-5" /> },
     { href: "/treatment-timeline", label: "Treatment Timeline", icon: <Calendar className="h-5 w-5" /> },
     { href: "/treatment-companion", label: "Treatment Companion", icon: <Heart className="h-5 w-5" /> },
+    { href: "/medical-translator", label: "Medical Translator", icon: <Languages className="h-5 w-5" /> },
     { href: "/clinical-trials", label: "Clinical Trials", icon: <FlaskConical className="h-5 w-5" /> },
     { href: "/preferences", label: "Preferences", icon: <Settings className="h-5 w-5" /> },
     { href: "/help", label: "Help & Support", icon: <HelpCircle className="h-5 w-5" /> },

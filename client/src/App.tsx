@@ -17,6 +17,7 @@ import TreatmentPredictor from "./pages/TreatmentPredictor";
 import SideEffectAnalyzer from "./pages/SideEffectAnalyzer";
 import TreatmentTimelinePage from "./pages/TreatmentTimelinePage";
 import TreatmentCompanionPage from "./pages/TreatmentCompanionPage";
+import MedicalTerminologyTranslator from "./pages/MedicalTerminologyTranslator";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider } from "./components/security/AuthProvider";
 import { ProtectedRoute } from "./components/security/ProtectedRoute";
@@ -42,6 +43,7 @@ function Router() {
               <Route path="/clinical-trials" component={ClinicalTrials} />
               <Route path="/documents" component={Documents} />
               <Route path="/semantic-search" component={SemanticSearch} />
+              <Route path="/medical-translator" component={MedicalTerminologyTranslator} />
               <Route path="/preferences" component={Preferences} />
               <Route path="/help" component={Help} />
               <Route component={NotFound} />
