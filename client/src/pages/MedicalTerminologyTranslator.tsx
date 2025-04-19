@@ -1,8 +1,13 @@
-import MedicalTermTranslator from '@/components/MedicalTermTranslator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Lightbulb, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 
 const MedicalTerminologyTranslatorPage = () => {
+  console.log("Rendering MedicalTerminologyTranslator page");
+  const [inputText, setInputText] = useState('');
+  
   return (
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="mb-8">
@@ -65,7 +70,26 @@ const MedicalTerminologyTranslatorPage = () => {
         </Card>
       </div>
       
-      <MedicalTermTranslator />
+      <div className="border p-4 mb-8 rounded-md bg-amber-50">
+        <p className="font-medium">Simple Test Component</p>
+        <p>If you can see this text, basic rendering is working.</p>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h2 className="text-2xl font-semibold mb-4">Translate Medical Text</h2>
+        <div className="space-y-4">
+          <Textarea 
+            placeholder="Enter medical text to translate..." 
+            className="min-h-32" 
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+          <div className="flex justify-between">
+            <Button>Translate Text</Button>
+            <Button variant="outline" onClick={() => setInputText('')}>Clear</Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
