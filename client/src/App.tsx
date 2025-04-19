@@ -30,35 +30,23 @@ function Router() {
   
   return (
     <Switch>
-      {/* Super simple test page with no other dependencies */}
-      <Route path="/simple-test" component={SimpleTestPage} />
-      
-      {/* Direct access to Medical Translator (no Layout component) */}
-      <Route path="/direct-translator" component={MedicalTerminologyTranslator} />
-      
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
       <Route path="/public-test" component={PublicTestPage} />
+      <Route path="/simple-test" component={SimpleTestPage} />
       
-      {/* Skip Layout to test if it's causing issues */}
-      <Route path="/no-layout">
-        <Switch>
-          <Route path="/no-layout/research" component={ResearchAssistant} />
-          <Route path="/no-layout/translator" component={MedicalTerminologyTranslator} />
-          <Route path="/no-layout/test" component={TestPage} />
-        </Switch>
-      </Route>
-      
-      {/* Original routes with Layout */}
+      {/* Protected Routes */}
       <Route path="/">
-        <Layout>
-          <Switch>
-            <Route path="/" component={ResearchAssistant} />
-            <Route path="/saved-research" component={SavedResearch} />
-            <Route path="/treatment-tracker" component={TreatmentTracker} />
-            <Route path="/treatment-predictor" component={TreatmentPredictor} />
-            <Route path="/side-effect-analyzer" component={SideEffectAnalyzer} />
-            <Route path="/treatment-timeline" component={TreatmentTimelinePage} />
+        <ProtectedRoute>
+          <Layout>
+            <Switch>
+              <Route path="/" component={ResearchAssistant} />
+              <Route path="/saved-research" component={SavedResearch} />
+              <Route path="/treatment-tracker" component={TreatmentTracker} />
+              <Route path="/treatment-predictor" component={TreatmentPredictor} />
+              <Route path="/side-effect-analyzer" component={SideEffectAnalyzer} />
+              <Route path="/treatment-timeline" component={TreatmentTimelinePage} />
+              <Route path="/direct-translator" component={MedicalTerminologyTranslator} />
             <Route path="/treatment-companion" component={TreatmentCompanionPage} />
             <Route path="/clinical-trials" component={ClinicalTrials} />
             <Route path="/documents" component={Documents} />
