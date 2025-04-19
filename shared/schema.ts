@@ -143,6 +143,50 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   tags: true,
 });
 
+// Define table relations
+export const usersRelations = relations(users, ({ many }) => ({
+  messages: many(messages),
+  researchItems: many(researchItems),
+  treatments: many(treatments),
+  savedTrials: many(savedTrials),
+  documents: many(documents),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  user: one(users, {
+    fields: [messages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const researchItemsRelations = relations(researchItems, ({ one }) => ({
+  user: one(users, {
+    fields: [researchItems.userId],
+    references: [users.id],
+  }),
+}));
+
+export const treatmentsRelations = relations(treatments, ({ one }) => ({
+  user: one(users, {
+    fields: [treatments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const savedTrialsRelations = relations(savedTrials, ({ one }) => ({
+  user: one(users, {
+    fields: [savedTrials.userId],
+    references: [users.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  user: one(users, {
+    fields: [documents.userId],
+    references: [users.id],
+  }),
+}));
+
 // Define types for easy use in application
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
