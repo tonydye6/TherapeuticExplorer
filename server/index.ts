@@ -10,6 +10,9 @@ import cookieParser from "cookie-parser";
 // Initialize express app
 const app = express();
 
+// Trust proxy - required for rate limiting to work correctly in the Replit environment
+app.set('trust proxy', 1);
+
 // Security enhancements
 app.use(helmet()); // Adds various security headers
 app.use(securityHeaders); // Add HIPAA-specific security headers

@@ -18,6 +18,8 @@ import SideEffectAnalyzer from "./pages/SideEffectAnalyzer";
 import TreatmentTimelinePage from "./pages/TreatmentTimelinePage";
 import TreatmentCompanionPage from "./pages/TreatmentCompanionPage";
 import MedicalTerminologyTranslator from "./pages/MedicalTerminologyTranslator";
+import TestPage from "./pages/TestPage";
+import PublicTestPage from "./pages/PublicTestPage";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider } from "./components/security/AuthProvider";
 import { ProtectedRoute } from "./components/security/ProtectedRoute";
@@ -25,18 +27,20 @@ import { ProtectedRoute } from "./components/security/ProtectedRoute";
 function Router() {
   console.log("Rendering Router function");
   
+  // Using empty fragments to capture console logs
+  console.log("Rendering / route");
+  
   return (
     <Switch>
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
+      <Route path="/public-test" component={PublicTestPage} />
       
       {/* Protected Routes */}
       <Route path="/">
-        {console.log("Rendering / route")}
         <ProtectedRoute>
-          {console.log("Rendering inside ProtectedRoute")}
           <Layout>
-            {console.log("Rendering inside Layout")}
+            <></>
             <Switch>
               <Route path="/" component={ResearchAssistant} />
               <Route path="/saved-research" component={SavedResearch} />
@@ -49,6 +53,7 @@ function Router() {
               <Route path="/documents" component={Documents} />
               <Route path="/semantic-search" component={SemanticSearch} />
               <Route path="/medical-translator" component={MedicalTerminologyTranslator} />
+              <Route path="/test" component={TestPage} />
               <Route path="/preferences" component={Preferences} />
               <Route path="/help" component={Help} />
               <Route component={NotFound} />
