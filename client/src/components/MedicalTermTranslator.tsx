@@ -21,8 +21,13 @@ const MedicalTermTranslator = () => {
   // Mutation for translating full medical text
   const translateTextMutation = useMutation({
     mutationFn: async (text: string) => {
-      const res = await apiRequest('POST', '/api/medical-terms/translate-text', { text });
-      const data = await res.json();
+      const data = await apiRequest<{ translatedText: string }>('/api/medical-terms/translate-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
       return data.translatedText;
     },
     onSuccess: (data) => {
@@ -36,8 +41,13 @@ const MedicalTermTranslator = () => {
   // Mutation for translating single medical terms
   const translateTermMutation = useMutation({
     mutationFn: async (term: string) => {
-      const res = await apiRequest('POST', '/api/medical-terms/translate-term', { term });
-      const data = await res.json();
+      const data = await apiRequest<{ explanation: string }>('/api/medical-terms/translate-term', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ term }),
+      });
       return data.explanation;
     },
     onSuccess: (data) => {
