@@ -17,11 +17,11 @@
   @apply rounded px-0.5 py-0.5 cursor-pointer transition-colors hover:opacity-90;
 }
 
-.medical-term-Diagnoses, .medical-term-diagnosis {
+.medical-term-Diagnoses, .medical-term-diagnosis, .medical-term-DIAGNOSIS {
   @apply bg-red-100 text-red-800;
 }
 
-.medical-term-Medications, .medical-term-medication {
+.medical-term-Medications, .medical-term-medication, .medical-term-MEDICATION {
   @apply bg-blue-100 text-blue-800;
 }
 
@@ -33,11 +33,11 @@
   @apply bg-purple-100 text-purple-800;
 }
 
-.medical-term-Lab.tests, .medical-term-lab_test {
+.medical-term-Lab, .medical-term-lab_test {
   @apply bg-green-100 text-green-800;
 }
 
-.medical-term-Vital.signs, .medical-term-vital_sign {
+.medical-term-Vital, .medical-term-vital_sign {
   @apply bg-teal-100 text-teal-800;
 }
 
@@ -45,15 +45,15 @@
   @apply bg-orange-100 text-orange-800;
 }
 
-.medical-term-Genetic.markers, .medical-term-genetic_marker {
+.medical-term-Genetic, .medical-term-genetic_marker {
   @apply bg-pink-100 text-pink-800;
 }
 
-.medical-term-Symptoms, .medical-term-symptom {
+.medical-term-Symptom, .medical-term-symptom {
   @apply bg-yellow-100 text-yellow-800;
 }
 
-.medical-term-Medical.devices, .medical-term-medical_device {
+.medical-term-Medical, .medical-term-medical_device {
   @apply bg-gray-100 text-gray-800;
 }
 
