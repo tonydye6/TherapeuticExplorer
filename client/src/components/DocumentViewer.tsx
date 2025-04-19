@@ -195,7 +195,7 @@ const DocumentViewer = ({ documentId, isOpen, onClose }: DocumentViewerProps) =>
                   <div className="bg-gray-50 p-4 rounded-md">
                     <h3 className="text-lg font-medium mb-2">Extracted Data</h3>
                     <pre className="text-sm overflow-auto p-4 bg-gray-100 rounded-md">
-                      {JSON.stringify(document.parsedContent, null, 2)}
+                      {document.parsedContent ? JSON.stringify(document.parsedContent, null, 2) : "No structured data available"}
                     </pre>
                   </div>
                 </TabsContent>
