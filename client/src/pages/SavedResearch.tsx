@@ -10,12 +10,15 @@ import { Search, Filter, BookOpen, FlaskRound, FlaskConical, Star } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ResearchSummaryCard from "@/components/ResearchSummaryCard";
+import ResearchDetailsDialog from "@/components/ResearchDetailsDialog";
 
 export default function SavedResearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [evidenceFilter, setEvidenceFilter] = useState("all");
   const [favoritesTab, setFavoritesTab] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -79,6 +82,18 @@ export default function SavedResearch() {
   // Toggle favorite handler
   const handleToggleFavorite = (id: number) => {
     toggleFavoriteMutation.mutate(id);
+  };
+  
+  // Open dialog with selected research item
+  const handleOpenDetails = (item: ResearchItem) => {
+    setSelectedItem(item);
+    setIsDialogOpen(true);
+  };
+  
+  // Close dialog
+  const handleCloseDetails = () => {
+    setIsDialogOpen(false);
+    setSelectedItem(null);
   };
   
   // Helper function for item icons
@@ -198,7 +213,7 @@ export default function SavedResearch() {
                         <span className="text-xs text-gray-500">
                           {new Date(item.dateAdded).toLocaleDateString()}
                         </span>
-                        <Button variant="outline" size="sm">View Details</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleOpenDetails(item)}>View Details</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -237,7 +252,7 @@ export default function SavedResearch() {
                           <span className="text-xs text-gray-500">
                             {new Date(item.dateAdded).toLocaleDateString()}
                           </span>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOpenDetails(item)}>View Details</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -277,7 +292,7 @@ export default function SavedResearch() {
                           <span className="text-xs text-gray-500">
                             {new Date(item.dateAdded).toLocaleDateString()}
                           </span>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOpenDetails(item)}>View Details</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -317,7 +332,7 @@ export default function SavedResearch() {
                           <span className="text-xs text-gray-500">
                             {new Date(item.dateAdded).toLocaleDateString()}
                           </span>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOpenDetails(item)}>View Details</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -357,7 +372,7 @@ export default function SavedResearch() {
                           <span className="text-xs text-gray-500">
                             {new Date(item.dateAdded).toLocaleDateString()}
                           </span>
-                          <Button variant="outline" size="sm">View Details</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOpenDetails(item)}>View Details</Button>
                         </div>
                       </CardContent>
                     </Card>
