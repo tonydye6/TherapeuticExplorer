@@ -1,6 +1,8 @@
 import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
 import useMobile from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
+import LoginButton from "./LoginButton";
 import {
   MessageSquare,
   BookOpen,
@@ -26,6 +28,7 @@ interface SidebarProps {
 export default function Sidebar({ closeSidebar }: SidebarProps) {
   const [location] = useLocation();
   const isMobile = useMobile();
+  const { user, isAuthenticated } = useAuth();
 
   const navigationItems = [
     { href: "/", label: "Research Assistant", icon: <MessageSquare className="h-5 w-5" /> },
@@ -86,18 +89,36 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
 
       {/* User profile */}
       <div className="absolute bottom-0 w-full p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-            <User className="h-6 w-6 text-gray-600" />
+        {isAuthenticated && user ? (
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+              {user.profileImageUrl ? (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt={user.username} 
+                  className="h-10 w-10 rounded-full object-cover" 
+                />
+              ) : (
+                <User className="h-6 w-6 text-gray-600" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                {user.displayName || user.username}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user.email && user.email}
+              </p>
+            </div>
+            <Link href="/preferences">
+              <button className="text-gray-400 hover:text-gray-600">
+                <SlidersHorizontal className="h-5 w-5" />
+              </button>
+            </Link>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">Matt Culligan</p>
-            <p className="text-xs text-gray-500">Patient</p>
-          </div>
-          <button className="text-gray-400 hover:text-gray-600">
-            <SlidersHorizontal className="h-5 w-5" />
-          </button>
-        </div>
+        ) : (
+          <LoginButton />
+        )}
       </div>
     </div>
   );
