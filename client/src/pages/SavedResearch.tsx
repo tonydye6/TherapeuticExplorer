@@ -295,9 +295,21 @@ export default function SavedResearch() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {clinicalTrialItems?.map((item) => (
                     <Card key={item.id} className="overflow-hidden">
-                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center space-y-0 gap-2">
-                        <FlaskConical className="h-5 w-5 text-green-500" />
-                        <CardTitle className="text-base">{item.title}</CardTitle>
+                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between space-y-0">
+                        <div className="flex items-center gap-2">
+                          <FlaskConical className="h-5 w-5 text-green-500" />
+                          <CardTitle className="text-base">{item.title}</CardTitle>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleToggleFavorite(item.id)}
+                          className="h-8 w-8 p-0 rounded-full"
+                        >
+                          <Star 
+                            className={`h-5 w-5 ${item.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                          />
+                        </Button>
                       </CardHeader>
                       <CardContent className="p-4">
                         <p className="text-sm line-clamp-3">{item.content}</p>
@@ -323,9 +335,21 @@ export default function SavedResearch() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {literatureItems?.map((item) => (
                     <Card key={item.id} className="overflow-hidden">
-                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center space-y-0 gap-2">
-                        <BookOpen className="h-5 w-5 text-amber-500" />
-                        <CardTitle className="text-base">{item.title}</CardTitle>
+                      <CardHeader className="bg-gray-50 py-3 flex flex-row items-center justify-between space-y-0">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-5 w-5 text-amber-500" />
+                          <CardTitle className="text-base">{item.title}</CardTitle>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleToggleFavorite(item.id)}
+                          className="h-8 w-8 p-0 rounded-full"
+                        >
+                          <Star 
+                            className={`h-5 w-5 ${item.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                          />
+                        </Button>
                       </CardHeader>
                       <CardContent className="p-4">
                         <p className="text-sm line-clamp-3">{item.content}</p>
