@@ -81,7 +81,7 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 // Saved research items
 export const researchItems = pgTable("research_items", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
   title: text("title").notNull(),
   content: text("content").notNull(),
   sourceType: text("source_type").notNull(), // 'pubmed', 'book', 'clinical_trial', etc.
@@ -108,7 +108,7 @@ export const insertResearchItemSchema = createInsertSchema(researchItems).pick({
 // Treatments
 export const treatments = pgTable("treatments", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
   name: text("name").notNull(),
   type: text("type").notNull(), // 'drug', 'radiation', 'surgical', etc.
   startDate: timestamp("start_date"),
@@ -134,7 +134,7 @@ export const insertTreatmentSchema = createInsertSchema(treatments).pick({
 // Clinical trials
 export const savedTrials = pgTable("saved_trials", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
   trialId: text("trial_id").notNull(), // NCT number
   title: text("title").notNull(),
   phase: text("phase"),
@@ -159,7 +159,7 @@ export const insertSavedTrialSchema = createInsertSchema(savedTrials).pick({
 // Documents
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
   title: text("title").notNull(),
   type: text("type").notNull(), // 'lab_report', 'imaging', 'notes', 'book'
   content: text("content"),
