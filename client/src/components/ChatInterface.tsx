@@ -93,16 +93,16 @@ export default function ChatInterface({
         response = await onSendMessage(userMessage.content.text || "");
       } else {
         // Default API call if no custom handler provided
-        const result = await apiRequest("POST", "/api/message", { 
-          content: userMessage.content.text,
-          preferredModel: preferredModel
+        response = await apiRequest('/api/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: userMessage.content.text,
+            preferredModel: preferredModel
+          })
         });
-        
-        if (!result.ok) {
-          throw new Error("Failed to send message");
-        }
-        
-        response = await result.json();
       }
       
       // Replace the loading message with the actual response

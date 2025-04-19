@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Lightbulb, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ModelType } from "@shared/schema";
 import { 
   Card, 
   CardContent, 
@@ -80,6 +81,7 @@ export default function ResearchAssistant() {
           description="Ask questions about esophageal cancer treatments, research, and more"
           inputValue={inputValue}
           onInputChange={setInputValue}
+          preferredModel={ModelType.GEMINI} // Specify Gemini as the preferred model for deep research
         />
       </div>
       
