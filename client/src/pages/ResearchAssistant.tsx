@@ -65,7 +65,7 @@ export default function ResearchAssistant() {
   return (
     <div className="flex flex-col h-full">
       {isMobile ? (
-        // Mobile view remains largely unchanged
+        // Mobile view remains unchanged
         <div className="flex flex-col h-full">
           <div className="flex-1">
             <ChatInterface 
@@ -99,7 +99,7 @@ export default function ResearchAssistant() {
                       <span className="font-medium">{category.category}</span>
                     </div>
                   </Button>
-                  {openCategory === category.category && ( //Conditional rendering of examples
+                  {openCategory === category.category && (
                     category.examples.map((prompt, promptIdx) => (
                       <Button
                         key={promptIdx}
@@ -119,8 +119,8 @@ export default function ResearchAssistant() {
           </div>
         </div>
       ) : (
-        // Desktop view with new layout
-        <div className="flex flex-col h-full">
+        // Desktop view with right sidebar
+        <div className="flex h-full">
           <div className="flex-1">
             <ChatInterface 
               title="Research Assistant" 
@@ -132,34 +132,42 @@ export default function ResearchAssistant() {
             />
           </div>
 
-          <div className="border-t bg-muted/20 p-4">
-            <div className="flex gap-2 mb-4">
+          {/* Right Sidebar */}
+          <div className="w-80 border-l bg-muted/20 p-4 overflow-y-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Suggested Research Topics</h3>
+            </div>
+
+            <div className="space-y-4">
               {suggestedPrompts.map((category, idx) => (
-                <Collapsible key={idx} open={openCategory === category.category} onOpenChange={(isOpen) => setOpenCategory(isOpen ? category.category : null)}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
+                <div key={idx} className="border rounded-md bg-white overflow-hidden">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start p-3 text-sm"
+                    onClick={() => setOpenCategory(openCategory === category.category ? null : category.category)}
+                  >
+                    <div className="flex items-center gap-2">
                       {category.icon}
-                      {category.category}
-                      <ChevronDown className={`h-4 w-4 transition-transform ${openCategory === category.category ? "transform rotate-180" : ""}`} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="absolute bottom-full mb-2 bg-white border rounded-lg shadow-lg w-[300px] z-10">
-                    <div className="p-2 space-y-1">
-                      {category.examples.map((prompt, promptIdx) => (
-                        <Button
-                          key={promptIdx}
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start text-left"
-                          onClick={() => handleSelectPrompt(prompt)}
-                        >
-                          <ArrowRight className="h-3 w-3 mr-2 flex-shrink-0 text-primary-500" />
-                          <span className="line-clamp-2">{prompt}</span>
-                        </Button>
-                      ))}
+                      <span className="font-medium">{category.category}</span>
+                      <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${openCategory === category.category ? "transform rotate-180" : ""}`} />
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </Button>
+                  <div className={`${openCategory === category.category ? "block" : "hidden"}`}>
+                    {category.examples.map((prompt, promptIdx) => (
+                      <Button
+                        key={promptIdx}
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-left py-3 px-4 text-sm font-normal border-t"
+                        onClick={() => handleSelectPrompt(prompt)}
+                      >
+                        <ArrowRight className="h-3 w-3 mr-2 flex-shrink-0 text-primary-500" />
+                        <span className="line-clamp-2">{prompt}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
