@@ -8,6 +8,7 @@ import {
   vectorEmbeddings,
   type User, 
   type InsertUser,
+  type UpsertUser,
   type Message,
   type InsertMessage,
   type ResearchItem,
@@ -25,11 +26,12 @@ import {
 // Define the complete storage interface for all entities
 export interface IStorage {
   // User methods
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserProfile(id: number, profileData: Partial<User>): Promise<User>;
-  updateUserPreferences(id: number, preferences: any): Promise<User>;
+  updateUserProfile(id: string, profileData: Partial<User>): Promise<User>;
+  updateUserPreferences(id: string, preferences: any): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   
   // Message methods
   getMessages(userId: number): Promise<Message[]>;
@@ -122,8 +124,8 @@ export class MemStorage implements IStorage {
   }
 
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => String(user.id) === id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -133,13 +135,14 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
+    // Use provided id if available, otherwise generate a new one
+    const id = insertUser.id || String(this.userIdCounter++);
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
   }
   
-  async updateUserProfile(id: number, profileData: Partial<User>): Promise<User> {
+  async updateUserProfile(id: string, profileData: Partial<User>): Promise<User> {
     const user = await this.getUser(id);
     
     if (!user) {
@@ -152,7 +155,7 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
   
-  async updateUserPreferences(id: number, preferences: any): Promise<User> {
+  async updateUserPreferences(id: string, preferences: any): Promise<User> {
     const user = await this.getUser(id);
     
     if (!user) {
@@ -170,6 +173,36 @@ export class MemStorage implements IStorage {
     this.users.set(id, updatedUser);
     
     return updatedUser;
+  }
+  
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = await this.getUser(userData.id);
+    
+    if (existingUser) {
+      // Update existing user
+      const updatedUser = { 
+        ...existingUser,
+        ...userData,
+        updatedAt: new Date()
+      };
+      this.users.set(userData.id, updatedUser);
+      return updatedUser;
+    } else {
+      // Create new user
+      const newUser: User = {
+        ...userData,
+        displayName: userData.username,
+        diagnosis: null,
+        diagnosisStage: null,
+        diagnosisDate: null,
+        address: null,
+        preferences: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.users.set(userData.id, newUser);
+      return newUser;
+    }
   }
   
   // Message methods
