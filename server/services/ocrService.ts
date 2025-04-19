@@ -330,7 +330,7 @@ Format your response as valid JSON.
   private stripRtfTags(rtfContent: string): string {
     try {
       // Remove RTF header and control words
-      let text = rtfContent.replace(/\{\\rtf1.*?\\viewkind.*?\\/s, '');
+      let text = rtfContent.replace(/\{\\rtf1.*?\\viewkind.*?\\/g, '');
       
       // Remove other common RTF control words
       text = text.replace(/\\[a-zA-Z0-9]+(-?[0-9]+)?[ ]?/g, '');
