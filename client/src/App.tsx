@@ -13,6 +13,7 @@ import Documents from "./pages/Documents";
 import Preferences from "./pages/Preferences";
 import Help from "./pages/Help";
 import SemanticSearch from "./pages/SemanticSearch";
+import TreatmentPredictor from "./pages/TreatmentPredictor";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/" component={ResearchAssistant} />
         <Route path="/saved-research" component={SavedResearch} />
         <Route path="/treatment-tracker" component={TreatmentTracker} />
+        <Route path="/treatment-predictor" component={TreatmentPredictor} />
         <Route path="/clinical-trials" component={ClinicalTrials} />
         <Route path="/documents" component={Documents} />
         <Route path="/semantic-search" component={SemanticSearch} />

@@ -94,12 +94,12 @@ const TreatmentPredictor = () => {
   // Treatment prediction mutation
   const predictMutation = useMutation({
     mutationFn: async (patientData: PatientFormData) => {
-      return apiRequest<TreatmentPrediction[]>('/api/treatments/predict', {
+      return apiRequest('/api/treatments/predict', {
         method: 'POST',
         body: JSON.stringify({ patientData }),
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: TreatmentPrediction[]) => {
       setPredictions(data);
       setActiveTab('results');
       toast({
@@ -519,8 +519,7 @@ const TreatmentPredictor = () => {
                           </div>
                           <Progress 
                             value={prediction.effectivenessScore} 
-                            className="h-2 mt-2"
-                            indicatorClassName={getEffectivenessColor(prediction.effectivenessScore)}
+                            className={`h-2 mt-2 ${getEffectivenessColor(prediction.effectivenessScore)}`}
                           />
                         </div>
                         
