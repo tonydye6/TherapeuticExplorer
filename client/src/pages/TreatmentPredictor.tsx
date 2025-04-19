@@ -101,11 +101,27 @@ const TreatmentPredictor = () => {
       });
     },
     onSuccess: (data) => {
-      setPredictions(data);
+      // Handle both array response and object response that contains an array
+      let predictionsArray = Array.isArray(data) ? data : [];
+      
+      // If data is an object and not an array, try to extract arrays from it
+      if (!Array.isArray(data) && typeof data === 'object' && data !== null) {
+        // Look for any array property in the response
+        const arrayProps = Object.entries(data)
+          .filter(([_, value]) => Array.isArray(value))
+          .map(([_, value]) => value as TreatmentPrediction[]);
+          
+        if (arrayProps.length > 0) {
+          // Use the first array found in the object
+          predictionsArray = arrayProps[0];
+        }
+      }
+      
+      setPredictions(predictionsArray);
       setActiveTab('results');
       toast({
         title: "Treatment prediction complete",
-        description: `${data.length} potential treatments analyzed for effectiveness.`,
+        description: `${predictionsArray.length} potential treatments analyzed for effectiveness.`,
       });
     },
     onError: (error) => {
