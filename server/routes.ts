@@ -277,6 +277,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get document by ID
+  app.get("/api/documents/:id", async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ message: "Invalid document ID" });
+      }
+      
+      const document = await storage.getDocumentById(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+  
+  // Get document with highlighted medical terms
+  app.get("/api/documents/:id/highlight", async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ message: "Invalid document ID" });
+      }
+      
+      const document = await storage.getDocumentById(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // If no content, return empty response
+      if (!document.content) {
+        return res.json({ html: "" });
+      }
+      
+      // Process the document content with medical term highlighting
+      const result = await medicalTermService.highlightMedicalTerms(document.content);
+      
+      res.json({ html: result.highlightedText });
+    } catch (error) {
+      console.error("Error highlighting medical terms:", error);
+      res.status(500).json({ message: "Failed to highlight medical terms" });
+    }
+  });
+  
   app.post("/api/documents", async (req, res) => {
     try {
       const documentData = insertDocumentSchema.parse({

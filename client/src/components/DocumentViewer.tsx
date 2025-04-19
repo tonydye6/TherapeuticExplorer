@@ -143,7 +143,7 @@ const DocumentViewer = ({ documentId, isOpen, onClose }: DocumentViewerProps) =>
               <TabsList className="mb-4">
                 <TabsTrigger value="highlighted">Highlighted Terms</TabsTrigger>
                 <TabsTrigger value="original">Original Document</TabsTrigger>
-                {document?.parsedContent && <TabsTrigger value="structured">Structured Data</TabsTrigger>}
+                {document?.parsedContent ? <TabsTrigger value="structured">Structured Data</TabsTrigger> : null}
               </TabsList>
 
               <TabsContent value="highlighted" className="h-full overflow-auto">
