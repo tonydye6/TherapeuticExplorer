@@ -56,7 +56,7 @@ const sampleSideEffectData = [
 export default function TreatmentTracker() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  
+
   // Fetch treatments from API
   const { data: treatments, isLoading, error } = useQuery<Treatment[]>({
     queryKey: ['/api/treatments'],
@@ -72,7 +72,7 @@ export default function TreatmentTracker() {
       }
     },
   });
-  
+
   // Format dates for charts
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -192,12 +192,12 @@ export default function TreatmentTracker() {
     console.log("Event clicked:", event);
     // In a real app, you might show a modal with details or navigate to a detail page
   };
-  
+
   // Open add treatment dialog
   const openAddTreatmentDialog = () => {
     setIsAddDialogOpen(true);
   };
-  
+
   // Close add treatment dialog
   const closeAddTreatmentDialog = () => {
     setIsAddDialogOpen(false);
@@ -222,7 +222,7 @@ export default function TreatmentTracker() {
             </Button>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Current Treatment Panel */}
           <Card className="lg:col-span-2">
@@ -239,6 +239,16 @@ export default function TreatmentTracker() {
                 <p>Error loading treatments</p>
               ) : treatments && treatments.length > 0 ? (
                 <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={openAddTreatmentDialog}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Treatment
+                    </Button>
+                  </div>
                   {treatments.filter(t => t.active).map((treatment) => (
                     <div key={treatment.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
@@ -248,7 +258,17 @@ export default function TreatmentTracker() {
                             {treatment.type} • Started {new Date(treatment.startDate!).toLocaleDateString()}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm">View Details</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            console.log("Viewing details for treatment:", treatment);
+                            // You can add navigation or modal display logic here
+                            // For now, we'll just log the treatment details
+                          }}
+                        >
+                          View Details
+                        </Button>
                       </div>
                       {treatment.notes && (
                         <p className="mt-2 text-sm">{treatment.notes}</p>
@@ -272,7 +292,7 @@ export default function TreatmentTracker() {
               )}
             </CardContent>
           </Card>
-          
+
           {/* Calendar and Upcoming */}
           <Card>
             <CardHeader className="pb-2">
@@ -288,7 +308,7 @@ export default function TreatmentTracker() {
                 onSelect={setDate}
                 className="rounded-md border mb-4"
               />
-              
+
               <div className="border-t pt-4 mt-2">
                 <h3 className="font-medium mb-2">Upcoming Appointments</h3>
                 <div className="space-y-2">
@@ -315,7 +335,7 @@ export default function TreatmentTracker() {
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Charts and Metrics */}
         {/* Medical Timeline */}
         <div className="space-y-4">
@@ -326,14 +346,14 @@ export default function TreatmentTracker() {
             </h2>
             <Button variant="outline" size="sm">Export Timeline</Button>
           </div>
-          
+
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <MedicalTimeline events={sampleMedicalEvents} onEventClick={handleEventClick} />
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Charts and Metrics */}
         <div className="space-y-6">
           <Tabs defaultValue="effectiveness">
@@ -341,7 +361,7 @@ export default function TreatmentTracker() {
               <TabsTrigger value="effectiveness">Effectiveness Metrics</TabsTrigger>
               <TabsTrigger value="sideEffects">Side Effect Tracker</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="effectiveness" className="pt-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -384,7 +404,7 @@ export default function TreatmentTracker() {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <div className="border rounded-lg p-4 text-center">
                       <p className="text-sm text-gray-500 mb-1">Tumor Marker Change</p>
@@ -405,7 +425,7 @@ export default function TreatmentTracker() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="sideEffects" className="pt-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -450,7 +470,7 @@ export default function TreatmentTracker() {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  
+
                   <div className="mt-6">
                     <h3 className="font-medium mb-3">Management Recommendations</h3>
                     <div className="space-y-3">
@@ -462,7 +482,7 @@ export default function TreatmentTracker() {
                           <li>Stay hydrated and maintain balanced nutrition</li>
                         </ul>
                       </div>
-                      
+
                       <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                         <h4 className="font-medium">For Nausea:</h4>
                         <ul className="list-disc pl-5 text-sm mt-1">
@@ -479,7 +499,7 @@ export default function TreatmentTracker() {
           </Tabs>
         </div>
       </div>
-      
+
       {/* Add Treatment Dialog */}
       <AddTreatmentDialog 
         isOpen={isAddDialogOpen}
