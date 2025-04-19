@@ -1,8 +1,9 @@
 import { db } from "../db";
-import { vectorEmbeddings, type InsertVectorEmbedding } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { vectorEmbeddings, type InsertVectorEmbedding, researchItems } from "@shared/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import OpenAI from "openai";
 import { ResearchItem } from "@shared/schema";
+import { storage } from "../storage";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -74,7 +75,7 @@ class VectorService {
         documentId: documentId || null,
       };
 
-      await db.insert(vectorEmbeddings).values(insertData);
+      await storage.createVectorEmbedding(insertData);
     } catch (error) {
       console.error("Error storing embedding:", error);
       throw new Error("Failed to store embedding");
@@ -92,7 +93,7 @@ class VectorService {
       // Generate embedding for the query
       const queryEmbedding = await this.generateEmbedding(query);
 
-      // Get all embeddings for the user
+      // Get all embeddings for the user's research items
       const allEmbeddings = await db
         .select({
           embedding: vectorEmbeddings.embedding,
@@ -100,10 +101,10 @@ class VectorService {
         })
         .from(vectorEmbeddings)
         .innerJoin(
-          "research_items",
-          eq(vectorEmbeddings.researchItemId, "research_items.id")
+          researchItems,
+          eq(vectorEmbeddings.researchItemId, researchItems.id)
         )
-        .where(eq("research_items.user_id", userId));
+        .where(eq(researchItems.userId, userId));
 
       // Calculate similarity scores
       const scores = allEmbeddings.map((item) => ({
@@ -125,17 +126,18 @@ class VectorService {
       }
 
       // Get the actual research items
-      const researchItems = await db
+      const results = await db
         .select()
-        .from("research_items")
+        .from(researchItems)
         .where(
           and(
-            eq("research_items.user_id", userId),
-            "research_items.id IN (...topResearchItemIds)"
+            eq(researchItems.userId, userId),
+            // Use in operator for proper SQL syntax
+            inArray(researchItems.id, topResearchItemIds)
           )
         );
 
-      return researchItems as ResearchItem[];
+      return results;
     } catch (error) {
       console.error("Error searching similar research items:", error);
       throw new Error("Failed to search similar research items");

@@ -5,6 +5,7 @@ import {
   treatments, 
   savedTrials, 
   documents,
+  vectorEmbeddings,
   type User, 
   type InsertUser,
   type Message,
@@ -16,7 +17,9 @@ import {
   type SavedTrial,
   type InsertSavedTrial,
   type Document,
-  type InsertDocument
+  type InsertDocument,
+  type VectorEmbedding,
+  type InsertVectorEmbedding
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities
@@ -325,6 +328,36 @@ export class MemStorage implements IStorage {
     this.documents.set(id, updatedDocument);
     
     return updatedDocument;
+  }
+
+  // Vector embedding methods
+  private vectorEmbeddings: Map<number, VectorEmbedding> = new Map();
+  private vectorEmbeddingIdCounter: number = 1;
+
+  async getVectorEmbedding(id: number): Promise<VectorEmbedding | undefined> {
+    return this.vectorEmbeddings.get(id);
+  }
+
+  async createVectorEmbedding(insertEmbedding: InsertVectorEmbedding): Promise<VectorEmbedding> {
+    const id = this.vectorEmbeddingIdCounter++;
+    
+    const embedding: VectorEmbedding = {
+      ...insertEmbedding,
+      id
+    };
+    
+    this.vectorEmbeddings.set(id, embedding);
+    return embedding;
+  }
+
+  async getEmbeddingsForResearchItem(researchItemId: number): Promise<VectorEmbedding[]> {
+    return Array.from(this.vectorEmbeddings.values())
+      .filter(embedding => embedding.researchItemId === researchItemId);
+  }
+
+  async getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]> {
+    return Array.from(this.vectorEmbeddings.values())
+      .filter(embedding => embedding.documentId === documentId);
   }
 }
 

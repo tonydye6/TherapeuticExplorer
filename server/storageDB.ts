@@ -181,4 +181,35 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedDocument;
   }
+
+  // Vector embedding methods
+  async getVectorEmbedding(id: number): Promise<VectorEmbedding | undefined> {
+    const [embedding] = await db
+      .select()
+      .from(vectorEmbeddings)
+      .where(eq(vectorEmbeddings.id, id));
+    return embedding;
+  }
+
+  async createVectorEmbedding(insertEmbedding: InsertVectorEmbedding): Promise<VectorEmbedding> {
+    const [embedding] = await db
+      .insert(vectorEmbeddings)
+      .values(insertEmbedding)
+      .returning();
+    return embedding;
+  }
+
+  async getEmbeddingsForResearchItem(researchItemId: number): Promise<VectorEmbedding[]> {
+    return db
+      .select()
+      .from(vectorEmbeddings)
+      .where(eq(vectorEmbeddings.researchItemId, researchItemId));
+  }
+
+  async getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]> {
+    return db
+      .select()
+      .from(vectorEmbeddings)
+      .where(eq(vectorEmbeddings.documentId, documentId));
+  }
 }
