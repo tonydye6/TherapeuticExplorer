@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { ModelType } from '@shared/schema';
 import { aiRouter } from './aiRouter';
 import Anthropic from '@anthropic-ai/sdk';
+import { medicalTermService } from './medicalTermService';
 
 // Promisify fs functions
 const writeFile = promisify(fs.writeFile);
@@ -38,6 +39,8 @@ class OCRService {
   ): Promise<{
     text: string;
     structuredData: any;
+    highlightedText?: string;
+    medicalTerms?: any[];
     confidence: number;
   }> {
     try {
@@ -62,16 +65,46 @@ class OCRService {
         const result = await this.processImage(fileBuffer, filename);
         extractedText = result.text;
         confidence = result.confidence;
+      } else if (fileType.includes('docx') || fileType.includes('doc')) {
+        // Process Word document - dynamically import mammoth
+        try {
+          const mammoth = await import('mammoth');
+          const result = await mammoth.extractRawText({ buffer: fileBuffer });
+          extractedText = result.value;
+          confidence = 0.95; // Word docs typically extract with high confidence
+        } catch (error) {
+          console.error('Error processing Word document:', error);
+          throw new Error('Failed to process Word document. Make sure mammoth.js is installed.');
+        }
+      } else if (fileType.includes('csv') || fileType.includes('text/plain') || fileType.includes('txt')) {
+        // Process plain text or CSV - simple UTF-8 decoding
+        extractedText = fileBuffer.toString('utf-8');
+        confidence = 1.0; // Perfect confidence for text files
+      } else if (fileType.includes('rtf')) {
+        // Process RTF files - this would need a specialized library
+        try {
+          // Convert RTF to plaintext (simplified approach)
+          extractedText = this.stripRtfTags(fileBuffer.toString('utf-8'));
+          confidence = 0.85;
+        } catch (error) {
+          console.error('Error processing RTF document:', error);
+          throw new Error('Failed to process RTF document');
+        }
       } else {
         throw new Error(`Unsupported file type: ${fileType}`);
       }
 
       // Extract structured medical data from the text
       const structuredData = await this.extractMedicalData(extractedText);
+      
+      // Highlight medical terms
+      const { highlightedText, terms } = await medicalTermService.highlightMedicalTerms(extractedText);
 
       return {
         text: extractedText,
         structuredData,
+        highlightedText,
+        medicalTerms: terms,
         confidence,
       };
     } catch (error) {
@@ -284,6 +317,43 @@ Format your response as valid JSON.
   }
 
   /**
+   * Convert RTF to plain text by stripping RTF tags
+   * This is a simplified method - a full implementation would use a dedicated RTF parser
+   */
+  private stripRtfTags(rtfContent: string): string {
+    try {
+      // Remove RTF header and control words
+      let text = rtfContent.replace(/\{\\rtf1.*?\\viewkind.*?\\/s, '');
+      
+      // Remove other common RTF control words
+      text = text.replace(/\\[a-zA-Z0-9]+(-?[0-9]+)?[ ]?/g, '');
+      text = text.replace(/\\[\'\"\*\{\}]/g, '');
+      
+      // Remove curly braces
+      text = text.replace(/\{|\}/g, '');
+      
+      // Replace escaped line breaks with actual line breaks
+      text = text.replace(/\\par\s/g, '\n');
+      
+      // Handle special characters
+      text = text.replace(/\\'([0-9a-fA-F]{2})/g, (match, hex) => {
+        return String.fromCharCode(parseInt(hex, 16));
+      });
+      
+      // Handle Unicode characters
+      text = text.replace(/\\u([0-9]+)\?/g, (match, decimal) => {
+        return String.fromCharCode(parseInt(decimal, 10));
+      });
+      
+      return text.trim();
+    } catch (error) {
+      console.error('Error stripping RTF tags:', error);
+      // If RTF parsing fails, return original content with a warning
+      return rtfContent + "\n[RTF parsing error - raw content shown]";
+    }
+  }
+  
+  /**
    * Guess the document type based on content
    */
   private guessDocumentType(text: string): string {
@@ -308,6 +378,14 @@ Format your response as valid JSON.
       return 'Progress Note';
     } else if (lowerText.includes('consultation') || lowerText.includes('consult')) {
       return 'Consultation Note';
+    } else if (lowerText.includes('operative') && lowerText.includes('note')) {
+      return 'Operative Note';
+    } else if (lowerText.includes('endoscopy') || lowerText.includes('colonoscopy') || lowerText.includes('gastroscopy')) {
+      return 'Endoscopy Report';
+    } else if (lowerText.includes('biopsy')) {
+      return 'Biopsy Report';
+    } else if (lowerText.includes('genetic') || lowerText.includes('genomic')) {
+      return 'Genetic Report';
     }
     
     return 'Unknown Medical Document';
