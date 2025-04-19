@@ -5,6 +5,7 @@ import { aiRouter } from "./services/aiRouter";
 import { researchService } from "./services/researchService";
 import { clinicalTrialService } from "./services/clinicalTrialService";
 import { documentService } from "./services/documentService";
+import { vectorService } from "./services/vectorService";
 import { z } from "zod";
 import { 
   insertMessageSchema, 
@@ -85,6 +86,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const researchItem = await storage.createResearchItem(researchData);
+      
+      // Process the research item to generate embeddings
+      try {
+        await vectorService.processResearchItem(researchItem);
+        console.log(`Generated embeddings for research item ${researchItem.id}`);
+      } catch (embeddingError) {
+        // Don't fail the request if embedding generation fails
+        console.error("Error generating embeddings:", embeddingError);
+      }
+      
       res.status(201).json(researchItem);
     } catch (error) {
       console.error("Error creating research item:", error);
@@ -113,6 +124,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error performing research:", error);
       res.status(500).json({ message: "Failed to perform research" });
+    }
+  });
+  
+  // Semantic search route
+  app.post("/api/research/semantic-search", async (req, res) => {
+    try {
+      const { query, userId = 1 } = req.body;
+      
+      if (!query || typeof query !== "string") {
+        return res.status(400).json({ message: "Query parameter is required" });
+      }
+      
+      const results = await vectorService.searchSimilarResearchItems(query, userId);
+      res.json(results);
+    } catch (error) {
+      console.error("Error performing semantic search:", error);
+      res.status(500).json({ message: "Failed to perform semantic search" });
     }
   });
   
@@ -221,6 +249,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const document = await storage.createDocument(documentData);
+      
+      // Only generate embeddings if the document has content
+      if (document.content) {
+        try {
+          // Create a research item entry for this document for vector embeddings
+          const researchItem = await storage.createResearchItem({
+            userId: document.userId,
+            title: document.title,
+            content: document.content,
+            sourceType: 'document',
+            sourceId: document.id.toString(),
+            sourceName: document.type
+          });
+          
+          // Process the research item to generate embeddings
+          await vectorService.processResearchItem(researchItem);
+          console.log(`Generated embeddings for document ${document.id} as research item ${researchItem.id}`);
+        } catch (embeddingError) {
+          // Don't fail the request if embedding generation fails
+          console.error("Error generating embeddings for document:", embeddingError);
+        }
+      }
+      
       res.status(201).json(document);
     } catch (error) {
       console.error("Error creating document:", error);
@@ -244,10 +295,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Document ID and content are required" });
       }
       
+      // Get the analysis from the document service
       const analysis = await documentService.analyzeDocument(content);
       
       // Update document with parsed content
       const document = await storage.updateDocumentParsedContent(documentId, analysis);
+      
+      // Generate embeddings for the parsed content
+      try {
+        // Get existing research items for this document
+        const researchItems = await storage.getResearchItems(document.userId);
+        let researchItem = researchItems.find(item => 
+          item.sourceType === 'document' && item.sourceId === document.id.toString()
+        );
+        
+        // If no research item exists for this document, create one
+        if (!researchItem) {
+          researchItem = await storage.createResearchItem({
+            userId: document.userId,
+            title: `Analysis of ${document.title}`,
+            content: JSON.stringify(analysis),
+            sourceType: 'document_analysis',
+            sourceId: document.id.toString(),
+            sourceName: document.type
+          });
+          console.log(`Created research item ${researchItem.id} for document analysis`);
+        } else {
+          // Update existing research item with new analysis
+          // (not implemented yet, but would be useful for future updates)
+        }
+        
+        // Process the research item to generate embeddings
+        await vectorService.processResearchItem(researchItem);
+        console.log(`Generated embeddings for document analysis ${document.id}`);
+      } catch (embeddingError) {
+        // Don't fail the request if embedding generation fails
+        console.error("Error generating embeddings for document analysis:", embeddingError);
+      }
       
       res.json(document);
     } catch (error) {

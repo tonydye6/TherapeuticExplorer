@@ -93,51 +93,59 @@ class VectorService {
       // Generate embedding for the query
       const queryEmbedding = await this.generateEmbedding(query);
 
-      // Get all embeddings for the user's research items
-      const allEmbeddings = await db
-        .select({
-          embedding: vectorEmbeddings.embedding,
-          researchItemId: vectorEmbeddings.researchItemId,
-        })
-        .from(vectorEmbeddings)
-        .innerJoin(
-          researchItems,
-          eq(vectorEmbeddings.researchItemId, researchItems.id)
-        )
-        .where(eq(researchItems.userId, userId));
-
-      // Calculate similarity scores
-      const scores = allEmbeddings.map((item) => ({
-        researchItemId: item.researchItemId,
-        similarity: this.cosineSimilarity(
-          queryEmbedding,
-          item.embedding as number[]
-        ),
-      }));
-
-      // Sort by similarity and get top 5 research item IDs
-      const topResearchItemIds = scores
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 5)
-        .map((item) => item.researchItemId);
-
-      if (topResearchItemIds.length === 0) {
-        return [];
+      // Get all research items for this user
+      const userResearchItems = await storage.getResearchItems(userId);
+      
+      // Create a map for quick lookup of research items by ID
+      const researchItemsMap = new Map<number, ResearchItem>();
+      userResearchItems.forEach(item => researchItemsMap.set(item.id, item));
+      
+      // Processing data for similarity calculation
+      const embeddingsWithScores: {
+        researchItemId: number;
+        embedding: number[];
+        similarity?: number;
+      }[] = [];
+      
+      // For each research item, get its embeddings
+      for (const item of userResearchItems) {
+        const embeddings = await storage.getEmbeddingsForResearchItem(item.id);
+        
+        // Add each embedding to our processing array
+        embeddings.forEach(embedding => {
+          embeddingsWithScores.push({
+            researchItemId: embedding.researchItemId,
+            embedding: embedding.embedding as number[]
+          });
+        });
       }
+      
+      // Calculate similarity scores
+      embeddingsWithScores.forEach(item => {
+        item.similarity = this.cosineSimilarity(queryEmbedding, item.embedding);
+      });
 
-      // Get the actual research items
-      const results = await db
-        .select()
-        .from(researchItems)
-        .where(
-          and(
-            eq(researchItems.userId, userId),
-            // Use in operator for proper SQL syntax
-            inArray(researchItems.id, topResearchItemIds)
-          )
-        );
-
-      return results;
+      // Sort by similarity and get top 5 research item IDs (removing duplicates)
+      const sortedItems = embeddingsWithScores
+        .sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+      
+      // Get unique research item IDs keeping the highest similarity scores
+      const seen = new Set<number>();
+      const topItems = [];
+      
+      for (const item of sortedItems) {
+        if (!seen.has(item.researchItemId)) {
+          seen.add(item.researchItemId);
+          topItems.push(item);
+          
+          if (topItems.length >= 5) break;
+        }
+      }
+      
+      // Map IDs back to the full research items
+      return topItems
+        .map(item => researchItemsMap.get(item.researchItemId))
+        .filter((item): item is ResearchItem => !!item);
     } catch (error) {
       console.error("Error searching similar research items:", error);
       throw new Error("Failed to search similar research items");
