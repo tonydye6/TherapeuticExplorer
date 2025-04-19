@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Document } from "@shared/schema";
+import DocumentViewer from "../components/DocumentViewer";
 import { 
   Search, 
   Filter, 
@@ -24,6 +25,8 @@ export default function Documents() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   
   // Fetch documents
   const { data: documents, isLoading, error } = useQuery<Document[]>({
@@ -118,6 +121,16 @@ export default function Documents() {
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      {/* Document Viewer */}
+      <DocumentViewer 
+        documentId={selectedDocumentId}
+        isOpen={isViewerOpen}
+        onClose={() => {
+          setIsViewerOpen(false);
+          setSelectedDocumentId(null);
+        }}
+      />
+      
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">My Documents</h1>
@@ -251,7 +264,15 @@ export default function Documents() {
                       </div>
                       <CardContent className="border-t bg-gray-50 p-4">
                         <div className="flex justify-between">
-                          <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1"
+                            onClick={() => {
+                              setSelectedDocumentId(doc.id);
+                              setIsViewerOpen(true);
+                            }}
+                          >
                             <Eye className="h-4 w-4" />
                             View
                           </Button>
@@ -284,7 +305,15 @@ export default function Documents() {
                             Analyzed
                           </span>
                         )}
-                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1"
+                          onClick={() => {
+                            setSelectedDocumentId(doc.id);
+                            setIsViewerOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                           View
                         </Button>
@@ -412,7 +441,15 @@ export default function Documents() {
           </div>
           <CardContent className="border-t bg-gray-50 p-4">
             <div className="flex justify-between">
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={() => {
+                  setSelectedDocumentId(doc.id);
+                  setIsViewerOpen(true);
+                }}
+              >
                 <Eye className="h-4 w-4" />
                 View
               </Button>
@@ -443,7 +480,15 @@ export default function Documents() {
                 Analyzed
               </span>
             )}
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1"
+              onClick={() => {
+                setSelectedDocumentId(doc.id);
+                setIsViewerOpen(true);
+              }}
+            >
               <Eye className="h-4 w-4" />
               View
             </Button>
