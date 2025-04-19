@@ -10,6 +10,7 @@ import { medicalTermService } from "./services/medicalTermService";
 import { ocrService } from "./services/ocrService";
 import { treatmentPredictionService } from "./services/treatmentPredictionService";
 import { sideEffectService } from "./services/sideEffectService";
+import { timelineService } from "./services/timelineService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -782,6 +783,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error analyzing side effects:", error);
       res.status(500).json({ 
         message: "Failed to analyze side effects", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Treatment Timeline Route
+  app.post("/api/treatments/timeline", async (req, res) => {
+    try {
+      const { treatmentName, patientFactors } = req.body;
+      
+      if (!treatmentName) {
+        return res.status(400).json({ 
+          message: "Treatment name is required for timeline generation" 
+        });
+      }
+      
+      // Generate treatment timeline
+      const timeline = await timelineService.generateTimeline(
+        treatmentName,
+        patientFactors
+      );
+      
+      res.json(timeline);
+    } catch (error) {
+      console.error("Error generating treatment timeline:", error);
+      res.status(500).json({ 
+        message: "Failed to generate treatment timeline", 
         error: error instanceof Error ? error.message : String(error)
       });
     }
