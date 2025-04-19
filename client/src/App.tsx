@@ -1,40 +1,47 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import SimpleTestPage from "./pages/SimpleTestPage";
-import SimpleMedicalTranslator from "./pages/SimpleMedicalTranslator";
-import EmergencyPage from "./pages/EmergencyPage";
+// Minimal App version with absolute minimum dependencies
+import React from 'react';
 
-function Router() {
-  console.log("Rendering Router function");
-  
-  return (
-    <Switch>
-      {/* Simple Pages */}
-      <Route path="/simple-test" component={SimpleTestPage} />
-      <Route path="/simple-medical" component={SimpleMedicalTranslator} />
-      
-      {/* Default route to the emergency page */}
-      <Route path="/" component={EmergencyPage} />
-      
-      {/* Fallback for any other routes */}
-      <Route component={EmergencyPage} />
-    </Switch>
-  );
-}
-
+// Super minimal App component with no routing or external dependencies
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        {/* Temporarily remove AuthProvider to bypass authentication issues */}
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div style={{ 
+      padding: '20px', 
+      maxWidth: '800px', 
+      margin: '0 auto', 
+      fontFamily: 'Arial, sans-serif' 
+    }}>
+      <h1 style={{ color: '#1d4ed8', fontSize: '28px', marginBottom: '24px' }}>
+        THRIVE Emergency Mode
+      </h1>
+      
+      <div style={{ 
+        background: '#f0f9ff', 
+        border: '1px solid #bae6fd', 
+        borderRadius: '6px', 
+        padding: '20px', 
+        marginBottom: '24px' 
+      }}>
+        <p style={{ marginBottom: '16px', lineHeight: '1.5' }}>
+          This is an emergency recovery mode with minimal dependencies.
+          We've stripped out all routing and external components to identify rendering issues.
+        </p>
+      </div>
+      
+      <button 
+        onClick={() => alert('Interactive elements work!')}
+        style={{
+          background: '#2563eb',
+          color: 'white',
+          border: 'none',
+          padding: '10px 16px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: 'bold'
+        }}
+      >
+        Test Interactivity
+      </button>
+    </div>
   );
 }
 
