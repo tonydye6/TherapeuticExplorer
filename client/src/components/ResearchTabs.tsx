@@ -1,202 +1,369 @@
-import { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { BookOpen, BarChart2, Compass, Beaker, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Bookmark, ExternalLink, Download, ArrowUpRight } from "lucide-react";
+import ModelBadge from "@/components/ModelBadge";
+import TreatmentComparisonCard, { TreatmentInfo } from "@/components/TreatmentComparisonCard";
+import { ModelType } from "@shared/schema";
 
-type ResearchTheme = {
-  theme: string;
-  evidence_summary: string;
-  research_quality: "high" | "medium" | "low";
-  consensus_level: string;
-};
-
-type ResearchComparison = {
-  aspect: string;
-  approach_a: string;
-  approach_b: string;
-  comparative_analysis: string;
-};
-
-export type DeepResearchContent = {
-  synthesis: string;
-  key_themes?: ResearchTheme[];
-  comparisons?: ResearchComparison[];
-  knowledge_gaps?: string[];
+export type ResearchTabsProps = {
+  content: string;
+  treatments?: TreatmentInfo[];
+  clinicalTrials?: {
+    title: string;
+    phase: string;
+    matchScore: number;
+    location: string;
+    distance: number;
+    id: string;
+    status: string;
+  }[];
   sources?: {
     title: string;
-    authors?: string;
-    journal?: string;
-    year?: string;
-    key_contribution?: string;
+    url?: string;
+    type: string;
+    date?: string;
   }[];
+  modelUsed: ModelType | string;
+  onSaveTreatment?: (treatmentId: string) => void;
+  onSaveSource?: (source: any) => void;
+  onCompareTreatments?: (treatmentIds: string[]) => void;
+  onViewTreatmentDetails?: (treatmentId: string) => void;
+  onViewTrialDetails?: (trialId: string) => void;
 };
 
-interface ResearchTabsProps {
-  content: DeepResearchContent;
-}
-
-export default function ResearchTabs({ content }: ResearchTabsProps) {
-  const [activeTab, setActiveTab] = useState("overview");
-
-  // Extract data from the formatted content
-  const { synthesis, key_themes = [], comparisons = [], knowledge_gaps = [], sources = [] } = content;
-
-  // Determine which tabs to show based on available data
-  const hasThemes = key_themes.length > 0;
-  const hasComparisons = comparisons.length > 0;
-  const hasGaps = knowledge_gaps.length > 0;
-  const hasSources = sources.length > 0;
-
+export default function ResearchTabs({
+  content,
+  treatments = [],
+  clinicalTrials = [],
+  sources = [],
+  modelUsed,
+  onSaveTreatment,
+  onSaveSource,
+  onCompareTreatments,
+  onViewTreatmentDetails,
+  onViewTrialDetails
+}: ResearchTabsProps) {
+  const [comparingTreatments, setComparingTreatments] = React.useState<string[]>([]);
+  
+  // Handle toggling treatment comparison
+  const handleToggleCompare = (treatmentId: string, comparing: boolean) => {
+    if (comparing) {
+      setComparingTreatments(prev => [...prev, treatmentId]);
+    } else {
+      setComparingTreatments(prev => prev.filter(id => id !== treatmentId));
+    }
+  };
+  
+  // Handle comparing selected treatments
+  const handleCompareSelected = () => {
+    if (onCompareTreatments && comparingTreatments.length > 0) {
+      onCompareTreatments(comparingTreatments);
+    }
+  };
+  
+  // Format match score for clinical trials
+  const formatMatchScore = (score: number) => {
+    if (score >= 90) return "Very High";
+    if (score >= 75) return "High";
+    if (score >= 60) return "Moderate";
+    if (score >= 40) return "Low";
+    return "Very Low";
+  };
+  
+  // Get match score color
+  const getMatchScoreColor = (score: number) => {
+    if (score >= 90) return "text-green-600";
+    if (score >= 75) return "text-green-500";
+    if (score >= 60) return "text-yellow-600";
+    if (score >= 40) return "text-orange-500";
+    return "text-red-500";
+  };
+  
+  // Format trial phase for display
+  const formatTrialPhase = (phase: string) => {
+    return phase.replace("Phase ", "Phase ");
+  };
+  
+  // Format distance for display
+  const formatDistance = (distance: number) => {
+    if (distance < 1) {
+      return `${Math.round(distance * 10) / 10} miles`;
+    }
+    return `${Math.round(distance)} miles`;
+  };
+  
+  // Check if we have any additional tabs to show
+  const hasAdditionalTabs = treatments.length > 0 || clinicalTrials.length > 0 || sources.length > 0;
+  
   return (
-    <Tabs defaultValue="overview" className="w-full mt-4" onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-5">
-        <TabsTrigger value="overview" className="text-xs">
-          <BookOpen className="h-3 w-3 mr-1" />
-          Overview
-        </TabsTrigger>
-        <TabsTrigger value="themes" disabled={!hasThemes} className="text-xs">
-          <BarChart2 className="h-3 w-3 mr-1" />
-          Key Themes
-        </TabsTrigger>
-        <TabsTrigger value="comparisons" disabled={!hasComparisons} className="text-xs">
-          <Compass className="h-3 w-3 mr-1" />
-          Comparisons
-        </TabsTrigger>
-        <TabsTrigger value="gaps" disabled={!hasGaps} className="text-xs">
-          <Beaker className="h-3 w-3 mr-1" />
-          Research Gaps
-        </TabsTrigger>
-        <TabsTrigger value="sources" disabled={!hasSources} className="text-xs">
-          <ShieldCheck className="h-3 w-3 mr-1" />
-          Sources
-        </TabsTrigger>
-      </TabsList>
+    <div className="w-full">
+      <div className="mb-2 flex justify-between items-center">
+        <ModelBadge model={modelUsed} />
+        
+        {comparingTreatments.length > 0 && (
+          <Button size="sm" variant="secondary" onClick={handleCompareSelected}>
+            Compare {comparingTreatments.length} {comparingTreatments.length === 1 ? 'Treatment' : 'Treatments'}
+          </Button>
+        )}
+      </div>
       
-      <TabsContent value="overview" className="mt-2">
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Research Synthesis</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-sm">
-            <p>{synthesis}</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="themes" className="mt-2">
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Key Research Themes</CardTitle>
-            <CardDescription className="text-xs">
-              Major patterns and findings across multiple studies
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="space-y-3">
-              {key_themes.map((theme, index) => (
-                <div key={index} className="p-3 rounded border text-sm">
-                  <h4 className="font-medium mb-2">{theme.theme}</h4>
-                  <p className="text-sm text-gray-600 mb-1">{theme.evidence_summary}</p>
-                  <div className="flex space-x-3 mt-2 text-xs">
-                    <div className={cn(
-                      "px-2 py-1 rounded-full",
-                      theme.research_quality === "high" && "bg-green-100 text-green-800",
-                      theme.research_quality === "medium" && "bg-yellow-100 text-yellow-800",
-                      theme.research_quality === "low" && "bg-orange-100 text-orange-800"
-                    )}>
-                      Evidence: {theme.research_quality}
-                    </div>
-                    <div className="px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                      Consensus: {theme.consensus_level}
-                    </div>
-                  </div>
-                </div>
-              ))}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-2">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          {treatments.length > 0 && (
+            <TabsTrigger value="treatments">
+              Treatments
+              {treatments.length > 0 && <Badge variant="secondary" className="ml-1">{treatments.length}</Badge>}
+            </TabsTrigger>
+          )}
+          {clinicalTrials.length > 0 && (
+            <TabsTrigger value="trials">
+              Clinical Trials
+              {clinicalTrials.length > 0 && <Badge variant="secondary" className="ml-1">{clinicalTrials.length}</Badge>}
+            </TabsTrigger>
+          )}
+          {sources.length > 0 && (
+            <TabsTrigger value="sources">
+              Sources
+              {sources.length > 0 && <Badge variant="secondary" className="ml-1">{sources.length}</Badge>}
+            </TabsTrigger>
+          )}
+        </TabsList>
+        
+        <TabsContent value="overview" className="mt-2">
+          <div className="whitespace-pre-line">
+            {content}
+          </div>
+          
+          {/* Show summaries of additional content if available */}
+          {hasAdditionalTabs && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {treatments.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Treatments Found</CardTitle>
+                    <CardDescription>
+                      {treatments.length} treatment options available
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {treatments.slice(0, 3).map((treatment) => (
+                        <li key={treatment.id} className="flex items-center justify-between text-sm">
+                          <span>{treatment.name}</span>
+                          <Badge variant="outline" className="ml-2">{treatment.type}</Badge>
+                        </li>
+                      ))}
+                      {treatments.length > 3 && (
+                        <li className="text-sm text-gray-500 pt-1">+ {treatments.length - 3} more</li>
+                      )}
+                    </ul>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => document.querySelector('[data-value="treatments"]')?.click()}
+                    >
+                      View All Treatments
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {clinicalTrials.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Clinical Trials</CardTitle>
+                    <CardDescription>
+                      {clinicalTrials.length} relevant trials found
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {clinicalTrials.slice(0, 3).map((trial) => (
+                        <li key={trial.id} className="flex items-center justify-between text-sm">
+                          <span className="line-clamp-1 flex-grow">{trial.title}</span>
+                          <Badge variant="outline" className="ml-2 flex-shrink-0">
+                            {formatTrialPhase(trial.phase)}
+                          </Badge>
+                        </li>
+                      ))}
+                      {clinicalTrials.length > 3 && (
+                        <li className="text-sm text-gray-500 pt-1">+ {clinicalTrials.length - 3} more</li>
+                      )}
+                    </ul>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => document.querySelector('[data-value="trials"]')?.click()}
+                    >
+                      View All Trials
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {sources.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Research Sources</CardTitle>
+                    <CardDescription>
+                      {sources.length} sources referenced
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {sources.slice(0, 3).map((source, index) => (
+                        <li key={index} className="flex items-center justify-between text-sm">
+                          <span className="line-clamp-1 flex-grow">{source.title}</span>
+                          <Badge variant="outline" className="ml-2 flex-shrink-0">
+                            {source.type}
+                          </Badge>
+                        </li>
+                      ))}
+                      {sources.length > 3 && (
+                        <li className="text-sm text-gray-500 pt-1">+ {sources.length - 3} more</li>
+                      )}
+                    </ul>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => document.querySelector('[data-value="sources"]')?.click()}
+                    >
+                      View All Sources
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="comparisons" className="mt-2">
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Comparative Analysis</CardTitle>
-            <CardDescription className="text-xs">
-              Side-by-side comparisons of different approaches or findings
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="space-y-3">
-              {comparisons.map((comparison, index) => (
-                <div key={index} className="p-3 rounded border text-sm">
-                  <h4 className="font-medium mb-2">{comparison.aspect}</h4>
-                  <div className="grid md:grid-cols-2 gap-3 mb-3">
-                    <div className="bg-blue-50 p-2 rounded">
-                      <div className="font-medium text-blue-800 mb-1 text-xs">Approach A</div>
-                      <p className="text-sm">{comparison.approach_a}</p>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="treatments" className="mt-2">
+          <div className="mb-4 flex justify-between items-center">
+            <h3 className="text-lg font-medium">Treatment Options</h3>
+            {comparingTreatments.length > 0 && (
+              <Button size="sm" onClick={handleCompareSelected}>
+                Compare Selected
+              </Button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {treatments.map((treatment) => (
+              <TreatmentComparisonCard
+                key={treatment.id}
+                treatment={treatment}
+                isComparing={comparingTreatments.includes(treatment.id)}
+                onCompare={handleToggleCompare}
+                onSave={onSaveTreatment}
+                onViewDetails={onViewTreatmentDetails}
+              />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="trials" className="mt-2">
+          <h3 className="text-lg font-medium mb-4">Clinical Trials</h3>
+          
+          <div className="space-y-4">
+            {clinicalTrials.map((trial) => (
+              <Card key={trial.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between">
+                    <div className="flex-grow pr-4">
+                      <CardTitle className="text-base">{trial.title}</CardTitle>
+                      <CardDescription className="flex items-center mt-1">
+                        <Badge variant={trial.status === 'Recruiting' ? 'success' : 'secondary'} className="mr-2">
+                          {trial.status}
+                        </Badge>
+                        <Badge variant="outline">{formatTrialPhase(trial.phase)}</Badge>
+                      </CardDescription>
                     </div>
-                    <div className="bg-purple-50 p-2 rounded">
-                      <div className="font-medium text-purple-800 mb-1 text-xs">Approach B</div>
-                      <p className="text-sm">{comparison.approach_b}</p>
+                    <div className="text-right">
+                      <div className={`font-medium ${getMatchScoreColor(trial.matchScore)}`}>
+                        {formatMatchScore(trial.matchScore)} Match
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {trial.matchScore}%
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-700 mb-1 text-xs">Analysis</div>
-                    <p className="text-sm text-gray-600">{comparison.comparative_analysis}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">Location</div>
+                      <div className="font-medium">{trial.location}</div>
+                      <div className="text-sm">{formatDistance(trial.distance)}</div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => onViewTrialDetails && onViewTrialDetails(trial.id)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="gaps" className="mt-2">
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Research Gaps</CardTitle>
-            <CardDescription className="text-xs">
-              Areas where more research is needed
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <ul className="list-disc pl-5 space-y-2 text-sm">
-              {knowledge_gaps.map((gap, index) => (
-                <li key={index} className="text-gray-700">{gap}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="sources" className="mt-2">
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Research Sources</CardTitle>
-            <CardDescription className="text-xs">
-              Studies and publications referenced in this analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="space-y-3">
-              {sources.map((source, index) => (
-                <div key={index} className="border-b pb-2 last:border-b-0 text-sm">
-                  <h4 className="font-medium">{source.title}</h4>
-                  {source.authors && <p className="text-xs text-gray-600">{source.authors}</p>}
-                  <div className="flex text-xs text-gray-500 mt-1">
-                    {source.journal && <span className="mr-3">{source.journal}</span>}
-                    {source.year && <span>{source.year}</span>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="sources" className="mt-2">
+          <h3 className="text-lg font-medium mb-4">Research Sources</h3>
+          
+          <div className="space-y-3">
+            {sources.map((source, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium">{source.title}</h4>
+                      <div className="flex items-center mt-1">
+                        <Badge variant="outline">{source.type}</Badge>
+                        {source.date && (
+                          <span className="text-sm text-gray-500 ml-2">{source.date}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {source.url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => window.open(source.url, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => onSaveSource && onSaveSource(source)}
+                      >
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  {source.key_contribution && (
-                    <p className="mt-1 text-xs italic">{source.key_contribution}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -1,247 +1,293 @@
 import React, { useState } from "react";
-import { Bookmark, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, Bookmark, Share2, ExternalLink, AlertTriangle, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Define the treatment type with properties described in the spec
-export type TreatmentOption = {
+// Define treatment types
+export type TreatmentSideEffect = {
+  text: string;
+  severity: number; // 1-5
+  warning?: boolean;
+  info?: boolean;
+};
+
+export type TreatmentBenefit = {
+  text: string;
+};
+
+export type TreatmentInfo = {
+  id: string;
   name: string;
-  type: string; // Chemotherapy, Immunotherapy, etc.
+  type: string;
+  description: string;
   efficacyScore: number; // 0-100
-  evidenceQuality: 1 | 2 | 3 | 4 | 5; // 5-star rating
-  sideEffects: {
-    name: string;
-    severity: 1 | 2 | 3 | 4 | 5; // 1-5 severity scale
-  }[];
-  keyBenefits: string[];
-  keyDrawbacks: string[];
-  description?: string;
-  approvalStatus?: string;
+  evidenceLevel: "high" | "medium" | "low";
+  sideEffects: TreatmentSideEffect[];
+  benefits: TreatmentBenefit[];
+  source: string;
   url?: string;
+  approvalStatus?: string;
+  isExperimental?: boolean;
 };
 
 type TreatmentComparisonCardProps = {
-  treatment: TreatmentOption;
-  onCompare?: (treatment: TreatmentOption, isSelected: boolean) => void;
-  onSave?: (treatment: TreatmentOption) => void;
-  selected?: boolean;
-  saved?: boolean;
+  treatment: TreatmentInfo;
+  isComparing?: boolean;
+  onCompare?: (treatmentId: string, comparing: boolean) => void;
+  onSave?: (treatmentId: string) => void;
+  onViewDetails?: (treatmentId: string) => void;
+  isSaved?: boolean;
+  className?: string;
 };
 
 export default function TreatmentComparisonCard({
   treatment,
+  isComparing = false,
   onCompare,
   onSave,
-  selected = false,
-  saved = false,
+  onViewDetails,
+  isSaved = false,
+  className
 }: TreatmentComparisonCardProps) {
-  const [expanded, setExpanded] = useState(false);
-
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Format efficacy score
+  const formatEfficacyScore = (score: number) => {
+    if (score < 30) return "Limited";
+    if (score < 60) return "Moderate";
+    if (score < 85) return "Substantial";
+    return "Very High";
+  };
+  
+  // Get evidence level color
+  const getEvidenceLevelColor = (level: "high" | "medium" | "low") => {
+    switch(level) {
+      case "high": return "text-green-600";
+      case "medium": return "text-yellow-600";
+      case "low": return "text-red-600";
+      default: return "text-gray-600";
+    }
+  };
+  
   // Render stars for evidence quality
-  const renderStars = (rating: number) => {
+  const renderEvidenceStars = (level: "high" | "medium" | "low") => {
+    const starCount = level === "high" ? 5 : level === "medium" ? 3 : 1;
     return (
       <div className="flex text-yellow-400">
-        {[1, 2, 3, 4, 5].map((star) => (
+        {[...Array(5)].map((_, i) => (
           <svg
-            key={star}
-            viewBox="0 0 24 24"
-            fill={star <= rating ? "currentColor" : "none"}
-            stroke={star <= rating ? "none" : "currentColor"}
-            className="w-5 h-5"
+            key={i}
+            width="16"
+            height="16"
+            viewBox="0 0 15 15"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={i < starCount ? "fill-yellow-400" : "fill-gray-200"}
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              d="M7.5 1.5L9.54 5.42L14 6.12L10.75 9.21L11.58 13.5L7.5 11.48L3.42 13.5L4.25 9.21L1 6.12L5.46 5.42L7.5 1.5Z"
             />
           </svg>
         ))}
       </div>
     );
   };
-
+  
   // Render severity dots for side effects
   const renderSeverityDots = (severity: number) => {
     return (
-      <span className="text-orange-500">
-        {[1, 2, 3, 4, 5].map((dot) => (
-          <span key={dot}>{dot <= severity ? "●" : "○"}</span>
+      <span className="flex ml-1">
+        {[...Array(5)].map((_, i) => (
+          <span 
+            key={i} 
+            className={cn(
+              "inline-block rounded-full w-2 h-2 mx-0.5",
+              i < severity ? "bg-orange-500" : "bg-gray-200"
+            )}
+          />
         ))}
       </span>
     );
   };
-
+  
   return (
-    <div className="treatment-card bg-white rounded-xl shadow p-5 my-4 w-full">
-      {/* Card Header */}
-      <div className="flex justify-between items-center mb-3">
-        <div>
-          <h3 className="font-bold text-xl text-gray-900">{treatment.name}</h3>
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-            {treatment.type}
-          </span>
-          {treatment.approvalStatus && (
-            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2">
-              {treatment.approvalStatus}
-            </span>
-          )}
+    <Card className={cn("treatment-card overflow-hidden", className)}>
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl">{treatment.name}</CardTitle>
+            <Badge variant="secondary" className="mt-1">
+              {treatment.type}
+            </Badge>
+            {treatment.isExperimental && (
+              <Badge variant="outline" className="ml-2 mt-1 bg-amber-50 text-amber-800 border-amber-200">
+                Experimental
+              </Badge>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Collapse details" : "Expand details"}
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-gray-500" />
+            )}
+          </Button>
         </div>
-        <button
-          className="text-gray-500 hover:text-gray-700"
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? (
-            <ChevronUp className="w-5 h-5" />
-          ) : (
-            <ChevronDown className="w-5 h-5" />
-          )}
-        </button>
-      </div>
-
-      <div className="treatment-details space-y-4">
-        {/* Efficacy Section - Always visible */}
+        <CardDescription className="mt-2">
+          {treatment.description.length > 150 && !isExpanded
+            ? treatment.description.substring(0, 150) + "..."
+            : treatment.description}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className={cn("space-y-4", !isExpanded && "pb-3")}>
+        {/* Efficacy Section */}
         <div>
-          <h4 className="font-medium text-sm text-gray-500 mb-1">EFFICACY</h4>
+          <h4 className="text-xs font-medium text-gray-500 mb-1">EFFICACY</h4>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
+            <div 
               className={cn(
                 "h-2.5 rounded-full",
-                treatment.efficacyScore >= 80
-                  ? "bg-green-600"
-                  : treatment.efficacyScore >= 50
-                  ? "bg-blue-600"
-                  : "bg-orange-500"
+                treatment.efficacyScore >= 80 ? "bg-green-600" :
+                treatment.efficacyScore >= 50 ? "bg-blue-600" :
+                treatment.efficacyScore >= 30 ? "bg-yellow-600" : "bg-red-600"
               )}
               style={{ width: `${treatment.efficacyScore}%` }}
-            ></div>
+            />
           </div>
           <div className="flex justify-between text-xs mt-1">
             <span>Limited</span>
+            <span className="font-medium">
+              {formatEfficacyScore(treatment.efficacyScore)}
+            </span>
             <span>Very Effective</span>
           </div>
         </div>
-
-        {/* Evidence Quality - Always visible */}
+        
+        {/* Evidence Quality Section */}
         <div>
-          <h4 className="font-medium text-sm text-gray-500 mb-1">
-            EVIDENCE QUALITY
-          </h4>
-          {renderStars(treatment.evidenceQuality)}
+          <div className="flex justify-between items-center mb-1">
+            <h4 className="text-xs font-medium text-gray-500">EVIDENCE QUALITY</h4>
+            <span className={cn("text-xs font-medium", getEvidenceLevelColor(treatment.evidenceLevel))}>
+              {treatment.evidenceLevel.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center">
+            {renderEvidenceStars(treatment.evidenceLevel)}
+            <span className="text-xs text-gray-500 ml-2">
+              {treatment.evidenceLevel === "high" 
+                ? "Multiple high-quality studies" 
+                : treatment.evidenceLevel === "medium"
+                  ? "Limited but convincing studies"
+                  : "Early research, limited data"}
+            </span>
+          </div>
         </div>
-
-        {/* Expanded content */}
-        {expanded && (
+        
+        {isExpanded && (
           <>
-            {/* Description if available */}
-            {treatment.description && (
-              <div>
-                <h4 className="font-medium text-sm text-gray-500 mb-1">
-                  DESCRIPTION
-                </h4>
-                <p className="text-sm text-gray-700">{treatment.description}</p>
-              </div>
-            )}
-
             {/* Side Effects Section */}
             <div>
-              <h4 className="font-medium text-sm text-gray-500 mb-1">
-                COMMON SIDE EFFECTS
-              </h4>
-              <ul className="ml-5 list-disc space-y-1">
+              <h4 className="text-xs font-medium text-gray-500 mb-2">SIDE EFFECTS</h4>
+              <ul className="space-y-2">
                 {treatment.sideEffects.map((effect, index) => (
-                  <li key={index} className="text-sm">
-                    {effect.name}{" "}
-                    <span className="ml-2">
-                      {renderSeverityDots(effect.severity)}
-                    </span>
+                  <li 
+                    key={index} 
+                    className="flex items-center text-sm"
+                  >
+                    {effect.warning && (
+                      <AlertTriangle className="h-4 w-4 text-red-500 mr-1 flex-shrink-0" />
+                    )}
+                    {effect.info && (
+                      <Info className="h-4 w-4 text-blue-500 mr-1 flex-shrink-0" />
+                    )}
+                    <span className="mr-auto">{effect.text}</span>
+                    {renderSeverityDots(effect.severity)}
                   </li>
                 ))}
               </ul>
             </div>
-
-            {/* Key Benefits Section */}
+            
+            {/* Benefits Section */}
             <div>
-              <h4 className="font-medium text-sm text-gray-500 mb-1">
-                KEY BENEFITS
-              </h4>
-              <ul className="ml-5 list-disc space-y-1">
-                {treatment.keyBenefits.map((benefit, index) => (
-                  <li
-                    key={index}
-                    className="text-sm text-green-800 bg-green-50 py-1 px-2 rounded"
+              <h4 className="text-xs font-medium text-gray-500 mb-2">KEY BENEFITS</h4>
+              <ul className="space-y-1">
+                {treatment.benefits.map((benefit, index) => (
+                  <li 
+                    key={index} 
+                    className="text-sm pl-4 relative before:content-[''] before:absolute before:w-2 before:h-2 before:rounded-full before:bg-green-500 before:left-0 before:top-[0.4rem]"
                   >
-                    {benefit}
+                    {benefit.text}
                   </li>
                 ))}
               </ul>
             </div>
-
-            {/* Key Drawbacks Section */}
-            <div>
-              <h4 className="font-medium text-sm text-gray-500 mb-1">
-                KEY DRAWBACKS
-              </h4>
-              <ul className="ml-5 list-disc space-y-1">
-                {treatment.keyDrawbacks.map((drawback, index) => (
-                  <li
-                    key={index}
-                    className="text-sm text-red-800 bg-red-50 py-1 px-2 rounded"
+            
+            {/* Source Section */}
+            <div className="pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-gray-500">
+                  Source: {treatment.source}
+                </div>
+                {treatment.url && (
+                  <a 
+                    href={treatment.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-blue-600 hover:underline flex items-center"
                   >
-                    {drawback}
-                  </li>
-                ))}
-              </ul>
+                    Learn more <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+              </div>
             </div>
           </>
         )}
-      </div>
-
-      {/* Action Footer */}
-      <div className="flex justify-between mt-4 pt-2 border-t border-gray-100">
-        {treatment.url ? (
-          <a
-            href={treatment.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+      </CardContent>
+      
+      <CardFooter className="flex justify-between pt-0 pb-3">
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "text-xs",
+              isComparing && "bg-blue-50 border-blue-200 text-blue-700"
+            )}
+            onClick={() => onCompare && onCompare(treatment.id, !isComparing)}
           >
-            Learn More <ExternalLink className="w-3 h-3 ml-1" />
-          </a>
-        ) : (
-          <button className="text-sm text-blue-600 hover:text-blue-800">
-            Learn More
-          </button>
-        )}
-
-        <div className="flex space-x-3">
-          {onCompare && (
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-blue-600"
-                checked={selected}
-                onChange={(e) => onCompare(treatment, e.target.checked)}
-              />
-              <span className="ml-1 text-sm text-gray-700">Compare</span>
-            </label>
-          )}
-
-          {onSave && (
-            <button
-              className={cn(
-                "text-sm flex items-center",
-                saved
-                  ? "text-yellow-600 hover:text-yellow-800"
-                  : "text-gray-600 hover:text-gray-800"
-              )}
-              onClick={() => onSave(treatment)}
-            >
-              <Bookmark className="w-4 h-4 mr-1" fill={saved ? "currentColor" : "none"} />
-              {saved ? "Saved" : "Save"}
-            </button>
-          )}
+            {isComparing ? "Remove from comparison" : "Compare"}
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "text-gray-500 hover:text-gray-700",
+              isSaved && "text-blue-600 hover:text-blue-700"
+            )}
+            onClick={() => onSave && onSave(treatment.id)}
+          >
+            <Bookmark className={cn("h-4 w-4", isSaved && "fill-current")} />
+          </Button>
         </div>
-      </div>
-    </div>
+        
+        <Button
+          variant="secondary"
+          size="sm"
+          className="text-xs"
+          onClick={() => onViewDetails && onViewDetails(treatment.id)}
+        >
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
