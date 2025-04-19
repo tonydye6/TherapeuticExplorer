@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -35,13 +36,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set demo user state and loading to false
-    setUser({
-      id: 1,
-      username: "demo_user",
-      displayName: "Demo User",
-    });
-    setIsLoading(false);
+    const initAuth = async () => {
+      try {
+        // For development, initialize with a demo user
+        const demoUser = {
+          id: 1,
+          username: "demo_user",
+          displayName: "Demo User",
+        };
+        
+        setUser(demoUser);
+        // Store a demo token
+        const demoToken = 'demo_token';
+        localStorage.setItem('auth_token', demoToken);
+        setToken(demoToken);
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('auth_token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -55,7 +74,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ username, password }),
       });
 
-      // Store token in localStorage
       localStorage.setItem('auth_token', response.token);
       setToken(response.token);
       setUser(response.user);
@@ -87,7 +105,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: JSON.stringify({ username, password, displayName }),
       });
 
-      // Store token in localStorage
       localStorage.setItem('auth_token', response.token);
       setToken(response.token);
       setUser(response.user);
