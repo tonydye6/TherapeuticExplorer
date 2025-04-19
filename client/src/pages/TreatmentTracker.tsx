@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -321,8 +322,10 @@ export default function TreatmentTracker() {
                                 throw new Error('Failed to delete treatment');
                               }
                               
-                              // Refresh the treatments list
-                              queryClient.invalidateQueries({ queryKey: ['/api/treatments'] });
+                              // Refresh the treatments list using the correct query key
+                              await queryClient.invalidateQueries({
+                                queryKey: [['/api/treatments']]
+                              });
                               
                               toast({
                                 title: "Success",
