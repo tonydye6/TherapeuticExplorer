@@ -9,6 +9,7 @@ import { vectorService } from "./services/vectorService";
 import { medicalTermService } from "./services/medicalTermService";
 import { ocrService } from "./services/ocrService";
 import { treatmentPredictionService } from "./services/treatmentPredictionService";
+import { sideEffectService } from "./services/sideEffectService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -748,6 +749,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error comparing treatment effectiveness:", error);
       res.status(500).json({ 
         message: "Failed to compare treatment effectiveness", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Side Effect Profile Analysis Route
+  app.post("/api/treatments/side-effects", async (req, res) => {
+    try {
+      const { treatmentName, patientCharacteristics } = req.body;
+      
+      if (!treatmentName) {
+        return res.status(400).json({ 
+          message: "Treatment name is required for side effect analysis" 
+        });
+      }
+      
+      if (!patientCharacteristics) {
+        return res.status(400).json({ 
+          message: "Patient characteristics are required for side effect analysis" 
+        });
+      }
+      
+      // Get side effect profile
+      const sideEffectProfile = await sideEffectService.analyzeSideEffects(
+        treatmentName,
+        patientCharacteristics
+      );
+      
+      res.json(sideEffectProfile);
+    } catch (error) {
+      console.error("Error analyzing side effects:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze side effects", 
         error: error instanceof Error ? error.message : String(error)
       });
     }
