@@ -342,8 +342,12 @@ export class MemStorage implements IStorage {
     const id = this.vectorEmbeddingIdCounter++;
     
     const embedding: VectorEmbedding = {
-      ...insertEmbedding,
-      id
+      id,
+      researchItemId: insertEmbedding.researchItemId,
+      documentId: insertEmbedding.documentId || null,
+      content: insertEmbedding.content,
+      embedding: insertEmbedding.embedding,
+      dateAdded: new Date()
     };
     
     this.vectorEmbeddings.set(id, embedding);
