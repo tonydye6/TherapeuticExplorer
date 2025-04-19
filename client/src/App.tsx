@@ -23,6 +23,8 @@ import { AuthProvider } from "./components/security/AuthProvider";
 import { ProtectedRoute } from "./components/security/ProtectedRoute";
 
 function Router() {
+  console.log("Rendering Router function");
+  
   return (
     <Switch>
       {/* Public Routes */}
@@ -30,8 +32,11 @@ function Router() {
       
       {/* Protected Routes */}
       <Route path="/">
+        {console.log("Rendering / route")}
         <ProtectedRoute>
+          {console.log("Rendering inside ProtectedRoute")}
           <Layout>
+            {console.log("Rendering inside Layout")}
             <Switch>
               <Route path="/" component={ResearchAssistant} />
               <Route path="/saved-research" component={SavedResearch} />
