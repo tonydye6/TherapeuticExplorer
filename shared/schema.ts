@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   diagnosis: text("diagnosis"),
   diagnosisStage: text("diagnosis_stage"),
   diagnosisDate: timestamp("diagnosis_date"),
+  address: text("address"),
   preferences: jsonb("preferences"),
 });
 
@@ -22,6 +23,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   diagnosis: true,
   diagnosisStage: true,
   diagnosisDate: true,
+  address: true,
   preferences: true,
 });
 

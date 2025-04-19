@@ -33,6 +33,7 @@ const profileSchema = z.object({
   diagnosis: z.string().optional(),
   diagnosisStage: z.string().optional(),
   diagnosisDate: z.string().optional(),
+  address: z.string().optional(),
 });
 
 // Form schema for preferences update
@@ -101,6 +102,7 @@ export default function Preferences() {
       diagnosis: user?.diagnosis || "",
       diagnosisStage: user?.diagnosisStage || "",
       diagnosisDate: user?.diagnosisDate ? new Date(user.diagnosisDate).toISOString().split('T')[0] : "",
+      address: user?.address || "",
     },
   });
   
@@ -123,6 +125,7 @@ export default function Preferences() {
         diagnosis: user.diagnosis || "",
         diagnosisStage: user.diagnosisStage || "",
         diagnosisDate: user.diagnosisDate ? new Date(user.diagnosisDate).toISOString().split('T')[0] : "",
+        address: user.address || "",
       });
       
       preferencesForm.reset({
@@ -268,6 +271,23 @@ export default function Preferences() {
                           </FormControl>
                           <FormDescription>
                             This helps us tailor research to your specific condition.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={profileForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., 123 Main St, Anytown, NY 10001" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Your address is used to find clinical trials near you.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
