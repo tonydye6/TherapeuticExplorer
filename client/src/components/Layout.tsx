@@ -22,7 +22,7 @@ export default function Layout({ children }: LayoutProps) {
         "md:flex md:flex-shrink-0",
         isMobile ? (sidebarOpen ? "fixed inset-0 z-40 flex" : "hidden") : ""
       )}>
-        <Sidebar />
+        <Sidebar closeSidebar={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main content */}

@@ -1,5 +1,6 @@
 import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
+import useMobile from "@/hooks/use-mobile";
 import {
   MessageSquare,
   BookOpen,
@@ -18,8 +19,13 @@ import {
   Calendar
 } from "lucide-react";
 
-export default function Sidebar() {
+interface SidebarProps {
+  closeSidebar?: () => void;
+}
+
+export default function Sidebar({ closeSidebar }: SidebarProps) {
   const [location] = useLocation();
+  const isMobile = useMobile();
 
   const navigationItems = [
     { href: "/", label: "Research Assistant", icon: <MessageSquare className="h-5 w-5" /> },
@@ -53,7 +59,16 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="mt-2 px-2 space-y-1">
         {navigationItems.map((item) => (
-          <Link key={item.href} href={item.href}>
+          <Link 
+            key={item.href} 
+            href={item.href}
+            onClick={() => {
+              // Close sidebar on mobile when a link is clicked
+              if (isMobile && closeSidebar) {
+                closeSidebar();
+              }
+            }}
+          >
             <div
               className={cn(
                 "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
