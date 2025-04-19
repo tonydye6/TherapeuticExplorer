@@ -314,6 +314,8 @@ export default function TreatmentTracker() {
                           className="mt-2"
                           onClick={async () => {
                             try {
+                              const previousData = queryClient.getQueryData<Treatment[]>(['/api/treatments']);
+                              
                               // Optimistically update UI
                               queryClient.setQueryData(['/api/treatments'], (old: Treatment[] | undefined) => 
                                 old ? old.filter(t => t.id !== treatment.id) : []
@@ -324,13 +326,10 @@ export default function TreatmentTracker() {
                               });
                               
                               if (!response.ok) {
+                                // Revert on error
+                                queryClient.setQueryData(['/api/treatments'], previousData);
                                 throw new Error('Failed to delete treatment');
                               }
-                              
-                              // Refresh the treatments list to ensure sync with server
-                              await queryClient.invalidateQueries({
-                                queryKey: ['/api/treatments']
-                              });
                               
                               toast({
                                 title: "Success",
