@@ -75,18 +75,8 @@ export default function ResearchAssistant() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1">
-        <ChatInterface 
-          title="Research Assistant" 
-          description="Ask questions about esophageal cancer treatments, research, and more"
-          inputValue={inputValue}
-          onInputChange={setInputValue}
-          preferredModel={ModelType.GEMINI} // Specify Gemini as the preferred model for deep research
-        />
-      </div>
-      
-      {/* Suggested Prompts Section */}
-      <div className="p-4 border-t bg-muted/20">
+      {/* Suggested Prompts Section - Now at the top, especially helpful for mobile */}
+      <div className="p-4 border-b bg-muted/20">
         <div className="flex items-center gap-2 mb-3">
           <HelpCircle className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-medium">Suggested Research Topics</h3>
@@ -121,6 +111,17 @@ export default function ResearchAssistant() {
             </Card>
           ))}
         </div>
+      </div>
+      
+      {/* Chat Interface - Now below the suggested prompts */}
+      <div className="flex-1">
+        <ChatInterface 
+          title="Research Assistant" 
+          description="Ask questions about esophageal cancer treatments, research, and more"
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          preferredModel={ModelType.GEMINI} // Specify Gemini as the preferred model for deep research
+        />
       </div>
     </div>
   );
