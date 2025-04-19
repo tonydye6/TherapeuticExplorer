@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import MedicalTimeline, { MedicalEvent, MedicalEventType } from "@/components/MedicalTimeline";
+import AddTreatmentDialog from "@/components/AddTreatmentDialog";
 import { 
   LineChart, 
   Line, 
@@ -259,7 +260,11 @@ export default function TreatmentTracker() {
                 <div className="text-center py-8">
                   <Pill className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p className="text-gray-500">No active treatments found</p>
-                  <Button variant="outline" className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={openAddTreatmentDialog}
+                  >
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Add Your First Treatment
                   </Button>
@@ -474,6 +479,12 @@ export default function TreatmentTracker() {
           </Tabs>
         </div>
       </div>
+      
+      {/* Add Treatment Dialog */}
+      <AddTreatmentDialog 
+        isOpen={isAddDialogOpen}
+        onClose={closeAddTreatmentDialog}
+      />
     </div>
   );
 }
