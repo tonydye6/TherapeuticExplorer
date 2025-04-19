@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
+import MedicalTimeline, { MedicalEvent } from "@/components/MedicalTimeline";
 import { 
   LineChart, 
   Line, 
@@ -21,7 +22,8 @@ import {
   PlusCircle,
   Activity,
   Pill,
-  Stethoscope
+  Stethoscope,
+  Clock
 } from "lucide-react";
 
 import { Treatment } from "@shared/schema";
@@ -75,15 +77,135 @@ export default function TreatmentTracker() {
     return `${date.getMonth() + 1}/${date.getDate()}`;
   };
 
+  // Sample medical events for the timeline
+  const sampleMedicalEvents = [
+    {
+      id: "event1",
+      date: new Date("2023-10-01"),
+      eventType: "diagnosis",
+      title: "Initial Diagnosis",
+      description: "Stage IV esophageal cancer with liver metastasis",
+      provider: "Dr. Sarah Johnson",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event2",
+      date: new Date("2023-10-15"),
+      eventType: "treatment",
+      title: "Started Chemotherapy",
+      description: "FOLFOX regimen initiated",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event3",
+      date: new Date("2023-11-05"),
+      eventType: "test",
+      title: "CT Scan",
+      description: "Follow-up imaging to assess treatment response",
+      result: "10% reduction in primary tumor size, stable liver metastases",
+      provider: "Radiology Department",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event4",
+      date: new Date("2023-11-15"),
+      eventType: "symptom",
+      title: "Increased Fatigue",
+      description: "Patient reporting significant fatigue and some difficulty with daily activities",
+      severity: 4,
+    },
+    {
+      id: "event5",
+      date: new Date("2023-12-01"),
+      eventType: "medication",
+      title: "Medication Adjustment",
+      description: "Added Ondansetron for nausea management",
+      provider: "Dr. Michael Chen",
+    },
+    {
+      id: "event6",
+      date: new Date("2023-12-15"),
+      eventType: "test",
+      title: "Blood Work",
+      description: "Comprehensive metabolic panel and tumor markers",
+      result: "CA 19-9 decreased from 42 to 30",
+      provider: "Metro Cancer Center Lab",
+      labValues: [
+        {
+          name: "CA 19-9",
+          value: 30,
+          unit: "U/mL",
+          normalRange: "0-37 U/mL",
+          isAbnormal: false
+        },
+        {
+          name: "CEA",
+          value: 4.2,
+          unit: "ng/mL",
+          normalRange: "0-3.0 ng/mL",
+          isAbnormal: true
+        },
+        {
+          name: "Hemoglobin",
+          value: 11.5,
+          unit: "g/dL",
+          normalRange: "13.5-17.5 g/dL",
+          isAbnormal: true
+        }
+      ]
+    },
+    {
+      id: "event7",
+      date: new Date("2024-01-05"),
+      eventType: "scan",
+      title: "PET/CT Scan",
+      description: "3-month assessment of treatment response",
+      result: "Partial response. Primary tumor decreased by 30%, liver metastases decreased by 15%",
+      provider: "Dr. Lisa Wong",
+      location: "Advanced Imaging Center"
+    },
+    {
+      id: "event8",
+      date: new Date("2024-01-20"),
+      eventType: "appointment",
+      title: "Oncology Follow-up",
+      description: "Discussion of scan results and treatment plan adjustments",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event9",
+      date: new Date("2024-02-01"),
+      eventType: "treatment",
+      title: "Started Immunotherapy",
+      description: "Added pembrolizumab (Keytruda) to treatment regimen",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    }
+  ];
+
+  // Handle event click in the timeline
+  const handleEventClick = (event: MedicalEvent) => {
+    console.log("Event clicked:", event);
+    // In a real app, you might show a modal with details or navigate to a detail page
+  };
+
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Treatment Tracker</h1>
-          <Button className="bg-primary-800 hover:bg-primary-900">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Treatment
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter Events
+            </Button>
+            <Button className="bg-primary-800 hover:bg-primary-900">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Treatment
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -171,6 +293,24 @@ export default function TreatmentTracker() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Charts and Metrics */}
+        {/* Medical Timeline */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-primary-800" />
+              Medical Timeline
+            </h2>
+            <Button variant="outline" size="sm">Export Timeline</Button>
+          </div>
+          
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <MedicalTimeline events={sampleMedicalEvents} onEventClick={handleEventClick} />
             </CardContent>
           </Card>
         </div>

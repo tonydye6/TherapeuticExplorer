@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Filter, Calendar, Book, FileText, Flask, Beaker, Clock, Bookmark, BookmarkCheck, ChevronRight } from "lucide-react";
+import { Search, Filter, Calendar, Book, FileText, FlaskConical, Beaker, Clock, Bookmark, BookmarkCheck, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -72,7 +72,7 @@ export default function ResearchLibrary({
       case "medical_website":
         return <FileText className="h-5 w-5 text-teal-600" />;
       default:
-        return <Flask className="h-5 w-5 text-gray-600" />;
+        return <FlaskConical className="h-5 w-5 text-gray-600" />;
     }
   };
 
@@ -337,7 +337,7 @@ export default function ResearchLibrary({
           </div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <Flask className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <FlaskConical className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h4 className="text-lg font-medium text-gray-900">No results found</h4>
             <p className="text-gray-500 mt-1">
               Try adjusting your search or filters to find what you're looking for.
