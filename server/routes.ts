@@ -8,6 +8,7 @@ import { documentService } from "./services/documentService";
 import { vectorService } from "./services/vectorService";
 import { medicalTermService } from "./services/medicalTermService";
 import { ocrService } from "./services/ocrService";
+import { treatmentPredictionService } from "./services/treatmentPredictionService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -680,6 +681,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user preferences:", error);
       res.status(500).json({ message: "Failed to update user preferences" });
+    }
+  });
+
+  // Treatment Prediction Routes
+  app.post("/api/treatments/predict", async (req, res) => {
+    try {
+      const { patientData, treatmentOptions } = req.body;
+      
+      if (!patientData || !patientData.diagnosis) {
+        return res.status(400).json({ 
+          message: "Patient data with diagnosis is required" 
+        });
+      }
+      
+      // Validate patient data structure
+      const validatedPatientData = {
+        userId: 1, // Default user ID
+        diagnosis: patientData.diagnosis,
+        age: patientData.age,
+        gender: patientData.gender,
+        diagnosisDate: patientData.diagnosisDate,
+        tumorCharacteristics: patientData.tumorCharacteristics,
+        medicalHistory: patientData.medicalHistory,
+        performanceStatus: patientData.performanceStatus,
+        biomarkers: patientData.biomarkers
+      };
+      
+      // Get treatment predictions
+      const predictions = await treatmentPredictionService.predictTreatmentEffectiveness(
+        validatedPatientData,
+        treatmentOptions
+      );
+      
+      res.json(predictions);
+    } catch (error) {
+      console.error("Error predicting treatment effectiveness:", error);
+      res.status(500).json({ 
+        message: "Failed to predict treatment effectiveness", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post("/api/treatments/compare", async (req, res) => {
+    try {
+      const { patientA, patientB, treatmentOptions } = req.body;
+      
+      if (!patientA?.diagnosis || !patientB?.diagnosis) {
+        return res.status(400).json({ 
+          message: "Both patient profiles must include diagnosis information" 
+        });
+      }
+      
+      // Get comparison results
+      const comparisonResults = await treatmentPredictionService.compareTreatmentEffectiveness(
+        patientA,
+        patientB,
+        treatmentOptions
+      );
+      
+      res.json(comparisonResults);
+    } catch (error) {
+      console.error("Error comparing treatment effectiveness:", error);
+      res.status(500).json({ 
+        message: "Failed to compare treatment effectiveness", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
