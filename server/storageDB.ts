@@ -1,7 +1,7 @@
 import { 
   users, documents, messages, researchItems, 
   savedTrials, treatments, vectorEmbeddings,
-  User, InsertUser, Message, InsertMessage,
+  User, InsertUser, UpsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
   SavedTrial, InsertSavedTrial, Document, InsertDocument,
   VectorEmbedding, InsertVectorEmbedding
@@ -12,7 +12,7 @@ import { IStorage } from "./storage";
 
 export class DatabaseStorage implements IStorage {
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
@@ -30,7 +30,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserProfile(id: number, profileData: Partial<User>): Promise<User> {
+  async updateUserProfile(id: string, profileData: Partial<User>): Promise<User> {
     const [updatedUser] = await db
       .update(users)
       .set(profileData)
@@ -39,7 +39,7 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
 
-  async updateUserPreferences(id: number, preferences: any): Promise<User> {
+  async updateUserPreferences(id: string, preferences: any): Promise<User> {
     const [updatedUser] = await db
       .update(users)
       .set({ preferences })
@@ -47,9 +47,27 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser;
   }
+  
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return user;
+  }
 
   // Message methods
-  async getMessages(userId: number): Promise<Message[]> {
+  async getMessages(userId: string): Promise<Message[]> {
     return db
       .select()
       .from(messages)
