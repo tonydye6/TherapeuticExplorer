@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { ResearchItem } from "@shared/schema";
+import { toast } from "@/hooks/use-toast";
 
 type SemanticSearchBarProps = {
   onResultsFound: (results: ResearchItem[]) => void;
@@ -21,17 +20,31 @@ export function SemanticSearchBar({ onResultsFound }: SemanticSearchBarProps) {
     setIsSearching(true);
     
     try {
-      const response = await apiRequest<ResearchItem[]>("/api/research/semantic-search", {
+      // Make API request for semantic search
+      const response = await fetch("/api/research/semantic-search", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           query: searchQuery,
           userId: 1 // Default user ID for now
         })
       });
       
-      onResultsFound(response);
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const results = await response.json();
+      onResultsFound(results);
     } catch (error) {
       console.error("Error performing semantic search:", error);
+      toast({
+        title: "Search failed",
+        description: "There was an error performing your search. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSearching(false);
     }

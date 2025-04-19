@@ -21,6 +21,7 @@ export default function Sidebar() {
   const navigationItems = [
     { href: "/", label: "Research Assistant", icon: <MessageSquare className="h-5 w-5" /> },
     { href: "/saved-research", label: "Research Library", icon: <BookOpen className="h-5 w-5" /> },
+    { href: "/semantic-search", label: "Semantic Search", icon: <Search className="h-5 w-5" /> },
     { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/clinical-trials", label: "Clinical Trials", icon: <FlaskConical className="h-5 w-5" /> },
