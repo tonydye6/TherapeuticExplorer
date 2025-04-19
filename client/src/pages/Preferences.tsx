@@ -44,12 +44,19 @@ const preferencesSchema = z.object({
 });
 
 // Type for user preferences
-type UserPreferences = {
+export type UserPreferences = {
   emailNotifications: boolean;
   researchUpdates: boolean;
   clinicalTrialAlerts: boolean;
   dataUsage: boolean;
 };
+
+// Extend the User type to include preferences
+declare module '@shared/schema' {
+  interface User {
+    preferences?: UserPreferences;
+  }
+}
 
 export default function Preferences() {
   const { toast } = useToast();

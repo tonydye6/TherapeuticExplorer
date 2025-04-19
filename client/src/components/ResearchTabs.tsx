@@ -165,7 +165,12 @@ export default function ResearchTabs({
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={() => document.querySelector('[data-value="treatments"]')?.click()}
+                      onClick={() => {
+                        const element = document.querySelector('[data-value="treatments"]');
+                        if (element instanceof HTMLElement) {
+                          element.click();
+                        }
+                      }}
                     >
                       View All Treatments
                     </Button>
@@ -199,7 +204,12 @@ export default function ResearchTabs({
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={() => document.querySelector('[data-value="trials"]')?.click()}
+                      onClick={() => {
+                        const element = document.querySelector('[data-value="trials"]');
+                        if (element instanceof HTMLElement) {
+                          element.click();
+                        }
+                      }}
                     >
                       View All Trials
                     </Button>
@@ -233,7 +243,12 @@ export default function ResearchTabs({
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={() => document.querySelector('[data-value="sources"]')?.click()}
+                      onClick={() => {
+                        const element = document.querySelector('[data-value="sources"]');
+                        if (element instanceof HTMLElement) {
+                          element.click();
+                        }
+                      }}
                     >
                       View All Sources
                     </Button>
@@ -279,7 +294,7 @@ export default function ResearchTabs({
                     <div className="flex-grow pr-4">
                       <CardTitle className="text-base">{trial.title}</CardTitle>
                       <CardDescription className="flex items-center mt-1">
-                        <Badge variant={trial.status === 'Recruiting' ? 'success' : 'secondary'} className="mr-2">
+                        <Badge variant="secondary" className={`mr-2 ${trial.status === 'Recruiting' ? 'bg-green-100 text-green-800' : ''}`}>
                           {trial.status}
                         </Badge>
                         <Badge variant="outline">{formatTrialPhase(trial.phase)}</Badge>
