@@ -338,7 +338,7 @@ const SideEffectAnalyzer = () => {
                                 <SelectItem value="none">None</SelectItem>
                                 <SelectItem value="occasional">Occasional (1-2 drinks/week)</SelectItem>
                                 <SelectItem value="moderate">Moderate (3-7 drinks/week)</SelectItem>
-                                <SelectItem value="heavy">Heavy (>7 drinks/week)</SelectItem>
+                                <SelectItem value="heavy">Heavy (7+ drinks/week)</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />

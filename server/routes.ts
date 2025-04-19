@@ -10,6 +10,7 @@ import { medicalTermService } from "./services/medicalTermService";
 import { ocrService } from "./services/ocrService";
 import { treatmentPredictionService } from "./services/treatmentPredictionService";
 import { sideEffectService } from "./services/sideEffectService";
+import { sideEffectService } from "./services/sideEffectService";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";

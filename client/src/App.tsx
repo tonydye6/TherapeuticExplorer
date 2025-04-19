@@ -14,6 +14,7 @@ import Preferences from "./pages/Preferences";
 import Help from "./pages/Help";
 import SemanticSearch from "./pages/SemanticSearch";
 import TreatmentPredictor from "./pages/TreatmentPredictor";
+import SideEffectAnalyzer from "./pages/SideEffectAnalyzer";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
         <Route path="/saved-research" component={SavedResearch} />
         <Route path="/treatment-tracker" component={TreatmentTracker} />
         <Route path="/treatment-predictor" component={TreatmentPredictor} />
+        <Route path="/side-effect-analyzer" component={SideEffectAnalyzer} />
         <Route path="/clinical-trials" component={ClinicalTrials} />
         <Route path="/documents" component={Documents} />
         <Route path="/semantic-search" component={SemanticSearch} />

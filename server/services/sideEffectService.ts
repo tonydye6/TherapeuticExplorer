@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import OpenAI from 'openai';
 
 export interface PatientCharacteristics {
   age?: number;
@@ -35,14 +35,16 @@ export interface SideEffectProfile {
   recommendedPretreatmentActions: string[];
 }
 
+/**
+ * Service for analyzing treatment side effects
+ */
 export class SideEffectService {
   private openai: OpenAI;
 
   constructor() {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY environment variable is required.");
-    }
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
   }
 
   /**
@@ -53,66 +55,103 @@ export class SideEffectService {
     patientCharacteristics: PatientCharacteristics
   ): Promise<SideEffectProfile> {
     try {
-      // Create a detailed patient profile for analysis
+      console.log(`Analyzing side effects for ${treatmentName}`);
+      
+      // Create a prompt that analyzes potential side effects
       const patientProfile = this.formatPatientProfile(patientCharacteristics);
       
-      // Generate the prompt for side effect analysis
       const prompt = `
-Analyze the potential side effects of ${treatmentName} for a patient with the following characteristics:
+      As a medical oncologist, analyze the potential side effects of the treatment "${treatmentName}" for the following patient:
+      
+      ${patientProfile}
+      
+      Provide a comprehensive side effect profile with the following structure:
+      1. Overall risk assessment (percentage)
+      2. List of most likely side effects, including:
+        - Name and description of each side effect
+        - Likelihood (as a percentage)
+        - Severity (mild, moderate, or severe)
+        - Expected timeframe (when it occurs during treatment)
+        - Management options for each side effect
+        - Preventative measures
+        - Risk factors, noting if any are related to this patient's characteristics
+        - Recommended monitoring
+      3. Patient-specific considerations based on their profile
+      4. Recommended actions before starting treatment
+      
+      Format your response as a detailed JSON object matching this TypeScript interface:
+      
+      interface SideEffectProfile {
+        treatmentName: string;
+        overallRisk: number; // 0-100%
+        sideEffects: Array<{
+          name: string;
+          description: string;
+          likelihood: number; // 0-100%
+          severity: 'mild' | 'moderate' | 'severe';
+          timeframe: string;
+          managementOptions: string[];
+          preventativeMeasures: string[];
+          riskFactors: string[];
+          relatedToPatientCharacteristics: boolean;
+          recommendedMonitoring: string[];
+        }>;
+        patientSpecificConsiderations: string[];
+        recommendedPretreatmentActions: string[];
+      }
+      `;
 
-${patientProfile}
-
-Provide a detailed side effect profile including:
-1. Overall risk assessment
-2. Specific side effects with likelihood, severity, and timeframe
-3. Patient-specific considerations based on their characteristics
-4. Management strategies for each side effect
-5. Preventative measures that can be taken
-
-Format your response as a JSON object with the following structure:
-{
-  "treatmentName": "${treatmentName}",
-  "overallRisk": number (0-100),
-  "sideEffects": [
-    {
-      "name": "Side effect name",
-      "description": "Brief description",
-      "likelihood": number (0-100),
-      "severity": "mild" | "moderate" | "severe",
-      "timeframe": "When this occurs during treatment",
-      "managementOptions": ["Option 1", "Option 2"],
-      "preventativeMeasures": ["Measure 1", "Measure 2"],
-      "riskFactors": ["Factor 1", "Factor 2"],
-      "relatedToPatientCharacteristics": boolean,
-      "recommendedMonitoring": ["Monitoring 1", "Monitoring 2"]
-    }
-  ],
-  "patientSpecificConsiderations": ["Consideration 1", "Consideration 2"],
-  "recommendedPretreatmentActions": ["Action 1", "Action 2"]
-}
-`;
-
-      // Use GPT-4o for this analysis as it has the most up-to-date medical knowledge
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        model: "gpt-4o",
         messages: [
-          {
-            role: "system",
-            content: "You are an expert in medical oncology and pharmacology. Analyze treatment side effects based on patient characteristics and provide evidence-based predictions of side effect profiles. Your analysis should be thorough but presented in a way that's understandable to patients."
-          },
+          { role: "system", content: "You are an expert oncologist specializing in side effect risk analysis." },
           { role: "user", content: prompt }
         ],
         response_format: { type: "json_object" }
       });
 
-      // Parse the response
-      const content = response.choices[0]?.message?.content || '{}';
-      const sideEffectProfile = JSON.parse(content) as SideEffectProfile;
+      const content = response.choices[0].message.content;
       
-      return sideEffectProfile;
+      if (!content) {
+        throw new Error("Failed to get a valid response from the AI model");
+      }
+      
+      try {
+        const sideEffectProfile: SideEffectProfile = JSON.parse(content);
+        
+        // Validate the response format
+        if (!sideEffectProfile.treatmentName || 
+            typeof sideEffectProfile.overallRisk !== 'number' ||
+            !Array.isArray(sideEffectProfile.sideEffects)) {
+          throw new Error("Invalid response format from AI model");
+        }
+        
+        // Ensure all numeric values are within valid ranges
+        sideEffectProfile.overallRisk = Math.min(100, Math.max(0, sideEffectProfile.overallRisk));
+        
+        sideEffectProfile.sideEffects = sideEffectProfile.sideEffects.map(effect => {
+          return {
+            ...effect,
+            likelihood: Math.min(100, Math.max(0, effect.likelihood)),
+            severity: effect.severity || 'moderate',
+            managementOptions: Array.isArray(effect.managementOptions) ? effect.managementOptions : [],
+            preventativeMeasures: Array.isArray(effect.preventativeMeasures) ? effect.preventativeMeasures : [],
+            riskFactors: Array.isArray(effect.riskFactors) ? effect.riskFactors : [],
+            recommendedMonitoring: Array.isArray(effect.recommendedMonitoring) ? effect.recommendedMonitoring : [],
+          };
+        });
+        
+        return sideEffectProfile;
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        console.error("Raw response:", content);
+        throw new Error("Failed to parse the side effect profile from AI response");
+      }
+      
     } catch (error) {
-      console.error('Error analyzing side effects:', error);
-      throw new Error(`Side effect analysis failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Error in side effect analysis:", error);
+      throw new Error(`Failed to analyze side effects: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -120,45 +159,40 @@ Format your response as a JSON object with the following structure:
    * Format patient characteristics into a readable string
    */
   private formatPatientProfile(characteristics: PatientCharacteristics): string {
-    const { 
-      age, gender, performanceStatus, comorbidities, allergies, 
-      currentMedications, height, weight, smokingStatus, alcoholUse, 
-      priorAdverseReactions 
-    } = characteristics;
-
-    let profile = '';
+    let profile = [];
     
-    if (age) profile += `Age: ${age} years\n`;
-    if (gender) profile += `Gender: ${gender}\n`;
-    if (performanceStatus) profile += `ECOG Performance Status: ${performanceStatus}\n`;
+    if (characteristics.age) profile.push(`Age: ${characteristics.age} years`);
+    if (characteristics.gender) profile.push(`Gender: ${characteristics.gender}`);
+    if (characteristics.performanceStatus) profile.push(`ECOG Performance Status: ${characteristics.performanceStatus}`);
+    if (characteristics.height) profile.push(`Height: ${characteristics.height} cm`);
+    if (characteristics.weight) profile.push(`Weight: ${characteristics.weight} kg`);
     
-    if (height && weight) {
-      const bmi = Math.round((weight / ((height/100) * (height/100))) * 10) / 10;
-      profile += `Height: ${height} cm\n`;
-      profile += `Weight: ${weight} kg\n`;
-      profile += `BMI: ${bmi} kg/m²\n`;
+    if (characteristics.height && characteristics.weight) {
+      const heightInMeters = characteristics.height / 100;
+      const bmi = characteristics.weight / (heightInMeters * heightInMeters);
+      profile.push(`BMI: ${bmi.toFixed(1)} kg/m²`);
     }
     
-    if (comorbidities && comorbidities.length > 0) {
-      profile += `Comorbidities: ${comorbidities.join(', ')}\n`;
+    if (characteristics.smokingStatus) profile.push(`Smoking Status: ${characteristics.smokingStatus}`);
+    if (characteristics.alcoholUse) profile.push(`Alcohol Use: ${characteristics.alcoholUse}`);
+    
+    if (characteristics.comorbidities && characteristics.comorbidities.length > 0) {
+      profile.push(`Comorbidities: ${characteristics.comorbidities.join(', ')}`);
     }
     
-    if (allergies && allergies.length > 0) {
-      profile += `Allergies: ${allergies.join(', ')}\n`;
+    if (characteristics.allergies && characteristics.allergies.length > 0) {
+      profile.push(`Allergies: ${characteristics.allergies.join(', ')}`);
     }
     
-    if (currentMedications && currentMedications.length > 0) {
-      profile += `Current Medications: ${currentMedications.join(', ')}\n`;
+    if (characteristics.currentMedications && characteristics.currentMedications.length > 0) {
+      profile.push(`Current Medications: ${characteristics.currentMedications.join(', ')}`);
     }
     
-    if (smokingStatus) profile += `Smoking Status: ${smokingStatus}\n`;
-    if (alcoholUse) profile += `Alcohol Use: ${alcoholUse}\n`;
-    
-    if (priorAdverseReactions && priorAdverseReactions.length > 0) {
-      profile += `Prior Adverse Reactions: ${priorAdverseReactions.join(', ')}\n`;
+    if (characteristics.priorAdverseReactions && characteristics.priorAdverseReactions.length > 0) {
+      profile.push(`Prior Adverse Reactions: ${characteristics.priorAdverseReactions.join(', ')}`);
     }
     
-    return profile;
+    return profile.join('\n');
   }
 }
 
