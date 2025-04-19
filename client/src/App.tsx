@@ -20,6 +20,7 @@ import TreatmentCompanionPage from "./pages/TreatmentCompanionPage";
 import MedicalTerminologyTranslator from "./pages/MedicalTerminologyTranslator";
 import TestPage from "./pages/TestPage";
 import PublicTestPage from "./pages/PublicTestPage";
+import SimpleTestPage from "./pages/SimpleTestPage";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider } from "./components/security/AuthProvider";
 import { ProtectedRoute } from "./components/security/ProtectedRoute";
@@ -29,6 +30,9 @@ function Router() {
   
   return (
     <Switch>
+      {/* Super simple test page with no other dependencies */}
+      <Route path="/simple-test" component={SimpleTestPage} />
+      
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
       <Route path="/public-test" component={PublicTestPage} />
