@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uuid, pgEnum, vector } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -203,8 +203,39 @@ export type InsertTreatment = z.infer<typeof insertTreatmentSchema>;
 export type SavedTrial = typeof savedTrials.$inferSelect;
 export type InsertSavedTrial = z.infer<typeof insertSavedTrialSchema>;
 
+// Vector embeddings for semantic search (using jsonb instead of vector type for compatibility)
+export const vectorEmbeddings = pgTable("vector_embeddings", {
+  id: serial("id").primaryKey(),
+  researchItemId: integer("research_item_id").notNull(),
+  documentId: integer("document_id"),
+  embedding: jsonb("embedding").notNull(), // Store vector as a JSON array
+  content: text("content").notNull(),
+  dateAdded: timestamp("date_added").defaultNow().notNull(),
+});
+
+export const insertVectorEmbeddingSchema = createInsertSchema(vectorEmbeddings).pick({
+  researchItemId: true,
+  documentId: true,
+  embedding: true,
+  content: true,
+});
+
+export const vectorEmbeddingsRelations = relations(vectorEmbeddings, ({ one }) => ({
+  researchItem: one(researchItems, {
+    fields: [vectorEmbeddings.researchItemId],
+    references: [researchItems.id],
+  }),
+  document: one(documents, {
+    fields: [vectorEmbeddings.documentId],
+    references: [documents.id],
+  }),
+}));
+
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
+export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingSchema>;
 
 // AI model types
 export enum ModelType {

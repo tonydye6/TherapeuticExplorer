@@ -1,9 +1,10 @@
 import { 
   users, documents, messages, researchItems, 
-  savedTrials, treatments,
+  savedTrials, treatments, vectorEmbeddings,
   User, InsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
-  SavedTrial, InsertSavedTrial, Document, InsertDocument
+  SavedTrial, InsertSavedTrial, Document, InsertDocument,
+  VectorEmbedding, InsertVectorEmbedding
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";

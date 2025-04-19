@@ -53,6 +53,12 @@ export interface IStorage {
   getDocumentById(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocumentParsedContent(id: number, parsedContent: any): Promise<Document>;
+  
+  // Vector embedding methods
+  getVectorEmbedding(id: number): Promise<VectorEmbedding | undefined>;
+  createVectorEmbedding(embedding: InsertVectorEmbedding): Promise<VectorEmbedding>;
+  getEmbeddingsForResearchItem(researchItemId: number): Promise<VectorEmbedding[]>;
+  getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]>;
 }
 
 export class MemStorage implements IStorage {
