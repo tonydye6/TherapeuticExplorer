@@ -4,6 +4,10 @@ import TreatmentCard from "./TreatmentCard";
 import ClinicalTrialCard from "./ClinicalTrialCard";
 import ResearchSummaryCard from "./ResearchSummaryCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import ModelBadge from "./ModelBadge";
+import ResearchTabs, { DeepResearchContent } from "./ResearchTabs"; 
+import { parseResearchContent } from "@/lib/parseResearchContent";
+import { useState } from "react";
 
 type MessageSource = {
   title: string;
@@ -41,6 +45,7 @@ type MessageBubbleProps = {
     text: string;
     sources: string[];
   };
+  modelUsed?: string | null;
 };
 
 const processText = (text: string) => {
