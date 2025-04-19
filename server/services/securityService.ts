@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { storage } from '../storage';
 import { User } from '@shared/schema';
 
@@ -7,7 +7,7 @@ import { User } from '@shared/schema';
  * Service for handling security concerns including encryption, authentication, and authorization
  */
 export class SecurityService {
-  private JWT_SECRET: string;
+  private JWT_SECRET: jwt.Secret;
   private JWT_EXPIRY: string;
   private ENCRYPTION_KEY: Buffer;
   private ENCRYPTION_IV: Buffer;
@@ -90,10 +90,16 @@ export class SecurityService {
       // Do not include sensitive information in the token payload
     };
     
-    // Create secret key buffer for jwt.sign
-    const secretKey = Buffer.from(this.JWT_SECRET, 'utf-8');
-    
-    return jwt.sign(payload, secretKey, { expiresIn: this.JWT_EXPIRY });
+    try {
+      // Now that JWT_SECRET is properly typed, we can use options
+      const token = jwt.sign(payload, this.JWT_SECRET, {
+        expiresIn: this.JWT_EXPIRY
+      });
+      return token;
+    } catch (error) {
+      console.error('Error generating token:', error);
+      throw new Error('Failed to generate authentication token');
+    }
   }
   
   /**
@@ -101,9 +107,8 @@ export class SecurityService {
    */
   verifyToken(token: string): any {
     try {
-      // Create secret key buffer for jwt.verify
-      const secretKey = Buffer.from(this.JWT_SECRET, 'utf-8');
-      return jwt.verify(token, secretKey);
+      const decoded = jwt.verify(token, this.JWT_SECRET);
+      return decoded;
     } catch (error) {
       console.error('Token verification failed:', error);
       return null;

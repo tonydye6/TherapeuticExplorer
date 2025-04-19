@@ -186,7 +186,14 @@ export const hipaaSecurityHeaders = (req: Request, res: Response, next: NextFunc
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; object-src 'none'");
+  
+  // More permissive CSP for development environment
+  // In production, this should be more restrictive
+  res.setHeader(
+    'Content-Security-Policy', 
+    "default-src 'self'; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src 'self'; object-src 'none'"
+  );
+  
   res.setHeader('Referrer-Policy', 'same-origin');
   
   // Remove headers that might leak information

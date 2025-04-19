@@ -55,7 +55,7 @@ const upload = multer({
   }
 });
 
-import { authenticateToken, requirePermission } from './middleware/authMiddleware';
+import { authenticateToken, requirePermission, hipaaSecurityHeaders } from './middleware/authMiddleware';
 import { securityService } from './services/securityService';
 
 // Define user for AuthRequest
