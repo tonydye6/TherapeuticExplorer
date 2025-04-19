@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
-import MedicalTimeline, { MedicalEvent } from "@/components/MedicalTimeline";
+import MedicalTimeline, { MedicalEvent, MedicalEventType } from "@/components/MedicalTimeline";
 import { 
   LineChart, 
   Line, 
@@ -78,11 +78,11 @@ export default function TreatmentTracker() {
   };
 
   // Sample medical events for the timeline
-  const sampleMedicalEvents = [
+  const sampleMedicalEvents: MedicalEvent[] = [
     {
       id: "event1",
       date: new Date("2023-10-01"),
-      eventType: "diagnosis",
+      eventType: "diagnosis" as MedicalEventType,
       title: "Initial Diagnosis",
       description: "Stage IV esophageal cancer with liver metastasis",
       provider: "Dr. Sarah Johnson",
@@ -91,7 +91,7 @@ export default function TreatmentTracker() {
     {
       id: "event2",
       date: new Date("2023-10-15"),
-      eventType: "treatment",
+      eventType: "treatment" as MedicalEventType,
       title: "Started Chemotherapy",
       description: "FOLFOX regimen initiated",
       provider: "Dr. Michael Chen",
@@ -100,7 +100,7 @@ export default function TreatmentTracker() {
     {
       id: "event3",
       date: new Date("2023-11-05"),
-      eventType: "test",
+      eventType: "test" as MedicalEventType,
       title: "CT Scan",
       description: "Follow-up imaging to assess treatment response",
       result: "10% reduction in primary tumor size, stable liver metastases",
