@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { hipaaSecurityHeaders, rateLimit } from "./middleware/authMiddleware";
+import { securityHeaders, authRateLimit, sensitiveRouteRateLimit } from "./middleware/authMiddleware";
 import { securityService } from "./services/securityService";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -11,13 +11,13 @@ const app = express();
 
 // Security enhancements
 app.use(helmet()); // Adds various security headers
-app.use(hipaaSecurityHeaders); // Add HIPAA-specific security headers
+app.use(securityHeaders); // Add HIPAA-specific security headers
 app.use(cookieParser()); // For secure cookie handling
 
 // Rate limiting for sensitive endpoints
-app.use('/api/login', rateLimit(15 * 60 * 1000, 5)); // 5 requests per 15 minutes
-app.use('/api/register', rateLimit(60 * 60 * 1000, 3)); // 3 requests per hour
-app.use('/api/user', rateLimit(5 * 60 * 1000, 20)); // 20 requests per 5 minutes
+app.use('/api/login', authRateLimit); // Strict rate limiting for auth endpoints
+app.use('/api/register', authRateLimit); // Strict rate limiting for auth endpoints
+app.use('/api/user', sensitiveRouteRateLimit); // Rate limiting for sensitive data
 
 // Standard middleware
 app.use(express.json({ limit: '1mb' })); // Limit body size to prevent DoS attacks

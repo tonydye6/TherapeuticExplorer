@@ -1,83 +1,54 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { storage } from '../storage';
+import bcrypt from 'bcrypt';
 import { User } from '@shared/schema';
 
 /**
- * Service for handling security concerns including encryption, authentication, and authorization
+ * Security Service
+ * Handles authentication, encryption, and security auditing
  */
-export class SecurityService {
+class SecurityService {
+  // JWT configuration
   private JWT_SECRET: string;
-  private JWT_EXPIRY: string;
+  private JWT_EXPIRY: string = '24h';
+  
+  // Encryption configuration
   private ENCRYPTION_KEY: Buffer;
   private ENCRYPTION_IV: Buffer;
-  private ENCRYPTION_ALGORITHM: string;
+  private ENCRYPTION_ALGORITHM: string = 'aes-256-cbc';
+  
+  // Password configuration
+  private SALT_ROUNDS: number = 10;
   
   constructor() {
-    // Check for required environment variables
+    // In production, these should be environment variables
+    this.JWT_SECRET = process.env.JWT_SECRET || '7ab58ce0a98e4fe4f26ceb6a28e8bcabc82ea3a64d3889c17be06c1e8b8f0fd0';
+    
+    // If JWT_SECRET is not set, log a warning
     if (!process.env.JWT_SECRET) {
       console.warn('JWT_SECRET not set, using fallback. This is not secure for production.');
     }
     
-    // Initialize security parameters (in production, these should come from environment variables)
-    this.JWT_SECRET = process.env.JWT_SECRET || 'thrive_development_secret_key';
-    this.JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
+    // Create encryption key and IV from environment or fallback
+    const encKey = process.env.ENCRYPTION_KEY || '12345678901234567890123456789012'; // 32 bytes (256 bits)
+    const encIv = process.env.ENCRYPTION_IV || '1234567890123456'; // 16 bytes (128 bits)
     
-    // For encryption (using AES-256-CBC)
-    const encryptionKey = process.env.ENCRYPTION_KEY || 'thrive_development_encryption_key_32ch';
-    this.ENCRYPTION_KEY = Buffer.from(encryptionKey.padEnd(32).slice(0, 32));
-    this.ENCRYPTION_IV = Buffer.from(process.env.ENCRYPTION_IV || '1234567890abcdef');
-    this.ENCRYPTION_ALGORITHM = 'aes-256-cbc';
+    this.ENCRYPTION_KEY = Buffer.from(encKey, 'utf8');
+    this.ENCRYPTION_IV = Buffer.from(encIv, 'utf8');
   }
   
   /**
-   * Generate a secure hash for a password using Argon2 or PBKDF2
+   * Hash a password
    */
   async hashPassword(password: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // Generate a random salt
-      const salt = crypto.randomBytes(16).toString('hex');
-      
-      // Use PBKDF2 for password hashing
-      crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        
-        // Format: algorithm:iterations:salt:hash
-        const hash = `pbkdf2:100000:${salt}:${derivedKey.toString('hex')}`;
-        resolve(hash);
-      });
-    });
+    return bcrypt.hash(password, this.SALT_ROUNDS);
   }
   
   /**
-   * Verify a password against a stored hash
+   * Verify a password against a hash
    */
-  async verifyPassword(password: string, storedHash: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      // Parse stored hash components
-      const parts = storedHash.split(':');
-      if (parts.length !== 4 || parts[0] !== 'pbkdf2') {
-        reject(new Error('Invalid hash format'));
-        return;
-      }
-      
-      const iterations = parseInt(parts[1]);
-      const salt = parts[2];
-      const hash = parts[3];
-      
-      // Verify using PBKDF2
-      crypto.pbkdf2(password, salt, iterations, 64, 'sha512', (err, derivedKey) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        
-        resolve(derivedKey.toString('hex') === hash);
-      });
-    });
+  async verifyPassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
   }
   
   /**
@@ -87,13 +58,10 @@ export class SecurityService {
     const payload = {
       id: user.id,
       username: user.username,
-      // Do not include sensitive information in the token payload
+      // Do not include sensitive information in the token
     };
     
-    // Create secret key buffer for jwt.sign
-    const secretKey = Buffer.from(this.JWT_SECRET, 'utf-8');
-    
-    return jwt.sign(payload, secretKey, { expiresIn: this.JWT_EXPIRY });
+    return jwt.sign(payload, this.JWT_SECRET, { expiresIn: this.JWT_EXPIRY });
   }
   
   /**
