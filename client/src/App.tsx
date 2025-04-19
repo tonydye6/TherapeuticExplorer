@@ -21,6 +21,7 @@ import MedicalTerminologyTranslator from "./pages/MedicalTerminologyTranslator";
 import TestPage from "./pages/TestPage";
 import PublicTestPage from "./pages/PublicTestPage";
 import SimpleTestPage from "./pages/SimpleTestPage";
+import SimpleMedicalTranslator from "./pages/SimpleMedicalTranslator";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider } from "./components/security/AuthProvider";
 import { ProtectedRoute } from "./components/security/ProtectedRoute";
@@ -34,31 +35,27 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/public-test" component={PublicTestPage} />
       <Route path="/simple-test" component={SimpleTestPage} />
+      <Route path="/simple-medical" component={SimpleMedicalTranslator} />
       
       {/* Protected Routes */}
-      <Route path="/">
+      {/* Main routes are temporarily bypassed for debugging */}
+      <Route path="/main-app">
         <ProtectedRoute>
           <Layout>
             <Switch>
-              <Route path="/" component={ResearchAssistant} />
-              <Route path="/saved-research" component={SavedResearch} />
-              <Route path="/treatment-tracker" component={TreatmentTracker} />
-              <Route path="/treatment-predictor" component={TreatmentPredictor} />
-              <Route path="/side-effect-analyzer" component={SideEffectAnalyzer} />
-              <Route path="/treatment-timeline" component={TreatmentTimelinePage} />
-              <Route path="/direct-translator" component={MedicalTerminologyTranslator} />
-            <Route path="/treatment-companion" component={TreatmentCompanionPage} />
-            <Route path="/clinical-trials" component={ClinicalTrials} />
-            <Route path="/documents" component={Documents} />
-            <Route path="/semantic-search" component={SemanticSearch} />
-            <Route path="/medical-translator" component={MedicalTerminologyTranslator} />
-            <Route path="/test" component={TestPage} />
-            <Route path="/preferences" component={Preferences} />
-            <Route path="/help" component={Help} />
-            <Route component={NotFound} />
-          </Switch>
-        </Layout>
+              <Route path="/main-app" component={ResearchAssistant} />
+              <Route path="/main-app/saved-research" component={SavedResearch} />
+              <Route path="/main-app/treatment-tracker" component={TreatmentTracker} />
+              <Route path="/main-app/medical-translator" component={MedicalTerminologyTranslator} />
+              <Route path="/main-app/test" component={TestPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        </ProtectedRoute>
       </Route>
+      
+      {/* Default route to the simple test page */}
+      <Route path="/" component={SimpleTestPage} />
     </Switch>
   );
 }
