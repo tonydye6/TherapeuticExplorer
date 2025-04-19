@@ -92,14 +92,15 @@ const TreatmentPredictor = () => {
   });
 
   // Treatment prediction mutation
-  const predictMutation = useMutation({
+  const predictMutation = useMutation<TreatmentPrediction[], Error, PatientFormData>({
     mutationFn: async (patientData: PatientFormData) => {
-      return apiRequest('/api/treatments/predict', {
+      return apiRequest<TreatmentPrediction[]>('/api/treatments/predict', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ patientData }),
       });
     },
-    onSuccess: (data: TreatmentPrediction[]) => {
+    onSuccess: (data) => {
       setPredictions(data);
       setActiveTab('results');
       toast({
