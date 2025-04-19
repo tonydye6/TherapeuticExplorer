@@ -2,8 +2,7 @@ import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   Dialog,
@@ -57,6 +56,7 @@ export default function AddTreatmentDialog({
 }: AddTreatmentDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -67,22 +67,43 @@ export default function AddTreatmentDialog({
       active: true,
     },
   });
-
-  // Direct function to post the treatment data
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
-  const postTreatment = async (values: FormValues) => {
+  async function submitTreatment() {
     try {
-      setIsSubmitting(true);
-      console.log("Posting treatment data:", values);
+      // Get values directly from the form
+      const values = form.getValues();
       
-      // Create a treatment object with userId
+      // Validate required fields directly
+      if (!values.name) {
+        toast({
+          title: "Error",
+          description: "Treatment name is required",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (!values.type) {
+        toast({
+          title: "Error",
+          description: "Treatment type is required",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log("Submitting treatment with values:", values);
+      setIsSubmitting(true);
+      
+      // Add userId to the values
       const treatmentData = {
         ...values,
         userId: 1 // Default user ID
       };
       
-      // Use direct fetch instead of apiRequest
+      console.log("Sending to server:", treatmentData);
+      
+      // Make the API request directly
       const response = await fetch("/api/treatments", {
         method: "POST",
         headers: {
@@ -93,41 +114,38 @@ export default function AddTreatmentDialog({
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Failed to add treatment:", errorText);
-        throw new Error(`Failed to add treatment: ${response.status} ${errorText}`);
+        console.error("Error response:", errorText);
+        throw new Error(`Server error: ${response.status} ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log("Treatment added successfully:", result);
+      const data = await response.json();
+      console.log("Success response:", data);
       
-      // Success message
+      // Show success toast
       toast({
-        title: "Treatment added",
-        description: "Your treatment has been added successfully."
+        title: "Success",
+        description: "Treatment added successfully"
       });
       
-      // Invalidate treatment queries to refresh the list
+      // Refresh the treatments list
       queryClient.invalidateQueries({ queryKey: ["/api/treatments"] });
       
       // Reset form and close dialog
       form.reset();
       onClose();
-    } catch (error) {
-      console.error("Error adding treatment:", error);
+    } 
+    catch (error) {
+      console.error("Failed to add treatment:", error);
       toast({
         title: "Error",
-        description: "Failed to add treatment. Please try again.",
+        description: "Failed to add treatment: " + (error instanceof Error ? error.message : "Unknown error"),
         variant: "destructive"
       });
-    } finally {
+    }
+    finally {
       setIsSubmitting(false);
     }
-  };
-
-  const onSubmit = (values: FormValues) => {
-    console.log("Form submitted with values:", values);
-    postTreatment(values);
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -140,7 +158,7 @@ export default function AddTreatmentDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -195,6 +213,7 @@ export default function AddTreatmentDialog({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            type="button"
                             variant={"outline"}
                             className={`w-full pl-3 text-left font-normal ${
                               !field.value && "text-muted-foreground"
@@ -236,6 +255,7 @@ export default function AddTreatmentDialog({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            type="button"
                             variant={"outline"}
                             className={`w-full pl-3 text-left font-normal ${
                               !field.value && "text-muted-foreground"
@@ -279,6 +299,7 @@ export default function AddTreatmentDialog({
                       placeholder="Add any notes about this treatment, including dosage, frequency, etc."
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -316,15 +337,12 @@ export default function AddTreatmentDialog({
               <Button 
                 type="button" 
                 disabled={isSubmitting}
-                onClick={() => {
-                  console.log("Manual submit clicked");
-                  form.handleSubmit(onSubmit)();
-                }}
+                onClick={submitTreatment}
               >
                 {isSubmitting ? "Adding..." : "Add Treatment"}
               </Button>
             </DialogFooter>
-          </form>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>
