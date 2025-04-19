@@ -28,6 +28,7 @@ export interface HighlightedTerm {
 class MedicalTermService {
   private anthropic: Anthropic;
   private termsCache: Map<string, { terms: HighlightedTerm[], timestamp: number }>;
+  private translationCache: Map<string, { translation: string, timestamp: number }>;
   private CACHE_TTL = 3600000; // 1 hour cache
   
   constructor() {
@@ -36,6 +37,7 @@ class MedicalTermService {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
     this.termsCache = new Map();
+    this.translationCache = new Map();
   }
 
   /**
@@ -353,6 +355,162 @@ ${text}
     });
     
     return result;
+  }
+
+  /**
+   * Translate medical text into patient-friendly language
+   * @param text The medical text to translate
+   * @returns Promise containing the translated text
+   */
+  async translateMedicalText(text: string): Promise<string> {
+    try {
+      if (!text || text.trim() === '') {
+        return '';
+      }
+
+      // Cache key is a hash of the text to avoid long keys
+      const cacheKey = this.hashString(text);
+      
+      // Check cache first
+      const cached = this.translationCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < this.CACHE_TTL)) {
+        console.log('Using cached medical text translation');
+        return cached.translation;
+      }
+
+      // If text is very long, break it into chunks
+      if (text.length > 4000) {
+        console.log('Text is too long, breaking into chunks for translation');
+        // Split into paragraphs
+        const paragraphs = text.split(/\n\s*\n/);
+        let result = '';
+        
+        // Process each paragraph
+        for (const paragraph of paragraphs) {
+          if (paragraph.trim() === '') continue;
+          const translatedParagraph = await this.translateMedicalText(paragraph);
+          result += translatedParagraph + '\n\n';
+        }
+        
+        // Cache the combined result
+        this.translationCache.set(cacheKey, {
+          translation: result,
+          timestamp: Date.now()
+        });
+        
+        return result;
+      }
+
+      const prompt = `
+Translate the following medical text into patient-friendly language. 
+- Replace medical jargon with plain language a layperson can understand
+- Keep the meaning and important medical information intact
+- Explain abbreviations and specialized terms
+- Maintain a compassionate, clear tone
+- Do NOT omit important details even if they're technical
+- When presenting statistics, explain what they mean for the patient
+- For any treatments mentioned, briefly explain their purpose
+- Include the original medical terms in parentheses where appropriate
+
+Here is the medical text to translate:
+${text}
+
+Translated version:
+`;
+
+      // Use Claude for high-quality medical text translation
+      const message = await this.anthropic.messages.create({
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+        max_tokens: 4000,
+        system: "You're a medical professional who specializes in translating complex medical information into patient-friendly language.",
+        messages: [
+          { role: "user", content: prompt }
+        ],
+      });
+
+      // Extract the response
+      let translatedText = '';
+      if (message.content.length > 0) {
+        const contentBlock = message.content[0] as any;
+        translatedText = contentBlock.text || '';
+      }
+
+      // Cache the result
+      this.translationCache.set(cacheKey, {
+        translation: translatedText,
+        timestamp: Date.now()
+      });
+
+      return translatedText;
+    } catch (error) {
+      console.error('Error translating medical text:', error);
+      // Return original text if translation fails
+      return `Failed to translate: ${text}`;
+    }
+  }
+
+  /**
+   * Translate a single medical term into plain language
+   * @param term The medical term to translate
+   * @returns Promise containing the translated explanation
+   */
+  async translateMedicalTerm(term: string): Promise<string> {
+    try {
+      if (!term || term.trim() === '') {
+        return '';
+      }
+
+      // Cache key is a hash of the term to avoid long keys
+      const cacheKey = `term_${this.hashString(term)}`;
+      
+      // Check cache first
+      const cached = this.translationCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < this.CACHE_TTL)) {
+        console.log('Using cached medical term translation');
+        return cached.translation;
+      }
+
+      const prompt = `
+Explain the medical term "${term}" in simple, patient-friendly language.
+- Provide a clear, concise definition (2-3 sentences)
+- Explain why this term might be important for a patient to understand
+- Use analogies or everyday comparisons if helpful
+- If it's a procedure, briefly explain what happens during it
+- If it's a medication, briefly explain what it does
+- If it's a condition, briefly explain its effects
+
+Your response should be helpful for someone with no medical background.
+`;
+
+      // Use Claude for medical term explanation
+      const message = await this.anthropic.messages.create({
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+        max_tokens: 1000,
+        system: "You're a medical educator who specializes in explaining complex medical terms to patients without medical backgrounds.",
+        messages: [
+          { role: "user", content: prompt }
+        ],
+      });
+
+      // Extract the response
+      let explanation = '';
+      if (message.content.length > 0) {
+        const contentBlock = message.content[0] as any;
+        explanation = contentBlock.text || '';
+      }
+
+      // Cache the result
+      this.translationCache.set(cacheKey, {
+        translation: explanation,
+        timestamp: Date.now()
+      });
+
+      return explanation;
+    } catch (error) {
+      console.error('Error translating medical term:', error);
+      // Return a basic response if translation fails
+      return `${term} - a medical term (translation unavailable)`;
+    }
   }
 }
 
