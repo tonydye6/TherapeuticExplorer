@@ -324,7 +324,7 @@ export default function TreatmentTracker() {
                               
                               // Refresh the treatments list using the correct query key
                               await queryClient.invalidateQueries({
-                                queryKey: [['/api/treatments']]
+                                queryKey: ['/api/treatments']
                               });
                               
                               toast({
