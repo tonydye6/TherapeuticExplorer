@@ -55,7 +55,234 @@ const upload = multer({
   }
 });
 
+import { authenticateToken, requirePermission } from './middleware/authMiddleware';
+import { securityService } from './services/securityService';
+
+// Define user for AuthRequest
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth Routes
+  app.post('/api/register', async (req, res) => {
+    try {
+      const { username, password, displayName } = req.body;
+      
+      // Validate required fields
+      if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        // Log failed registration attempt but don't reveal specific issue for security
+        await securityService.logSecurityEvent('registration_failed', null, {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+          reason: 'username_exists'
+        });
+        
+        return res.status(400).json({ message: 'Registration failed' });
+      }
+      
+      // Hash password
+      const hashedPassword = await securityService.hashPassword(password);
+      
+      // Create user
+      const user = await storage.createUser({
+        username,
+        password: hashedPassword,
+        displayName: displayName || null,
+        diagnosis: null,
+        diagnosisStage: null,
+        diagnosisDate: null,
+        preferences: {}
+      });
+      
+      // Log successful registration
+      await securityService.logSecurityEvent('registration_success', user.id, {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      // Generate token
+      const token = securityService.generateToken(user);
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.status(201).json({
+        user: userWithoutPassword,
+        token
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'An error occurred during registration' });
+    }
+  });
+  
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Validate required fields
+      if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+      }
+      
+      // Find user
+      const user = await storage.getUserByUsername(username);
+      
+      // User not found or password incorrect
+      if (!user) {
+        await securityService.logSecurityEvent('login_failed', null, {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+          username,
+          reason: 'user_not_found'
+        });
+        
+        // Use the same message regardless of whether the user exists
+        // to prevent account enumeration attacks
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+      
+      // Verify password
+      const isPasswordValid = await securityService.verifyPassword(password, user.password);
+      
+      if (!isPasswordValid) {
+        await securityService.logSecurityEvent('login_failed', user.id, {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+          reason: 'invalid_password'
+        });
+        
+        return res.status(401).json({ message: 'Invalid username or password' });
+      }
+      
+      // Log successful login
+      await securityService.logSecurityEvent('login_success', user.id, {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      // Generate token
+      const token = securityService.generateToken(user);
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.json({
+        user: userWithoutPassword,
+        token
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'An error occurred during login' });
+    }
+  });
+  
+  // User Profile Route - Protected by authentication
+  app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      // At this point, req.user is set by the authenticateToken middleware
+      const { password, ...userWithoutPassword } = req.user;
+      
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ message: 'Failed to retrieve user profile' });
+    }
+  });
+  
+  // Update User Profile - Protected by authentication
+  app.patch('/api/user/profile', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Allow updating only certain fields for security
+      const allowedFields = ['displayName', 'diagnosis', 'diagnosisStage', 'diagnosisDate'];
+      const updateData: any = {};
+      
+      allowedFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      });
+      
+      // Update user
+      const updatedUser = await storage.updateUserProfile(userId, updateData);
+      
+      // Log profile update
+      await securityService.logSecurityEvent('profile_updated', userId, {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        fields: Object.keys(updateData)
+      });
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ message: 'Failed to update user profile' });
+    }
+  });
+  
+  // Change Password - Protected by authentication
+  app.post('/api/user/change-password', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Current password and new password are required' });
+      }
+      
+      // Validate current password
+      const isValid = await securityService.verifyPassword(
+        currentPassword, 
+        req.user.password
+      );
+      
+      if (!isValid) {
+        await securityService.logSecurityEvent('password_change_failed', req.user.id, {
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+          reason: 'invalid_current_password'
+        });
+        
+        return res.status(401).json({ message: 'Current password is incorrect' });
+      }
+      
+      // Password strength validation
+      if (newPassword.length < 8) {
+        return res.status(400).json({ 
+          message: 'New password must be at least 8 characters long' 
+        });
+      }
+      
+      // Hash new password
+      const hashedPassword = await securityService.hashPassword(newPassword);
+      
+      // Update password
+      await storage.updateUserProfile(req.user.id, { password: hashedPassword });
+      
+      // Log password change
+      await securityService.logSecurityEvent('password_changed', req.user.id, {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      res.status(500).json({ message: 'Failed to change password' });
+    }
+  });
+  
   // API Routes
   
   // Messages Routes
