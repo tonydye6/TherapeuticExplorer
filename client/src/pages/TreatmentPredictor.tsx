@@ -64,7 +64,7 @@ const patientFormSchema = z.object({
     smokingHistory: z.enum(['never', 'former', 'current']).optional(),
     alcoholHistory: z.enum(['none', 'light', 'moderate', 'heavy']).optional()
   }).optional(),
-  performanceStatus: z.string().optional().transform(val => val ? parseInt(val, 10) : undefined)
+  performanceStatus: z.string().optional()
 });
 
 type PatientFormData = z.infer<typeof patientFormSchema>;

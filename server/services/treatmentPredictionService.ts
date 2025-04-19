@@ -240,7 +240,11 @@ Ensure your predictions are evidence-based and reflect the latest clinical resea
     }
     
     if (patientData.diagnosisDate) {
-      summary += `Diagnosis Date: ${patientData.diagnosisDate.toISOString().split('T')[0]}\n`;
+      // Handle both Date objects and string date formats
+      const dateStr = patientData.diagnosisDate instanceof Date 
+        ? patientData.diagnosisDate.toISOString().split('T')[0]
+        : patientData.diagnosisDate;
+      summary += `Diagnosis Date: ${dateStr}\n`;
     }
     
     // Tumor characteristics
