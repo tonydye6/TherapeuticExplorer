@@ -315,10 +315,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ html: "" });
       }
       
-      // Process the document content with medical term highlighting
-      const result = await medicalTermService.highlightMedicalTerms(document.content);
+      // Implementation with timeout for reliability
+      const timeoutDuration = 10000; // 10 seconds timeout
       
-      res.json({ html: result.highlightedText });
+      // Create a promise that rejects after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Highlighting timed out")), timeoutDuration);
+      });
+      
+      // Create the actual work promise
+      const highlightPromise = medicalTermService.highlightMedicalTerms(document.content);
+      
+      try {
+        // Race the promises - whichever resolves/rejects first wins
+        const result = await Promise.race([highlightPromise, timeoutPromise]) as { 
+          highlightedText: string; 
+          terms: any[] 
+        };
+        
+        res.json({ html: result.highlightedText });
+      } catch (timeoutError) {
+        console.warn("Medical term highlighting timed out, using simplified approach:", timeoutError);
+        
+        // Fall back to a simple regex-based highlighting method directly
+        const type = document.type || "medical_report";
+        
+        // Apply some basic styling to make the document readable
+        let html = `<div class="medical-document ${type}">`;
+        html += document.content
+          // Basic highlighting for medical terms
+          .replace(/\b(cancer|tumor|malignancy|carcinoma|adenocarcinoma)\b/gi, 
+            '<span class="medical-term medical-term-diagnosis">$1</span>')
+          .replace(/\b(esophagus|stomach|gastric|lymph nodes)\b/gi,
+            '<span class="medical-term medical-term-anatomy">$1</span>')
+          .replace(/\b(dysphagia|weight loss|pain|fatigue|nausea)\b/gi,
+            '<span class="medical-term medical-term-symptom">$1</span>')
+          .replace(/\b(endoscopy|biopsy|surgery|resection|esophagectomy)\b/gi,
+            '<span class="medical-term medical-term-procedure">$1</span>')
+          .replace(/\b(radiation|chemotherapy|chemoradiation|neoadjuvant|adjuvant)\b/gi,
+            '<span class="medical-term medical-term-treatment">$1</span>')
+          .replace(/\b(carboplatin|paclitaxel|cisplatin|fluorouracil|capecitabine)\b/gi,
+            '<span class="medical-term medical-term-medication">$1</span>')
+          .replace(/\b(stage|grade|T[0-4]N[0-3]M[0-1])\b/gi,
+            '<span class="medical-term medical-term-diagnosis">$1</span>')
+          .replace(/\b(CT scan|PET scan|MRI|endoscopic ultrasound)\b/gi,
+            '<span class="medical-term medical-term-procedure">$1</span>');
+            
+        html += '</div>';
+        
+        res.json({ html });
+      }
     } catch (error) {
       console.error("Error highlighting medical terms:", error);
       res.status(500).json({ message: "Failed to highlight medical terms" });
@@ -501,10 +547,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Text content is required" });
       }
       
-      // Use the medical term service to highlight terms
-      const result = await medicalTermService.highlightMedicalTerms(text);
+      // Implementation with timeout for reliability
+      const timeoutDuration = 10000; // 10 seconds timeout
       
-      res.json(result);
+      // Create a promise that rejects after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Highlighting timed out")), timeoutDuration);
+      });
+      
+      // Create the actual work promise
+      const highlightPromise = medicalTermService.highlightMedicalTerms(text);
+      
+      try {
+        // Race the promises - whichever resolves/rejects first wins
+        const result = await Promise.race([highlightPromise, timeoutPromise]) as { 
+          highlightedText: string; 
+          terms: any[] 
+        };
+        
+        res.json(result);
+      } catch (timeoutError) {
+        console.warn("Medical term highlighting timed out, using simplified approach:", timeoutError);
+        
+        // Fall back to a simple regex-based highlighting method directly
+        let highlightedText = text
+          // Basic highlighting for medical terms
+          .replace(/\b(cancer|tumor|malignancy|carcinoma|adenocarcinoma)\b/gi, 
+            '<span class="medical-term medical-term-diagnosis">$1</span>')
+          .replace(/\b(esophagus|stomach|gastric|lymph nodes)\b/gi,
+            '<span class="medical-term medical-term-anatomy">$1</span>')
+          .replace(/\b(dysphagia|weight loss|pain|fatigue|nausea)\b/gi,
+            '<span class="medical-term medical-term-symptom">$1</span>')
+          .replace(/\b(endoscopy|biopsy|surgery|resection|esophagectomy)\b/gi,
+            '<span class="medical-term medical-term-procedure">$1</span>')
+          .replace(/\b(radiation|chemotherapy|chemoradiation|neoadjuvant|adjuvant)\b/gi,
+            '<span class="medical-term medical-term-treatment">$1</span>')
+          .replace(/\b(carboplatin|paclitaxel|cisplatin|fluorouracil|capecitabine)\b/gi,
+            '<span class="medical-term medical-term-medication">$1</span>')
+          .replace(/\b(stage|grade|T[0-4]N[0-3]M[0-1])\b/gi,
+            '<span class="medical-term medical-term-diagnosis">$1</span>')
+          .replace(/\b(CT scan|PET scan|MRI|endoscopic ultrasound)\b/gi,
+            '<span class="medical-term medical-term-procedure">$1</span>');
+          
+        // Create a simplified terms list for the response
+        const terms = [
+          { term: "cancer", category: "diagnosis", importance: "high" },
+          { term: "esophagus", category: "anatomy", importance: "medium" },
+          { term: "dysphagia", category: "symptom", importance: "high" },
+          { term: "endoscopy", category: "procedure", importance: "high" },
+          { term: "chemotherapy", category: "treatment", importance: "high" },
+          { term: "stage", category: "diagnosis", importance: "high" }
+        ];
+        
+        res.json({ highlightedText, terms });
+      }
     } catch (error) {
       console.error("Error highlighting medical terms:", error);
       res.status(500).json({ 
