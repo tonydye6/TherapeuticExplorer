@@ -54,6 +54,7 @@ const sampleSideEffectData = [
 
 export default function TreatmentTracker() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   // Fetch treatments from API
   const { data: treatments, isLoading, error } = useQuery<Treatment[]>({
@@ -190,6 +191,16 @@ export default function TreatmentTracker() {
     console.log("Event clicked:", event);
     // In a real app, you might show a modal with details or navigate to a detail page
   };
+  
+  // Open add treatment dialog
+  const openAddTreatmentDialog = () => {
+    setIsAddDialogOpen(true);
+  };
+  
+  // Close add treatment dialog
+  const closeAddTreatmentDialog = () => {
+    setIsAddDialogOpen(false);
+  };
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -201,7 +212,10 @@ export default function TreatmentTracker() {
               <Filter className="h-4 w-4 mr-2" />
               Filter Events
             </Button>
-            <Button className="bg-primary-800 hover:bg-primary-900">
+            <Button 
+              className="bg-primary-800 hover:bg-primary-900"
+              onClick={openAddTreatmentDialog}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Treatment
             </Button>
