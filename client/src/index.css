@@ -11,3 +11,60 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Medical term highlighting styles */
+.medical-term {
+  @apply rounded px-0.5 py-0.5 cursor-pointer transition-colors hover:opacity-90;
+}
+
+.medical-term-Diagnoses, .medical-term-diagnosis {
+  @apply bg-red-100 text-red-800;
+}
+
+.medical-term-Medications, .medical-term-medication {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.medical-term-Treatments, .medical-term-treatment {
+  @apply bg-indigo-100 text-indigo-800;
+}
+
+.medical-term-Procedures, .medical-term-procedure {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.medical-term-Lab.tests, .medical-term-lab_test {
+  @apply bg-green-100 text-green-800;
+}
+
+.medical-term-Vital.signs, .medical-term-vital_sign {
+  @apply bg-teal-100 text-teal-800;
+}
+
+.medical-term-Anatomy, .medical-term-anatomy {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.medical-term-Genetic.markers, .medical-term-genetic_marker {
+  @apply bg-pink-100 text-pink-800;
+}
+
+.medical-term-Symptoms, .medical-term-symptom {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.medical-term-Medical.devices, .medical-term-medical_device {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.importance-high {
+  @apply border-2 border-current;
+}
+
+.importance-medium {
+  @apply border border-current;
+}
+
+.importance-low {
+  @apply border border-dashed border-current;
+}

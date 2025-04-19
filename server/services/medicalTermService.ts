@@ -138,31 +138,40 @@ ${text}
   private generateHighlightedText(text: string, terms: HighlightedTerm[]): string {
     if (!terms.length) return text;
     
-    // Sort terms by their position in the text (descending end position)
-    // This allows us to replace terms from end to beginning without affecting indices
-    const sortedTerms = [...terms].sort((a, b) => {
-      if (!a.range || !b.range) return 0;
-      return b.range[1] - a.range[1]; 
-    });
+    // Create a simple highlighting approach that doesn't rely on exact positioning
+    // This is more robust when dealing with complex medical text
     
+    // Create a map of terms to search for
+    const termMap = new Map<string, HighlightedTerm>();
+    for (const term of terms) {
+      if (term.term) {
+        termMap.set(term.term.toLowerCase(), term);
+      }
+    }
+    
+    // Simple regex-based replacement
     let highlightedText = text;
     
-    // Replace each term with a highlighted version
-    for (const term of sortedTerms) {
-      if (!term.range) continue;
+    // Process each term
+    for (const [termText, termInfo] of termMap.entries()) {
+      // Skip empty terms
+      if (!termText.trim()) continue;
       
-      const [start, end] = term.range;
-      const originalTerm = text.substring(start, end);
+      // Create a regex that respects word boundaries
+      const regex = new RegExp(`\\b${termText}\\b`, 'gi');
       
-      // Create highlighted HTML with hover tooltip
-      const highlightClass = `medical-term medical-term-${term.category} importance-${term.importance || 'medium'}`;
-      const highlightedTerm = `<span class="${highlightClass}" title="${term.definition || ''}" data-term="${term.term}" data-category="${term.category}">${originalTerm}</span>`;
+      // Create the HTML for this term
+      const category = termInfo.category || 'unknown';
+      const importance = termInfo.importance || 'medium';
+      const definition = termInfo.definition ? termInfo.definition.replace(/"/g, '&quot;') : '';
       
-      // Replace in the text
-      highlightedText = 
-        highlightedText.substring(0, start) + 
-        highlightedTerm + 
-        highlightedText.substring(end);
+      // Replace all occurrences
+      highlightedText = highlightedText.replace(regex, (match) => {
+        return `<span class="medical-term medical-term-${category} importance-${importance}" 
+          title="${definition}" 
+          data-term="${termInfo.term}" 
+          data-category="${category}">${match}</span>`;
+      });
     }
     
     return highlightedText;
