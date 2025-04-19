@@ -2,6 +2,9 @@
 // It extracts information from medical documents and provides structured data
 
 import { ModelType } from "@shared/schema";
+import { ocrService } from "./ocrService";
+import fs from 'fs';
+import { promisify } from 'util';
 
 // Types for document processing
 export type DocumentAnalysisResult = {
@@ -695,6 +698,105 @@ class DocumentService {
       contentType: "technical", // technical, patient-oriented, research
       readingLevel: "advanced" // basic, intermediate, advanced
     };
+  }
+
+  /**
+   * Process a medical document file using OCR
+   * @param file The file buffer
+   * @param filename The filename
+   * @param fileType The MIME type of the file
+   */
+  async processMedicalDocument(
+    file: Buffer,
+    filename: string,
+    fileType: string
+  ): Promise<{
+    extractedText: string;
+    analysis: DocumentAnalysisResult;
+    structuredData: any;
+    confidence: number;
+  }> {
+    console.log(`Processing medical document: ${filename} (${fileType})`);
+
+    try {
+      // Process the document with OCR
+      const ocrResult = await ocrService.processDocument(file, fileType, filename);
+      
+      // Analyze the extracted text
+      const analysis = await this.analyzeDocument(ocrResult.text);
+      
+      return {
+        extractedText: ocrResult.text,
+        analysis,
+        structuredData: ocrResult.structuredData,
+        confidence: ocrResult.confidence
+      };
+    } catch (error) {
+      console.error("Error processing medical document:", error);
+      throw new Error(`Failed to process medical document: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract structured data from an image using OCR
+   * @param imageBuffer The image file buffer
+   * @param filename The image filename
+   */
+  async extractTextFromImage(
+    imageBuffer: Buffer,
+    filename: string
+  ): Promise<{
+    text: string;
+    structuredData: any;
+    confidence: number;
+  }> {
+    try {
+      const result = await ocrService.processDocument(
+        imageBuffer, 
+        'image/jpeg', // Default to JPEG if unknown
+        filename
+      );
+      
+      return {
+        text: result.text,
+        structuredData: result.structuredData,
+        confidence: result.confidence
+      };
+    } catch (error) {
+      console.error("Error extracting text from image:", error);
+      throw new Error(`Failed to extract text from image: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract structured data from a PDF document
+   * @param pdfBuffer The PDF file buffer
+   * @param filename The PDF filename
+   */
+  async extractTextFromPDF(
+    pdfBuffer: Buffer,
+    filename: string
+  ): Promise<{
+    text: string;
+    structuredData: any;
+    confidence: number;
+  }> {
+    try {
+      const result = await ocrService.processDocument(
+        pdfBuffer,
+        'application/pdf',
+        filename
+      );
+      
+      return {
+        text: result.text,
+        structuredData: result.structuredData,
+        confidence: result.confidence
+      };
+    } catch (error) {
+      console.error("Error extracting text from PDF:", error);
+      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    }
   }
 }
 

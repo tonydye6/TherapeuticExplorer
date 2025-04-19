@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiRouter } from "./services/aiRouter";
@@ -7,6 +7,10 @@ import { clinicalTrialService } from "./services/clinicalTrialService";
 import { documentService } from "./services/documentService";
 import { vectorService } from "./services/vectorService";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { promisify } from "util";
 import { 
   insertMessageSchema, 
   insertResearchItemSchema, 
@@ -14,6 +18,30 @@ import {
   insertSavedTrialSchema,
   insertTreatmentSchema
 } from "@shared/schema";
+
+// Setup multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB file size limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Check if the file type is allowed
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/tiff',
+      'image/gif'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, JPEG, PNG, TIFF and GIF files are allowed.') as any, false);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API Routes
@@ -337,6 +365,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error analyzing document:", error);
       res.status(500).json({ message: "Failed to analyze document" });
+    }
+  });
+  
+  // File upload and OCR route for medical documents
+  app.post("/api/documents/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      const { title, type = "medical_record" } = req.body;
+      
+      if (!title) {
+        return res.status(400).json({ message: "Document title is required" });
+      }
+      
+      // Process the uploaded file with OCR
+      const result = await documentService.processMedicalDocument(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+
+      // Save the document in the database
+      const document = await storage.createDocument({
+        userId: 1, // Default user ID for now
+        title: title,
+        type: type,
+        content: result.extractedText,
+        parsedContent: {
+          analysis: result.analysis,
+          structuredData: result.structuredData,
+          confidence: result.confidence
+        },
+        dateAdded: new Date()
+      });
+      
+      // Also create a research item entry for vector search capability
+      try {
+        const researchItem = await storage.createResearchItem({
+          userId: 1,
+          title: `${title} (Medical Document)`,
+          content: result.extractedText,
+          sourceType: 'document',
+          sourceId: document.id.toString(),
+          sourceName: type,
+          dateAdded: new Date()
+        });
+        
+        // Process the research item to generate embeddings
+        await vectorService.processResearchItem(researchItem);
+        console.log(`Generated embeddings for uploaded document ${document.id}`);
+      } catch (embeddingError) {
+        // Don't fail the request if embedding generation fails
+        console.error("Error generating embeddings for uploaded document:", embeddingError);
+      }
+      
+      res.status(201).json({
+        document,
+        processingResults: {
+          confidence: result.confidence,
+          documentType: result.structuredData?.documentType || "Unknown",
+          extractedEntities: result.analysis.entities.length,
+        }
+      });
+    } catch (error) {
+      console.error("Error processing uploaded document:", error);
+      res.status(500).json({ message: "Failed to process document upload" });
+    }
+  });
+  
+  // OCR Processing route for a document without storing it
+  app.post("/api/ocr/process", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Process the file with OCR
+      const result = await documentService.processMedicalDocument(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+      
+      res.json({
+        extractedText: result.extractedText,
+        analysis: result.analysis,
+        structuredData: result.structuredData,
+        confidence: result.confidence
+      });
+    } catch (error) {
+      console.error("Error performing OCR processing:", error);
+      res.status(500).json({ message: "Failed to process document with OCR" });
     }
   });
   
