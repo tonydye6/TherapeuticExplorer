@@ -175,19 +175,21 @@ export default function ChatInterface({
     try {
       const file = files[0];
       const formData = new FormData();
-      formData.append("document", file);
+      formData.append("file", file); // Changed from "document" to "file" to match backend
+      formData.append("title", file.name);
+      formData.append("type", "medical_record");
       
       const userMessage: Message = {
         id: uuidv4(),
         role: "user" as MessageRole,
-        content: { text: `Uploaded file: ${file.name}` },
+        content: { text: `Uploaded medical document: ${file.name}` },
         timestamp: new Date(),
       };
       
       const tempAssistantMessage: Message = {
         id: uuidv4(),
         role: "assistant" as MessageRole,
-        content: { text: "Analyzing document..." },
+        content: { text: "Analyzing document with OCR..." },
         timestamp: new Date(),
         isLoading: true,
         modelUsed: preferredModel || ModelType.CLAUDE,
@@ -195,7 +197,8 @@ export default function ChatInterface({
       
       setMessages(prev => [...prev, userMessage, tempAssistantMessage]);
       
-      const response = await fetch("/api/document/analyze", {
+      // Use our new OCR endpoint
+      const response = await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
       });
@@ -206,17 +209,75 @@ export default function ChatInterface({
       
       const result = await response.json();
       
+      // Extract relevant information from the OCR results
+      const document = result.document;
+      const processingResults = result.processingResults;
+      const analysis = document.parsedContent?.analysis;
+      
+      // Format a user-friendly summary message
+      let summaryText = "Here's what I found in your document:\n\n";
+      
+      if (analysis?.sourceType) {
+        summaryText += `Document Type: ${analysis.sourceType}\n\n`;
+      }
+      
+      if (analysis?.summary) {
+        summaryText += `${analysis.summary}\n\n`;
+      }
+      
+      if (analysis?.keyInfo) {
+        const keyInfo = analysis.keyInfo;
+        
+        if (keyInfo.diagnoses && keyInfo.diagnoses.length > 0) {
+          summaryText += "Key Diagnoses:\n";
+          keyInfo.diagnoses.forEach((diagnosis: string) => {
+            summaryText += `- ${diagnosis}\n`;
+          });
+          summaryText += "\n";
+        }
+        
+        if (keyInfo.medications && keyInfo.medications.length > 0) {
+          summaryText += "Medications:\n";
+          keyInfo.medications.forEach((medication: string) => {
+            summaryText += `- ${medication}\n`;
+          });
+          summaryText += "\n";
+        }
+        
+        if (keyInfo.procedures && keyInfo.procedures.length > 0) {
+          summaryText += "Procedures:\n";
+          keyInfo.procedures.forEach((procedure: string) => {
+            summaryText += `- ${procedure}\n`;
+          });
+          summaryText += "\n";
+        }
+        
+        if (keyInfo.labValues && Object.keys(keyInfo.labValues).length > 0) {
+          summaryText += "Lab Values:\n";
+          Object.entries(keyInfo.labValues).forEach(([key, value]) => {
+            summaryText += `- ${key}: ${value}\n`;
+          });
+          summaryText += "\n";
+        }
+      }
+      
+      if (processingResults?.confidence) {
+        summaryText += `\nDocument processing confidence: ${Math.round(processingResults.confidence * 100)}%\n`;
+      }
+      
+      summaryText += "\nWould you like me to analyze this information further in relation to esophageal cancer research?";
+      
       // Replace the loading message with the analysis results
       setMessages(prev => prev.map(msg => 
         msg.id === tempAssistantMessage.id
           ? {
               ...tempAssistantMessage,
               content: {
-                text: result.summary,
-                sources: [{ title: file.name, type: "Document", date: new Date().toISOString() }],
-                structuredData: result.keyInfo,
+                text: summaryText,
+                sources: [{ title: file.name, type: "Medical Document", date: new Date().toISOString() }],
+                structuredData: analysis?.keyInfo || {},
               },
-              modelUsed: result.modelUsed || ModelType.CLAUDE,
+              modelUsed: ModelType.CLAUDE,
               isLoading: false,
             }
           : msg
@@ -228,7 +289,7 @@ export default function ChatInterface({
         id: uuidv4(),
         role: "assistant" as MessageRole,
         content: { 
-          text: "I'm sorry, I couldn't analyze that document. Please make sure it's a supported file type (PDF, DOC, DOCX, TXT) and try again." 
+          text: "I'm sorry, I couldn't analyze that document. Please make sure it's a supported file type (PDF, JPEG, PNG, TIFF, GIF) and try again." 
         },
         timestamp: new Date(),
       };
@@ -316,7 +377,7 @@ export default function ChatInterface({
                 type="file"
                 id="file-upload"
                 className="sr-only"
-                accept=".pdf,.doc,.docx,.txt"
+                accept=".pdf,.jpeg,.jpg,.png,.tiff,.tif,.gif"
                 onChange={handleDocumentUpload}
                 disabled={isProcessing || isUploading}
               />

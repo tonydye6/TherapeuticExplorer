@@ -76,7 +76,8 @@ class OCRService {
       };
     } catch (error) {
       console.error('Error processing document with OCR:', error);
-      throw new Error(`OCR processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`OCR processing failed: ${errorMessage}`);
     }
   }
 
@@ -127,12 +128,12 @@ class OCRService {
       await writeFile(imagePath, imageBuffer);
 
       // Create Tesseract worker
-      worker = await tesseract.createWorker('eng+osd');
+      worker = await createWorker('eng+osd');
 
       // Set special configuration for medical documents
       await worker.setParameters({
         tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,;:+-_()[]{}!@#$%^&*=<>?/\\"\' ',
-        tessedit_pageseg_mode: tesseract.PSM.AUTO,
+        tessedit_pageseg_mode: PSM.AUTO,
         preserve_interword_spaces: '1',
       });
 
@@ -148,7 +149,8 @@ class OCRService {
       };
     } catch (error) {
       console.error('Error processing image with Tesseract:', error);
-      throw new Error(`Image OCR processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Image OCR processing failed: ${errorMessage}`);
     } finally {
       // Cleanup
       if (worker) await worker.terminate();
@@ -196,23 +198,35 @@ Format your response as valid JSON.
 
       try {
         // Parse the structured data from the AI response
-        const content = message.content[0].text;
+        // Getting the text content safely from ContentBlock by using type assertions
+        let contentText = '';
+        if (message.content.length > 0) {
+          const contentBlock = message.content[0] as any;
+          contentText = contentBlock.text || '';
+        }
         
         // Try to extract JSON object from the response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const jsonMatch = contentText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
         }
         
         // Fallback: return the raw response
         return { 
-          rawExtraction: content,
+          rawExtraction: contentText,
           error: "Failed to parse structured JSON from AI response" 
         };
       } catch (parseError) {
         console.error('Error parsing JSON from AI response:', parseError);
+        
+        // Safe access to content
+        let errorContentText = '';
+        if (message.content.length > 0 && 'text' in message.content[0]) {
+          errorContentText = message.content[0].text || '';
+        }
+        
         return { 
-          rawExtraction: message.content[0].text,
+          rawExtraction: errorContentText,
           error: "Failed to parse structured JSON from AI response" 
         };
       }
