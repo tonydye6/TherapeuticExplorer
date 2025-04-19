@@ -84,7 +84,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Research item methods
-  async getResearchItems(userId: number): Promise<ResearchItem[]> {
+  async getResearchItems(userId: string): Promise<ResearchItem[]> {
     return db
       .select()
       .from(researchItems)
@@ -130,7 +130,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Treatment methods
-  async getTreatments(userId: number): Promise<Treatment[]> {
+  async getTreatments(userId: string): Promise<Treatment[]> {
     return db
       .select()
       .from(treatments)
@@ -163,7 +163,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Saved trial methods
-  async getSavedTrials(userId: number): Promise<SavedTrial[]> {
+  async getSavedTrials(userId: string): Promise<SavedTrial[]> {
     return db
       .select()
       .from(savedTrials)
@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Document methods
-  async getDocuments(userId: number): Promise<Document[]> {
+  async getDocuments(userId: string): Promise<Document[]> {
     return db
       .select()
       .from(documents)
