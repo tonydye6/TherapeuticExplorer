@@ -496,7 +496,7 @@ const TreatmentPredictor = () => {
               ) : (
                 <div className="space-y-4">
                   {/* Sort predictions by effectiveness score descending */}
-                  {predictions
+                  {[...predictions]
                     .sort((a, b) => b.effectivenessScore - a.effectivenessScore)
                     .map((prediction) => (
                       <Card key={prediction.treatmentName} className="overflow-hidden">

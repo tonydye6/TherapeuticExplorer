@@ -714,7 +714,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         treatmentOptions
       );
       
-      res.json(predictions);
+      // Ensure response is an array
+      const predictionsArray = Array.isArray(predictions) ? predictions : [predictions];
+      res.json(predictionsArray);
     } catch (error) {
       console.error("Error predicting treatment effectiveness:", error);
       res.status(500).json({ 
