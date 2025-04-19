@@ -190,7 +190,7 @@ const DocumentViewer = ({ documentId, isOpen, onClose }: DocumentViewerProps) =>
                 </div>
               </TabsContent>
 
-              {document?.parsedContent && (
+              {document?.parsedContent ? (
                 <TabsContent value="structured" className="h-full overflow-auto">
                   <div className="bg-gray-50 p-4 rounded-md">
                     <h3 className="text-lg font-medium mb-2">Extracted Data</h3>
@@ -199,7 +199,7 @@ const DocumentViewer = ({ documentId, isOpen, onClose }: DocumentViewerProps) =>
                     </pre>
                   </div>
                 </TabsContent>
-              )}
+              ) : null}
             </Tabs>
           </div>
         )}
