@@ -221,8 +221,9 @@ Format your response as valid JSON.
         
         // Safe access to content
         let errorContentText = '';
-        if (message.content.length > 0 && 'text' in message.content[0]) {
-          errorContentText = message.content[0].text || '';
+        if (message.content.length > 0) {
+          const contentBlock = message.content[0] as any;
+          errorContentText = contentBlock.text || '';
         }
         
         return { 
