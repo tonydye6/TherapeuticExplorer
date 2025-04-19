@@ -11,7 +11,8 @@ import {
   User,
   Home,
   Bookmark,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Search
 } from "lucide-react";
 
 export default function Sidebar() {
