@@ -68,44 +68,65 @@ export default function AddTreatmentDialog({
     },
   });
 
-  const createTreatmentMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      console.log("Sending treatment data to API:", values);
-      try {
-        const response = await apiRequest("/api/treatments", {
-          method: "POST",
-          body: JSON.stringify(values),
-        });
-        console.log("API response:", response);
-        return response;
-      } catch (error) {
-        console.error("API error:", error);
-        throw error;
+  // Direct function to post the treatment data
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  const postTreatment = async (values: FormValues) => {
+    try {
+      setIsSubmitting(true);
+      console.log("Posting treatment data:", values);
+      
+      // Create a treatment object with userId
+      const treatmentData = {
+        ...values,
+        userId: 1 // Default user ID
+      };
+      
+      // Use direct fetch instead of apiRequest
+      const response = await fetch("/api/treatments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(treatmentData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to add treatment:", errorText);
+        throw new Error(`Failed to add treatment: ${response.status} ${errorText}`);
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/treatments"] });
+      
+      const result = await response.json();
+      console.log("Treatment added successfully:", result);
+      
+      // Success message
       toast({
         title: "Treatment added",
-        description: "Your treatment has been added successfully.",
+        description: "Your treatment has been added successfully."
       });
+      
+      // Invalidate treatment queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/treatments"] });
+      
+      // Reset form and close dialog
       form.reset();
       onClose();
-    },
-    onError: (error) => {
+    } catch (error) {
+      console.error("Error adding treatment:", error);
       toast({
         title: "Error",
         description: "Failed to add treatment. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
-      console.error("Error adding treatment:", error);
-    },
-  });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onSubmit = (values: FormValues) => {
     console.log("Form submitted with values:", values);
-    console.log("Form validation state:", form.formState);
-    createTreatmentMutation.mutate(values);
+    postTreatment(values);
   };
 
   return (
@@ -294,13 +315,13 @@ export default function AddTreatmentDialog({
               </Button>
               <Button 
                 type="button" 
-                disabled={createTreatmentMutation.isPending}
+                disabled={isSubmitting}
                 onClick={() => {
                   console.log("Manual submit clicked");
                   form.handleSubmit(onSubmit)();
                 }}
               >
-                {createTreatmentMutation.isPending ? "Adding..." : "Add Treatment"}
+                {isSubmitting ? "Adding..." : "Add Treatment"}
               </Button>
             </DialogFooter>
           </form>
