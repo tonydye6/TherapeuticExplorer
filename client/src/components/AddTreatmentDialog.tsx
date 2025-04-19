@@ -95,6 +95,8 @@ export default function AddTreatmentDialog({
   });
 
   const onSubmit = (values: FormValues) => {
+    console.log("Form submitted with values:", values);
+    console.log("Form validation state:", form.formState);
     createTreatmentMutation.mutate(values);
   };
 
