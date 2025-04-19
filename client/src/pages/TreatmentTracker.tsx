@@ -305,6 +305,39 @@ export default function TreatmentTracker() {
                         >
                           View Details
                         </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="mt-2"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(`/api/treatments/${treatment.id}`, {
+                                method: 'DELETE'
+                              });
+                              
+                              if (!response.ok) {
+                                throw new Error('Failed to delete treatment');
+                              }
+                              
+                              // Refresh the treatments list
+                              queryClient.invalidateQueries({ queryKey: ['/api/treatments'] });
+                              
+                              toast({
+                                title: "Success",
+                                description: "Treatment deleted successfully",
+                              });
+                            } catch (error) {
+                              console.error('Failed to delete treatment:', error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to delete treatment",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </div>
                       {treatment.notes && (
                         <p className="mt-2 text-sm">{treatment.notes}</p>
