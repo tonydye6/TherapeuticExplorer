@@ -34,28 +34,28 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Message methods
-  getMessages(userId: number): Promise<Message[]>;
+  getMessages(userId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   
   // Research item methods
-  getResearchItems(userId: number): Promise<ResearchItem[]>;
+  getResearchItems(userId: string): Promise<ResearchItem[]>;
   getResearchItemById(id: number): Promise<ResearchItem | undefined>;
   createResearchItem(item: InsertResearchItem): Promise<ResearchItem>;
   toggleResearchItemFavorite(id: number): Promise<ResearchItem>;
   
   // Treatment methods
-  getTreatments(userId: number): Promise<Treatment[]>;
+  getTreatments(userId: string): Promise<Treatment[]>;
   getTreatmentById(id: number): Promise<Treatment | undefined>;
   createTreatment(treatment: InsertTreatment): Promise<Treatment>;
   updateTreatment(id: number, treatment: Partial<Treatment>): Promise<Treatment>;
   
   // Saved trial methods
-  getSavedTrials(userId: number): Promise<SavedTrial[]>;
+  getSavedTrials(userId: string): Promise<SavedTrial[]>;
   getSavedTrialById(id: number): Promise<SavedTrial | undefined>;
   createSavedTrial(trial: InsertSavedTrial): Promise<SavedTrial>;
   
   // Document methods
-  getDocuments(userId: number): Promise<Document[]>;
+  getDocuments(userId: string): Promise<Document[]>;
   getDocumentById(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocumentParsedContent(id: number, parsedContent: any): Promise<Document>;
