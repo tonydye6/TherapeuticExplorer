@@ -33,11 +33,23 @@ function Router() {
       {/* Super simple test page with no other dependencies */}
       <Route path="/simple-test" component={SimpleTestPage} />
       
+      {/* Direct access to Medical Translator (no Layout component) */}
+      <Route path="/direct-translator" component={MedicalTerminologyTranslator} />
+      
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
       <Route path="/public-test" component={PublicTestPage} />
       
-      {/* Temporarily making all routes public to fix the blank screen issue */}
+      {/* Skip Layout to test if it's causing issues */}
+      <Route path="/no-layout">
+        <Switch>
+          <Route path="/no-layout/research" component={ResearchAssistant} />
+          <Route path="/no-layout/translator" component={MedicalTerminologyTranslator} />
+          <Route path="/no-layout/test" component={TestPage} />
+        </Switch>
+      </Route>
+      
+      {/* Original routes with Layout */}
       <Route path="/">
         <Layout>
           <Switch>
