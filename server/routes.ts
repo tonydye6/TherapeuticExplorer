@@ -67,6 +67,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch messages" });
     }
   });
+  
+  // Single message endpoint (singular form for client compatibility)
+  app.post("/api/message", async (req, res) => {
+    try {
+      console.log("Message received:", req.body);
+      const { content, preferredModel } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+      
+      // Save user message
+      const userMessage = await storage.createMessage({
+        userId: 1,
+        content,
+        role: "user"
+      });
+      
+      // Process message with AI router, using preferred model if specified
+      const aiResponse = await aiRouter.processQuery(content, preferredModel);
+      
+      // Save AI response
+      const assistantMessage = await storage.createMessage({
+        userId: 1,
+        content: aiResponse.content,
+        role: "assistant",
+        sources: aiResponse.sources,
+        modelUsed: aiResponse.modelUsed || preferredModel
+      });
+      
+      res.json({
+        content: aiResponse.content,
+        sources: aiResponse.sources,
+        modelUsed: aiResponse.modelUsed || preferredModel,
+        id: assistantMessage.id
+      });
+    } catch (error) {
+      console.error("Error processing message:", error);
+      res.status(500).json({ message: "Failed to process message" });
+    }
+  });
 
   app.post("/api/messages", async (req, res) => {
     try {

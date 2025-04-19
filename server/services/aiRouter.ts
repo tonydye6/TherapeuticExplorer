@@ -137,8 +137,20 @@ class AIRouter {
   }
 
   // Process a query and route it to the appropriate model
-  async processQuery(query: string): Promise<QueryResponse> {
-    const { modelType, queryType } = this.determineModelForQuery(query);
+  async processQuery(query: string, preferredModel?: string): Promise<QueryResponse> {
+    // Use preferredModel if provided, otherwise determine from query
+    let modelType, queryType;
+    
+    if (preferredModel) {
+      modelType = preferredModel as ModelType;
+      // Still determine query type for appropriate prompting
+      queryType = this.determineModelForQuery(query).queryType;
+      console.log(`Using preferred model: ${preferredModel} for query`);
+    } else {
+      const result = this.determineModelForQuery(query);
+      modelType = result.modelType;
+      queryType = result.queryType;
+    }
     
     console.log(`Routing query "${query}" to ${modelType} model for ${queryType} query type`);
     
