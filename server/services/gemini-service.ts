@@ -3,8 +3,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // Initialize the Gemini API with the provided API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
 
-// The latest model for Gemini is 2.5 (Pro version)
-const MODEL = "gemini-pro";
+// The latest model for Gemini 1.5
+const MODEL = "gemini-1.5-pro";
 
 export interface GeminiOptions {
   temperature?: number;

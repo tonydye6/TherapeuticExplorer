@@ -198,7 +198,15 @@ class AIRouter {
       } 
       else {
         // General query - route to the appropriate model
-        if (modelType === ModelType.CLAUDE && process.env.ANTHROPIC_API_KEY) {
+        if (modelType === ModelType.GEMINI && process.env.GOOGLE_GEMINI_API_KEY) {
+          const systemPrompt = "You are THRIVE, an expert AI research assistant specializing in esophageal cancer. Provide helpful, accurate information to support patients and caregivers.";
+          const content = await geminiService.processTextQuery(query, systemPrompt, { maxOutputTokens: 1024 });
+          return {
+            content,
+            sources: null,
+            modelUsed: "gemini"
+          };
+        } else if (modelType === ModelType.CLAUDE && process.env.ANTHROPIC_API_KEY) {
           const systemPrompt = "You are THRIVE, an expert AI research assistant specializing in esophageal cancer. Provide helpful, accurate information to support patients and caregivers.";
           const content = await anthropicService.processTextQuery(query, systemPrompt);
           return this.formatAnthropicResponse(content, "general");
