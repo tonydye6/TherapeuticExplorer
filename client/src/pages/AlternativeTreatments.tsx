@@ -10,8 +10,48 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import AlternativeTreatmentForm from "@/components/AlternativeTreatmentForm";
 import AlternativeTreatmentDetails from "@/components/AlternativeTreatmentDetails";
-import { Heart, Search, Plus, Filter } from "lucide-react";
+import { Heart, Search, Plus, Filter, Leaf, Microscope, FlaskConical } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+// Define treatment categories with icons
+interface CategoryWithIcon {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+}
+
+const PREDEFINED_CATEGORIES: CategoryWithIcon[] = [
+  {
+    id: "herbal-compounds",
+    name: "Herbal Compounds and Plant Extracts",
+    icon: <Leaf className="h-4 w-4 mr-1" />
+  },
+  {
+    id: "alt-protocols",
+    name: "Alt Protocols",
+    icon: <FlaskConical className="h-4 w-4 mr-1" />
+  },
+  {
+    id: "biological",
+    name: "Biological",
+    icon: <Microscope className="h-4 w-4 mr-1" />
+  },
+  {
+    id: "nutritional-therapy",
+    name: "Nutritional Therapy",
+    icon: <Leaf className="h-4 w-4 mr-1" />
+  },
+  {
+    id: "mind-body-therapy",
+    name: "Mind-Body Therapy",
+    icon: <FlaskConical className="h-4 w-4 mr-1" />
+  },
+  {
+    id: "traditional-chinese-medicine",
+    name: "Traditional Chinese Medicine",
+    icon: <Microscope className="h-4 w-4 mr-1" />
+  }
+];
 
 export default function AlternativeTreatments() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,13 +74,37 @@ export default function AlternativeTreatments() {
       treatment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       treatment.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = !activeCategory || treatment.category === activeCategory;
+    // For predefined category tabs, we need to map category names to their IDs
+    const matchesCategory = !activeCategory || 
+      treatment.category === activeCategory || 
+      (activeCategory === "herbal-compounds" && treatment.category === "Herbal Compounds and Plant Extracts") ||
+      (activeCategory === "alt-protocols" && treatment.category === "Alt Protocols") ||
+      (activeCategory === "biological" && treatment.category === "Biological") ||
+      (activeCategory === "nutritional-therapy" && treatment.category === "Nutritional Therapy") ||
+      (activeCategory === "mind-body-therapy" && treatment.category === "Mind-Body Therapy") ||
+      (activeCategory === "traditional-chinese-medicine" && treatment.category === "Traditional Chinese Medicine");
     
     return matchesSearch && matchesCategory;
   });
 
   // Get unique categories from treatments
   const categories = [...new Set(treatments.map(t => t.category))];
+  
+  // Format the category name for display
+  const getCategoryDisplayName = (category: string): string => {
+    const predefinedCategory = PREDEFINED_CATEGORIES.find(c => 
+      c.id === category || c.name === category
+    );
+    return predefinedCategory?.name || category;
+  };
+  
+  // Get icon for category
+  const getCategoryIcon = (category: string) => {
+    const predefinedCategory = PREDEFINED_CATEGORIES.find(c => 
+      c.id === category || c.name === category
+    );
+    return predefinedCategory?.icon || null;
+  };
 
   // Toggle favorite status
   const toggleFavorite = async (id: number) => {
@@ -84,18 +148,22 @@ export default function AlternativeTreatments() {
       </div>
       
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex flex-wrap">
           <TabsTrigger value="all" onClick={() => setActiveCategory(null)}>
             All Categories
           </TabsTrigger>
           
-          {categories.map((category) => (
+          {/* Predefined categories */}
+          {PREDEFINED_CATEGORIES.map((category) => (
             <TabsTrigger 
-              key={category} 
-              value={category}
-              onClick={() => setActiveCategory(category)}
+              key={category.id} 
+              value={category.id}
+              onClick={() => setActiveCategory(category.id)}
             >
-              {category}
+              <div className="flex items-center">
+                {category.icon}
+                <span className="text-sm whitespace-nowrap">{category.name}</span>
+              </div>
             </TabsTrigger>
           ))}
           
@@ -104,6 +172,7 @@ export default function AlternativeTreatments() {
           </TabsTrigger>
         </TabsList>
         
+        {/* All treatments tab */}
         <TabsContent value="all" className="mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTreatments.map((treatment) => (
@@ -117,11 +186,25 @@ export default function AlternativeTreatments() {
           </div>
         </TabsContent>
         
-        {categories.map((category) => (
-          <TabsContent key={category} value={category} className="mt-0">
+        {/* Predefined category tabs */}
+        {PREDEFINED_CATEGORIES.map((category) => (
+          <TabsContent key={category.id} value={category.id} className="mt-0">
+            <div className="mb-4 flex items-center">
+              <h2 className="text-xl font-semibold flex items-center">
+                {category.icon} {category.name}
+              </h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTreatments
-                .filter(t => t.category === category)
+                .filter(t => 
+                  t.category === category.name || 
+                  (category.id === "herbal-compounds" && t.category === "Herbal Compounds and Plant Extracts") ||
+                  (category.id === "alt-protocols" && t.category === "Alt Protocols") ||
+                  (category.id === "biological" && t.category === "Biological") ||
+                  (category.id === "nutritional-therapy" && t.category === "Nutritional Therapy") ||
+                  (category.id === "mind-body-therapy" && t.category === "Mind-Body Therapy") ||
+                  (category.id === "traditional-chinese-medicine" && t.category === "Traditional Chinese Medicine")
+                )
                 .map((treatment) => (
                   <TreatmentCard 
                     key={treatment.id} 
@@ -135,7 +218,13 @@ export default function AlternativeTreatments() {
           </TabsContent>
         ))}
         
+        {/* Favorites tab */}
         <TabsContent value="favorites" className="mt-0">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold flex items-center">
+              <Heart className="mr-2 h-5 w-5 text-red-500" /> Favorite Treatments
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTreatments
               .filter(t => t.isFavorite)
@@ -148,6 +237,12 @@ export default function AlternativeTreatments() {
                 />
               ))
             }
+            {filteredTreatments.filter(t => t.isFavorite).length === 0 && (
+              <div className="col-span-3 py-10 text-center text-muted-foreground">
+                <Heart className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
+                <p>No favorite treatments yet. Click the heart icon on any treatment card to add it to your favorites.</p>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

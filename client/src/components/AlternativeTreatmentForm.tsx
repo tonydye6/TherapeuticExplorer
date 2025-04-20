@@ -58,7 +58,9 @@ interface AlternativeTreatmentFormProps {
 }
 
 const CATEGORIES = [
-  "Herbal Medicine",
+  "Herbal Compounds and Plant Extracts",
+  "Alt Protocols",
+  "Biological",
   "Nutritional Therapy",
   "Mind-Body Therapy",
   "Traditional Chinese Medicine",
