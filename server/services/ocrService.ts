@@ -128,8 +128,8 @@ class OCRService {
     pdfBuffer: Buffer
   ): Promise<{ text: string; confidence: number }> {
     try {
-      // Use require directly - safer to avoid module loading issues
-      const pdfParse = require('pdf-parse');
+      // Dynamically import pdf-parse using ESM import
+      const pdfParse = await import('pdf-parse').then(module => module.default);
       
       // Process the PDF document with buffer only
       const options = {
