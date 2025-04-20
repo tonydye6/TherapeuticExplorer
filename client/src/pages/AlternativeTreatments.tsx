@@ -99,6 +99,8 @@ export default function AlternativeTreatments() {
     approachType: []
   });
   
+
+  
   const queryClient = useQueryClient();
 
   // Fetch alternative treatments
@@ -176,22 +178,6 @@ export default function AlternativeTreatments() {
 
   // Get unique categories from treatments
   const categories = [...new Set(treatments.map(t => t.category))];
-  
-  // Format the category name for display
-  const getCategoryDisplayName = (category: string): string => {
-    const predefinedCategory = PREDEFINED_CATEGORIES.find(c => 
-      c.id === category || c.name === category
-    );
-    return predefinedCategory?.name || category;
-  };
-  
-  // Get icon for category
-  const getCategoryIcon = (category: string) => {
-    const predefinedCategory = PREDEFINED_CATEGORIES.find(c => 
-      c.id === category || c.name === category
-    );
-    return predefinedCategory?.icon || null;
-  };
 
   // Toggle favorite status
   const toggleFavorite = async (id: number) => {
@@ -381,30 +367,90 @@ export default function AlternativeTreatments() {
         </div>
       )}
       
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="all" onClick={() => setActiveCategory(null)}>
-            All Categories
-          </TabsTrigger>
-          
-          {/* Predefined categories */}
-          {PREDEFINED_CATEGORIES.map((category) => (
-            <TabsTrigger 
-              key={category.id} 
-              value={category.id}
-              onClick={() => setActiveCategory(category.id)}
+      <div className="flex items-center gap-2 mb-4">
+        {/* Categories Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="h-10">
+              <Microscope className="h-4 w-4 mr-2" /> 
+              Categories
+              {activeCategory && (
+                <Badge className="ml-2 h-5 px-1.5" variant="secondary">1</Badge>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            <DropdownMenuLabel>Select Category</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuCheckboxItem
+              checked={activeCategory === null}
+              onCheckedChange={() => setActiveCategory(null)}
+            >
+              All Categories
+            </DropdownMenuCheckboxItem>
+            
+            {PREDEFINED_CATEGORIES.map((category) => (
+              <DropdownMenuCheckboxItem
+                key={category.id}
+                checked={activeCategory === category.id}
+                onCheckedChange={() => setActiveCategory(category.id)}
+              >
+                <div className="flex items-center">
+                  {category.icon}
+                  <span className="ml-2">{category.name}</span>
+                </div>
+              </DropdownMenuCheckboxItem>
+            ))}
+            
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={activeCategory === 'favorites'}
+              onCheckedChange={() => setActiveCategory('favorites')}
             >
               <div className="flex items-center">
-                {category.icon}
-                <span className="text-sm whitespace-nowrap">{category.name}</span>
+                <Heart className="h-4 w-4 mr-2 text-red-500" />
+                <span>Favorites</span>
               </div>
-            </TabsTrigger>
-          ))}
-          
-          <TabsTrigger value="favorites">
-            <Heart className="mr-2 h-4 w-4" /> Favorites
-          </TabsTrigger>
-        </TabsList>
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        {/* Selected category badge */}
+        {activeCategory && (
+          <Badge 
+            variant="secondary" 
+            className="flex items-center gap-1"
+            onClick={() => setActiveCategory(null)}
+          >
+            {activeCategory === 'favorites' ? (
+              <>
+                <Heart className="h-3 w-3" /> Favorites
+              </>
+            ) : (
+              <>
+                {/* Find and display the appropriate category icon */}
+                {PREDEFINED_CATEGORIES.find(c => c.id === activeCategory)?.icon || <Microscope className="h-3 w-3 mr-1" />}
+                {PREDEFINED_CATEGORIES.find(c => c.id === activeCategory)?.name || activeCategory}
+              </>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-4 w-4 ml-1 p-0" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveCategory(null);
+              }}
+            >
+              <span className="sr-only">Remove</span>
+              &times;
+            </Button>
+          </Badge>
+        )}
+      </div>
+      
+      <Tabs defaultValue="all" className="w-full">
         
         {/* All treatments tab */}
         <TabsContent value="all" className="mt-0">
