@@ -128,11 +128,18 @@ class OCRService {
     pdfBuffer: Buffer
   ): Promise<{ text: string; confidence: number }> {
     try {
-      // Dynamically import pdf-parse to avoid loading test PDF files at startup
-      const pdfParse = await import('pdf-parse').then(module => module.default);
+      // Use require directly - safer to avoid module loading issues
+      const pdfParse = require('pdf-parse');
       
-      // Process the PDF document
-      const data = await pdfParse(pdfBuffer);
+      // Process the PDF document with buffer only
+      const options = {
+        // Setting options to avoid loading test files
+        pagerender: undefined,  // Use default renderer
+        max: 0  // 0 = unlimited pages
+      };
+      
+      // Process directly with the buffer and options
+      const data = await pdfParse(pdfBuffer, options);
       
       // If text is extractable from the PDF, return it
       if (data.text && data.text.trim().length > 100) {

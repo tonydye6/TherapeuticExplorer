@@ -224,7 +224,8 @@ export default function ChatInterface({
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    setInputValue(prev => `${prev}\n[Analyzing document: ${file.name}...]`);
+    // Instead of modifying input value, we'll use an assistant message
+    // to show the document is being analyzed
     
     // Store the file for later use when sending the message
     const formData = new FormData();
