@@ -865,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating treatment timeline:", error);
       res.status(500).json({ 
         message: "Failed to generate treatment timeline", 
-        error: error instanceof Error ?Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

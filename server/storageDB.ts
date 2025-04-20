@@ -1,10 +1,10 @@
 import { 
   users, documents, messages, researchItems, 
-  savedTrials, treatments, vectorEmbeddings,
+  savedTrials, treatments, vectorEmbeddings, alternativeTreatments,
   User, InsertUser, UpsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
   SavedTrial, InsertSavedTrial, Document, InsertDocument,
-  VectorEmbedding, InsertVectorEmbedding
+  VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -250,5 +250,51 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(vectorEmbeddings)
       .where(eq(vectorEmbeddings.documentId, documentId));
+  }
+
+  // Alternative treatment methods
+  async getAlternativeTreatments(userId: string): Promise<AlternativeTreatment[]> {
+    return db
+      .select()
+      .from(alternativeTreatments)
+      .where(eq(alternativeTreatments.userId, userId))
+      .orderBy(alternativeTreatments.dateAdded);
+  }
+
+  async getAlternativeTreatmentById(id: number): Promise<AlternativeTreatment | undefined> {
+    const [treatment] = await db
+      .select()
+      .from(alternativeTreatments)
+      .where(eq(alternativeTreatments.id, id));
+    return treatment;
+  }
+
+  async createAlternativeTreatment(insertTreatment: InsertAlternativeTreatment): Promise<AlternativeTreatment> {
+    const [treatment] = await db
+      .insert(alternativeTreatments)
+      .values(insertTreatment)
+      .returning();
+    return treatment;
+  }
+
+  async toggleAlternativeTreatmentFavorite(id: number): Promise<AlternativeTreatment> {
+    // Get the current treatment to check its favorite status
+    const treatment = await this.getAlternativeTreatmentById(id);
+    
+    if (!treatment) {
+      throw new Error(`Alternative treatment with ID ${id} not found`);
+    }
+    
+    // Toggle the favorite status
+    const newFavoriteStatus = !treatment.isFavorite;
+    
+    // Update the treatment in the database
+    const [updatedTreatment] = await db
+      .update(alternativeTreatments)
+      .set({ isFavorite: newFavoriteStatus })
+      .where(eq(alternativeTreatments.id, id))
+      .returning();
+      
+    return updatedTreatment;
   }
 }

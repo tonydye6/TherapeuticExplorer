@@ -274,6 +274,67 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
 export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingSchema>;
 
+// Non-traditional treatments
+export const alternativeTreatments = pgTable("alternative_treatments", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(), // Changed to varchar to match user id
+  name: text("name").notNull(),
+  category: text("category").notNull(), // 'nutritional', 'supplement', 'mind-body', 'traditional-medicine', 'other'
+  description: text("description").notNull(),
+  background: text("background"),
+  traditionalUsage: text("traditional_usage"),
+  mechanismOfAction: text("mechanism_of_action"),
+  scientificEvidence: jsonb("scientific_evidence"), // Store evidence levels and sources
+  cancerSpecificEvidence: text("cancer_specific_evidence"),
+  safetyProfile: text("safety_profile"),
+  contraindications: text("contraindications"),
+  interactions: jsonb("interactions"), // Store potential interactions with conventional treatments
+  practitionerRequirements: text("practitioner_requirements"),
+  recommendedBy: text("recommended_by"), // Cancer centers or institutions that endorse this approach
+  patientExperiences: jsonb("patient_experiences"), // Anecdotal reports
+  evidenceRating: text("evidence_rating"), // 'strong', 'moderate', 'limited', 'inconclusive', 'conflicting'
+  safetyRating: text("safety_rating"), // 'high', 'moderate', 'low', 'caution'
+  dateAdded: timestamp("date_added").defaultNow().notNull(),
+  tags: jsonb("tags"),
+  sources: jsonb("sources"), // References and sources of information
+  isFavorite: boolean("is_favorite").default(false).notNull(),
+});
+
+export const insertAlternativeTreatmentSchema = createInsertSchema(alternativeTreatments).pick({
+  userId: true,
+  name: true,
+  category: true,
+  description: true,
+  background: true,
+  traditionalUsage: true,
+  mechanismOfAction: true,
+  scientificEvidence: true,
+  cancerSpecificEvidence: true,
+  safetyProfile: true,
+  contraindications: true,
+  interactions: true,
+  practitionerRequirements: true,
+  recommendedBy: true,
+  patientExperiences: true,
+  evidenceRating: true,
+  safetyRating: true,
+  tags: true,
+  sources: true,
+  isFavorite: true,
+});
+
+// Define relations for alternativeTreatments
+export const alternativeTreatmentsRelations = relations(alternativeTreatments, ({ one }) => ({
+  user: one(users, {
+    fields: [alternativeTreatments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Define types for alternativeTreatments
+export type AlternativeTreatment = typeof alternativeTreatments.$inferSelect;
+export type InsertAlternativeTreatment = z.infer<typeof insertAlternativeTreatmentSchema>;
+
 // AI model types
 export enum ModelType {
   CLAUDE = "claude",

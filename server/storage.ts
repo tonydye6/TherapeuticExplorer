@@ -6,6 +6,7 @@ import {
   savedTrials, 
   documents,
   vectorEmbeddings,
+  alternativeTreatments,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -20,7 +21,9 @@ import {
   type Document,
   type InsertDocument,
   type VectorEmbedding,
-  type InsertVectorEmbedding
+  type InsertVectorEmbedding,
+  type AlternativeTreatment,
+  type InsertAlternativeTreatment
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities
@@ -60,6 +63,12 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   updateDocumentParsedContent(id: number, parsedContent: any): Promise<Document>;
   
+  // Alternative treatment methods
+  getAlternativeTreatments(userId: string): Promise<AlternativeTreatment[]>;
+  getAlternativeTreatmentById(id: number): Promise<AlternativeTreatment | undefined>;
+  createAlternativeTreatment(treatment: InsertAlternativeTreatment): Promise<AlternativeTreatment>;
+  toggleAlternativeTreatmentFavorite(id: number): Promise<AlternativeTreatment>;
+  
   // Vector embedding methods
   getVectorEmbedding(id: number): Promise<VectorEmbedding | undefined>;
   createVectorEmbedding(embedding: InsertVectorEmbedding): Promise<VectorEmbedding>;
@@ -74,6 +83,7 @@ export class MemStorage implements IStorage {
   private treatments: Map<number, Treatment>;
   private savedTrials: Map<number, SavedTrial>;
   private documents: Map<number, Document>;
+  private alternativeTreatments: Map<number, AlternativeTreatment>;
   
   private userIdCounter: number;
   private messageIdCounter: number;
@@ -81,6 +91,7 @@ export class MemStorage implements IStorage {
   private treatmentIdCounter: number;
   private savedTrialIdCounter: number;
   private documentIdCounter: number;
+  private alternativeTreatmentIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -89,6 +100,7 @@ export class MemStorage implements IStorage {
     this.treatments = new Map();
     this.savedTrials = new Map();
     this.documents = new Map();
+    this.alternativeTreatments = new Map();
     
     this.userIdCounter = 1;
     this.messageIdCounter = 1;
@@ -96,6 +108,7 @@ export class MemStorage implements IStorage {
     this.treatmentIdCounter = 1;
     this.savedTrialIdCounter = 1;
     this.documentIdCounter = 1;
+    this.alternativeTreatmentIdCounter = 1;
     
     // Initialize with a sample user
     this.createUser({
@@ -412,6 +425,49 @@ export class MemStorage implements IStorage {
   async getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]> {
     return Array.from(this.vectorEmbeddings.values())
       .filter(embedding => embedding.documentId === documentId);
+  }
+
+  // Alternative treatment methods
+  async getAlternativeTreatments(userId: string): Promise<AlternativeTreatment[]> {
+    return Array.from(this.alternativeTreatments.values())
+      .filter(treatment => treatment.userId === userId)
+      .sort((a, b) => {
+        return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+      });
+  }
+  
+  async getAlternativeTreatmentById(id: number): Promise<AlternativeTreatment | undefined> {
+    return this.alternativeTreatments.get(id);
+  }
+  
+  async createAlternativeTreatment(insertTreatment: InsertAlternativeTreatment): Promise<AlternativeTreatment> {
+    const id = this.alternativeTreatmentIdCounter++;
+    const dateAdded = new Date();
+    
+    const treatment: AlternativeTreatment = {
+      ...insertTreatment,
+      id,
+      dateAdded
+    };
+    
+    this.alternativeTreatments.set(id, treatment);
+    return treatment;
+  }
+  
+  async toggleAlternativeTreatmentFavorite(id: number): Promise<AlternativeTreatment> {
+    const treatment = await this.getAlternativeTreatmentById(id);
+    
+    if (!treatment) {
+      throw new Error(`Alternative treatment with ID ${id} not found`);
+    }
+    
+    const updatedTreatment = { 
+      ...treatment, 
+      isFavorite: treatment.isFavorite === undefined ? true : !treatment.isFavorite 
+    };
+    
+    this.alternativeTreatments.set(id, updatedTreatment);
+    return updatedTreatment;
   }
 }
 
