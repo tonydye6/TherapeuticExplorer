@@ -1,7 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { aiRouter } from "./services/aiRouter";
 import { researchService } from "./services/researchService";
 import { clinicalTrialService } from "./services/clinicalTrialService";
@@ -14,56 +13,22 @@ import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { z } from "zod";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { promisify } from "util";
-import { 
-  insertMessageSchema, 
-  insertResearchItemSchema, 
-  insertDocumentSchema,
-  insertSavedTrialSchema,
-  insertTreatmentSchema
-} from "@shared/schema";
 
-// Setup multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB file size limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Check if the file type is allowed
-    const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-      'image/tiff',
-      'image/gif',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
-      'application/msword', // doc
-      'text/plain', // txt
-      'text/csv', // csv
-      'application/rtf', // rtf
-      'text/rtf' // rtf alternative
-    ];
-    
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Supported files: PDF, DOC, DOCX, TXT, CSV, RTF, JPEG, PNG, TIFF and GIF.') as any, false);
-    }
+    fileSize: 10 * 1024 * 1024,
   }
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication
-  await setupAuth(app);
+  // Set default user ID since we're removing auth
+  const DEFAULT_USER_ID = 1;
 
-  // Auth Routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // API Routes
+  app.get("/api/user", async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await storage.getUser(DEFAULT_USER_ID);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -71,19 +36,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API Routes
-  
   // Messages Routes
   app.get("/api/messages", async (req, res) => {
     try {
-      const messages = await storage.getMessages(1); // Default user ID for now
+      const messages = await storage.getMessages(DEFAULT_USER_ID); 
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
     }
   });
-  
+
   // Single message endpoint (singular form for client compatibility)
   app.post("/api/message", async (req, res) => {
     try {
@@ -96,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save user message
       const userMessage = await storage.createMessage({
-        userId: 1,
+        userId: DEFAULT_USER_ID,
         content,
         role: "user"
       });
@@ -106,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save AI response
       const assistantMessage = await storage.createMessage({
-        userId: 1,
+        userId: DEFAULT_USER_ID,
         content: aiResponse.content,
         role: "assistant",
         sources: aiResponse.sources,
@@ -129,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const messageData = insertMessageSchema.parse({
         ...req.body,
-        userId: 1, // Default user ID for now
+        userId: DEFAULT_USER_ID, 
         role: "user"
       });
       
@@ -141,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save AI response
       const assistantMessage = await storage.createMessage({
-        userId: 1,
+        userId: DEFAULT_USER_ID,
         content: aiResponse.content,
         role: "assistant",
         sources: aiResponse.sources,
@@ -166,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Research Routes
   app.get("/api/research", async (req, res) => {
     try {
-      const researchItems = await storage.getResearchItems(1); // Default user ID
+      const researchItems = await storage.getResearchItems(DEFAULT_USER_ID); 
       res.json(researchItems);
     } catch (error) {
       console.error("Error fetching research items:", error);
@@ -178,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const researchData = insertResearchItemSchema.parse({
         ...req.body,
-        userId: 1 // Default user ID
+        userId: DEFAULT_USER_ID 
       });
       
       const researchItem = await storage.createResearchItem(researchData);
@@ -248,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Semantic search route
   app.post("/api/research/semantic-search", async (req, res) => {
     try {
-      const { query, userId = 1 } = req.body;
+      const { query, userId = DEFAULT_USER_ID } = req.body; 
       
       if (!query || typeof query !== "string") {
         return res.status(400).json({ message: "Query parameter is required" });
@@ -265,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Treatment Routes
   app.get("/api/treatments", async (req, res) => {
     try {
-      const treatments = await storage.getTreatments(1); // Default user ID
+      const treatments = await storage.getTreatments(DEFAULT_USER_ID); 
       res.json(treatments);
     } catch (error) {
       console.error("Error fetching treatments:", error);
@@ -289,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const treatmentData = insertTreatmentSchema.parse({
         ...requestData,
-        userId: 1 // Default user ID
+        userId: DEFAULT_USER_ID 
       });
       
       const treatment = await storage.createTreatment(treatmentData);
@@ -329,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/trials/saved", async (req, res) => {
     try {
-      const savedTrials = await storage.getSavedTrials(1); // Default user ID
+      const savedTrials = await storage.getSavedTrials(DEFAULT_USER_ID); 
       res.json(savedTrials);
     } catch (error) {
       console.error("Error fetching saved trials:", error);
@@ -341,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const trialData = insertSavedTrialSchema.parse({
         ...req.body,
-        userId: 1 // Default user ID
+        userId: DEFAULT_USER_ID 
       });
       
       const savedTrial = await storage.createSavedTrial(trialData);
@@ -363,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document Routes
   app.get("/api/documents", async (req, res) => {
     try {
-      const documents = await storage.getDocuments(1); // Default user ID
+      const documents = await storage.getDocuments(DEFAULT_USER_ID); 
       res.json(documents);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -469,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const documentData = insertDocumentSchema.parse({
         ...req.body,
-        userId: 1 // Default user ID
+        userId: DEFAULT_USER_ID 
       });
       
       const document = await storage.createDocument(documentData);
@@ -583,10 +546,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.file.originalname,
         req.file.mimetype
       );
-
+      
       // Save the document in the database
       const document = await storage.createDocument({
-        userId: 1, // Default user ID for now
+        userId: DEFAULT_USER_ID, 
         title: title,
         type: type,
         content: result.extractedText,
@@ -601,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also create a research item entry for vector search capability
       try {
         const researchItem = await storage.createResearchItem({
-          userId: 1,
+          userId: DEFAULT_USER_ID, 
           title: `${title} (Medical Document)`,
           content: result.extractedText,
           sourceType: 'document',
@@ -733,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Profile Routes
   app.get("/api/user/profile", async (req, res) => {
     try {
-      const user = await storage.getUser(1); // Default user ID
+      const user = await storage.getUser(DEFAULT_USER_ID); 
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -750,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { displayName, diagnosis, diagnosisStage, diagnosisDate, address } = req.body;
       
-      const updatedUser = await storage.updateUserProfile(1, {
+      const updatedUser = await storage.updateUserProfile(DEFAULT_USER_ID, {
         displayName,
         diagnosis,
         diagnosisStage,
@@ -769,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const preferences = req.body;
       
-      const updatedUser = await storage.updateUserPreferences(1, preferences);
+      const updatedUser = await storage.updateUserPreferences(DEFAULT_USER_ID, preferences);
       
       res.json(updatedUser);
     } catch (error) {
@@ -777,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update user preferences" });
     }
   });
-
+  
   // Treatment Prediction Routes
   app.post("/api/treatments/predict", async (req, res) => {
     try {
@@ -791,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate patient data structure
       const validatedPatientData = {
-        userId: 1, // Default user ID
+        userId: DEFAULT_USER_ID, 
         diagnosis: patientData.diagnosis,
         age: patientData.age,
         gender: patientData.gender,
@@ -902,13 +865,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating treatment timeline:", error);
       res.status(500).json({ 
         message: "Failed to generate treatment timeline", 
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ?Error ? error.message : String(error)
       });
     }
   });
-
-  // This is a duplicate of the auth user endpoint already defined above
-  // Leaving this comment for clarity
 
   const httpServer = createServer(app);
 
