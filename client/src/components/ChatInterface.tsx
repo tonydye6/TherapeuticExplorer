@@ -8,6 +8,7 @@ import { ModelType } from "@shared/schema";
 import { v4 as uuidv4 } from "uuid";
 import { Send, StopCircle, Mic as MicIcon, FileText, RotateCcw, X } from "lucide-react";
 import useMobile from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatInterfaceProps {
   title?: string;
@@ -37,6 +38,7 @@ export default function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMobile = useMobile();
+  const { toast } = useToast();
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState(externalInputValue || "");
@@ -224,23 +226,41 @@ export default function ChatInterface({
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    // Instead of modifying input value, we'll use an assistant message
-    // to show the document is being analyzed
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // Store the file for later use when sending the message
+    // Check file type
+    const supportedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff', 'image/gif', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!supportedTypes.includes(file.type)) {
+      toast({
+        title: "Unsupported file type",
+        description: "Please upload a PDF, image, Word document, or text file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create the form data for the upload
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", file.name);
     formData.append("type", "medical_record");
     
-    // Set up loading state and message
+    // Set up loading state and create a temporary processing message
     setIsUploading(true);
     
     // Create a temporary "processing" message from the assistant
     const tempAssistantMessage: Message = {
       id: uuidv4(),
       role: "assistant" as MessageRole,
-      content: { text: "Analyzing your document..." },
+      content: { text: `Analyzing your document (${file.name})...\n\nThis may take a moment depending on the size and complexity of the document.` },
       modelUsed: ModelType.CLAUDE,
       timestamp: new Date(),
       isLoading: true,
@@ -255,39 +275,63 @@ export default function ChatInterface({
     }
     
     try {
-      // Call the API to process the document
+      console.log(`Uploading document: ${file.name} (${Math.round(file.size/1024)} KB, type: ${file.type})`);
+      
+      // Call the API to process the document with a timeout of 60 seconds
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
       const response = await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
       
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error(`Document upload failed with status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Document upload failed with status: ${response.status}, message: ${errorText}`);
       }
       
       const result = await response.json();
+      console.log("Document processing result:", result);
       
       // Extract relevant information from the OCR results
       const document = result.document;
       const processingResults = result.processingResults;
       const analysis = document.parsedContent?.analysis;
+      let extractedText = "";
+      
+      if (document.parsedContent?.text) {
+        extractedText = document.parsedContent.text;
+      }
 
       // Format a user-friendly summary message
-      let summaryText = "Here's what I found in your document:\n\n";
-
-      if (analysis?.sourceType) {
-        summaryText += `Document Type: ${analysis.sourceType}\n\n`;
-      }
-
+      let summaryText = `# Document Analysis: ${file.name}\n\n`;
+      
+      // Add document type if available
+      const docType = processingResults?.documentType || analysis?.sourceType || "Medical Document";
+      summaryText += `**Document Type**: ${docType}\n\n`;
+      
+      // If we have a structured analysis, display it
       if (analysis?.summary) {
-        summaryText += `${analysis.summary}\n\n`;
+        summaryText += `## Summary\n${analysis.summary}\n\n`;
+      } else if (extractedText) {
+        // Otherwise show a brief excerpt of the extracted text
+        const excerpt = extractedText.length > 500 
+          ? extractedText.substring(0, 500) + "..." 
+          : extractedText;
+        summaryText += `## Content Preview\n${excerpt}\n\n`;
       }
 
+      // Add structured data if available
       if (analysis?.keyInfo) {
         const keyInfo = analysis.keyInfo;
+        summaryText += "## Key Information\n\n";
 
         if (keyInfo.diagnoses && keyInfo.diagnoses.length > 0) {
-          summaryText += "Key Diagnoses:\n";
+          summaryText += "**Key Diagnoses:**\n";
           keyInfo.diagnoses.forEach((diagnosis: string) => {
             summaryText += `- ${diagnosis}\n`;
           });
@@ -295,7 +339,7 @@ export default function ChatInterface({
         }
 
         if (keyInfo.medications && keyInfo.medications.length > 0) {
-          summaryText += "Medications:\n";
+          summaryText += "**Medications:**\n";
           keyInfo.medications.forEach((medication: string) => {
             summaryText += `- ${medication}\n`;
           });
@@ -303,7 +347,7 @@ export default function ChatInterface({
         }
 
         if (keyInfo.procedures && keyInfo.procedures.length > 0) {
-          summaryText += "Procedures:\n";
+          summaryText += "**Procedures:**\n";
           keyInfo.procedures.forEach((procedure: string) => {
             summaryText += `- ${procedure}\n`;
           });
@@ -311,7 +355,7 @@ export default function ChatInterface({
         }
 
         if (keyInfo.labValues && Object.keys(keyInfo.labValues).length > 0) {
-          summaryText += "Lab Values:\n";
+          summaryText += "**Lab Values:**\n";
           Object.entries(keyInfo.labValues).forEach(([key, value]) => {
             summaryText += `- ${key}: ${value}\n`;
           });
@@ -320,10 +364,14 @@ export default function ChatInterface({
       }
 
       if (processingResults?.confidence) {
-        summaryText += `\nDocument processing confidence: ${Math.round(processingResults.confidence * 100)}%\n`;
+        const confidencePercentage = Math.round(processingResults.confidence * 100);
+        summaryText += `\n**Processing Confidence**: ${confidencePercentage}%\n\n`;
       }
 
-      summaryText += "\nWould you like me to analyze this information further in relation to esophageal cancer research?";
+      summaryText += "Would you like me to:\n";
+      summaryText += "1. Analyze this information in relation to esophageal cancer research\n";
+      summaryText += "2. Extract specific data points from the document\n";
+      summaryText += "3. Compare this with other information I've collected";
 
       // Replace the loading message with the analysis results
       setMessages(prev => prev.map(msg => 
@@ -332,27 +380,66 @@ export default function ChatInterface({
               ...tempAssistantMessage,
               content: {
                 text: summaryText,
-                sources: [{ title: file.name, type: "Medical Document", date: new Date().toISOString() }],
-                structuredData: analysis?.keyInfo || {},
+                sources: [{ 
+                  title: file.name, 
+                  type: "Medical Document", 
+                  date: new Date().toISOString(),
+                  url: document.id ? `/api/documents/${document.id}` : undefined
+                }],
+                structuredData: analysis?.keyInfo || {
+                  documentType: docType,
+                  extractedText: extractedText,
+                },
               },
               modelUsed: ModelType.CLAUDE,
               isLoading: false,
             }
           : msg
       ));
+      
+      // Show a success notification
+      toast({
+        title: "Document processed successfully",
+        description: `Analyzed ${file.name} with ${Math.round(processingResults.confidence * 100)}% confidence`,
+      });
+      
     } catch (error) {
       console.error("Error uploading document:", error);
-
-      const errorMessage: Message = {
-        id: uuidv4(),
-        role: "assistant" as MessageRole,
-        content: { 
-          text: "I'm sorry, I couldn't analyze that document. Please make sure it's a supported file type (PDF, JPEG, PNG, TIFF, GIF) and try again." 
-        },
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
+      
+      // Check if it's an abort error (timeout)
+      if (error.name === 'AbortError') {
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempAssistantMessage.id
+            ? {
+                ...tempAssistantMessage,
+                content: { 
+                  text: "The document processing took too long and timed out. This could be due to the document's size or complexity. Please try again with a smaller document or contact support if the issue persists."
+                },
+                isLoading: false,
+              }
+            : msg
+        ));
+      } else {
+        // Replace the loading message with an error
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempAssistantMessage.id
+            ? {
+                ...tempAssistantMessage,
+                content: { 
+                  text: `I encountered an error while processing your document. ${error.message || "Please make sure it's a supported file type (PDF, JPEG, PNG, TIFF, GIF, Word, Text) and try again."}`
+                },
+                isLoading: false,
+              }
+            : msg
+        ));
+      }
+      
+      // Show an error notification
+      toast({
+        title: "Document processing failed",
+        description: error.message || "Failed to analyze document",
+        variant: "destructive",
+      });
     } finally {
       setIsUploading(false);
       if (event.target) {

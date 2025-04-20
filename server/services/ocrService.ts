@@ -134,15 +134,14 @@ class OCRService {
       // Unlike pdf-parse, it doesn't have issues with the dynamic import in this environment
       const pdfjsLib = await import('pdfjs-dist');
       
-      // Set the worker source path
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+      // No worker needed in Node.js environment
+      // The PDF.js library can work without a dedicated worker in server environments
+      pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // Disable worker
       
       // Load the PDF document directly from buffer
       const loadingTask = pdfjsLib.getDocument({
         data: pdfBuffer,
         disableFontFace: true,
-        ignoreErrors: true,
       });
       
       console.log('PDF loading task initialized');
