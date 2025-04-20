@@ -286,32 +286,34 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
       {renderSafetyAlert()}
       
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="overview">
-            <InfoIcon className="mr-2 h-4 w-4" /> Overview
-          </TabsTrigger>
-          <TabsTrigger value="scientific">
-            <Beaker className="mr-2 h-4 w-4" /> Scientific Evidence
-          </TabsTrigger>
-          <TabsTrigger value="safety">
-            <Shield className="mr-2 h-4 w-4" /> Safety Profile
-          </TabsTrigger>
-          <TabsTrigger value="compatibility">
-            <Activity className="mr-2 h-4 w-4" /> Compatibility
-          </TabsTrigger>
-          <TabsTrigger value="visualization">
-            <LineChart className="mr-2 h-4 w-4" /> Visualization
-          </TabsTrigger>
-          <TabsTrigger value="nutritional">
-            <Utensils className="mr-2 h-4 w-4" /> Nutritional
-          </TabsTrigger>
-          <TabsTrigger value="experiences">
-            <Users className="mr-2 h-4 w-4" /> Patient Experiences
-          </TabsTrigger>
-          <TabsTrigger value="sources">
-            <BookOpen className="mr-2 h-4 w-4" /> Sources
-          </TabsTrigger>
-        </TabsList>
+        <div className="border-b mb-6">
+          <TabsList className="w-full h-auto p-0 bg-transparent flex flex-wrap justify-start gap-1 mb-0">
+            <TabsTrigger value="overview" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <InfoIcon className="mr-2 h-4 w-4" /> Overview
+            </TabsTrigger>
+            <TabsTrigger value="scientific" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <Beaker className="mr-2 h-4 w-4" /> Scientific Evidence
+            </TabsTrigger>
+            <TabsTrigger value="safety" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <Shield className="mr-2 h-4 w-4" /> Safety Profile
+            </TabsTrigger>
+            <TabsTrigger value="compatibility" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <Activity className="mr-2 h-4 w-4" /> Compatibility
+            </TabsTrigger>
+            <TabsTrigger value="visualization" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <LineChart className="mr-2 h-4 w-4" /> Visualization
+            </TabsTrigger>
+            <TabsTrigger value="nutritional" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <Utensils className="mr-2 h-4 w-4" /> Nutritional
+            </TabsTrigger>
+            <TabsTrigger value="experiences" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <Users className="mr-2 h-4 w-4" /> Patient Experiences
+            </TabsTrigger>
+            <TabsTrigger value="sources" className="py-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none">
+              <BookOpen className="mr-2 h-4 w-4" /> Sources
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="overview" className="mt-0">
           <Card>
