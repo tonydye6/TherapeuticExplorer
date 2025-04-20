@@ -13,6 +13,7 @@ import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { z } from "zod";
 import multer from "multer";
+import { insertAlternativeTreatmentSchema } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -865,6 +866,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating treatment timeline:", error);
       res.status(500).json({ 
         message: "Failed to generate treatment timeline", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Alternative Treatments API Routes
+  app.get("/api/alternative-treatments", async (req, res) => {
+    try {
+      const userId = String(DEFAULT_USER_ID);
+      const treatments = await storage.getAlternativeTreatments(userId);
+      res.json(treatments);
+    } catch (error) {
+      console.error("Error fetching alternative treatments:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch alternative treatments", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.get("/api/alternative-treatments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Valid ID is required" });
+      }
+
+      const treatment = await storage.getAlternativeTreatmentById(id);
+      if (!treatment) {
+        return res.status(404).json({ message: "Alternative treatment not found" });
+      }
+
+      res.json(treatment);
+    } catch (error) {
+      console.error("Error fetching alternative treatment:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch alternative treatment", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post("/api/alternative-treatments", async (req, res) => {
+    try {
+      const treatmentData = insertAlternativeTreatmentSchema.parse({
+        ...req.body,
+        userId: String(DEFAULT_USER_ID)
+      });
+      
+      const treatment = await storage.createAlternativeTreatment(treatmentData);
+      res.status(201).json(treatment);
+    } catch (error) {
+      console.error("Error creating alternative treatment:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid alternative treatment data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to create alternative treatment", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post("/api/alternative-treatments/:id/toggle-favorite", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Valid ID is required" });
+      }
+
+      const treatment = await storage.toggleAlternativeTreatmentFavorite(id);
+      res.json(treatment);
+    } catch (error) {
+      console.error("Error toggling alternative treatment favorite status:", error);
+      res.status(500).json({ 
+        message: "Failed to toggle favorite status", 
         error: error instanceof Error ? error.message : String(error)
       });
     }
