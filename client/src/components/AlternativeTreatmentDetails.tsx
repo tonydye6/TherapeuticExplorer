@@ -5,8 +5,14 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InfoIcon, AlertTriangle, FileText, BarChart, ThumbsUp, BookOpen, Activity, Shield, Beaker } from "lucide-react";
+import { 
+  InfoIcon, AlertTriangle, FileText, BarChart, ThumbsUp, BookOpen, 
+  Activity, Shield, Beaker, Users, Utensils, LineChart 
+} from "lucide-react";
 import CompatibilityChecker from "./CompatibilityChecker";
+import TreatmentVisualization from "./TreatmentVisualization";
+import NutritionalApproaches from "./NutritionalApproaches";
+import PatientExperiences from "./PatientExperiences";
 
 interface AlternativeTreatmentDetailsProps {
   treatment: AlternativeTreatment;
@@ -246,7 +252,7 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
       {renderSafetyAlert()}
       
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex flex-wrap">
           <TabsTrigger value="overview">
             <InfoIcon className="mr-2 h-4 w-4" /> Overview
           </TabsTrigger>
@@ -258,6 +264,15 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
           </TabsTrigger>
           <TabsTrigger value="compatibility">
             <Activity className="mr-2 h-4 w-4" /> Compatibility
+          </TabsTrigger>
+          <TabsTrigger value="visualization">
+            <LineChart className="mr-2 h-4 w-4" /> Visualization
+          </TabsTrigger>
+          <TabsTrigger value="nutritional">
+            <Utensils className="mr-2 h-4 w-4" /> Nutritional
+          </TabsTrigger>
+          <TabsTrigger value="experiences">
+            <Users className="mr-2 h-4 w-4" /> Patient Experiences
           </TabsTrigger>
           <TabsTrigger value="sources">
             <BookOpen className="mr-2 h-4 w-4" /> Sources
@@ -417,6 +432,21 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        {/* Visualization tab */}
+        <TabsContent value="visualization" className="mt-0">
+          <TreatmentVisualization treatment={treatment} />
+        </TabsContent>
+        
+        {/* Nutritional approaches tab */}
+        <TabsContent value="nutritional" className="mt-0">
+          <NutritionalApproaches treatment={treatment} />
+        </TabsContent>
+        
+        {/* Patient experiences tab */}
+        <TabsContent value="experiences" className="mt-0">
+          <PatientExperiences treatment={treatment} />
         </TabsContent>
         
         <TabsContent value="sources" className="mt-0">
