@@ -5,7 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InfoIcon, AlertTriangle, FileText, BarChart, ThumbsUp, BookOpen } from "lucide-react";
+import { InfoIcon, AlertTriangle, FileText, BarChart, ThumbsUp, BookOpen, Activity, Shield, Beaker } from "lucide-react";
+import CompatibilityChecker from "./CompatibilityChecker";
 
 interface AlternativeTreatmentDetailsProps {
   treatment: AlternativeTreatment;
@@ -27,30 +28,147 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
     );
   };
   
+  // Helper function to render JSON content
+  const renderJsonContent = (data: any, renderer?: (item: any, index: number) => React.ReactNode) => {
+    if (!data) return null;
+    
+    try {
+      let parsedData;
+      if (typeof data === 'string') {
+        parsedData = JSON.parse(data);
+      } else {
+        parsedData = data;
+      }
+      
+      if (!Array.isArray(parsedData)) {
+        return <p className="text-sm text-muted-foreground whitespace-pre-line">{JSON.stringify(parsedData, null, 2)}</p>;
+      }
+      
+      if (renderer) {
+        return <div className="space-y-4">{parsedData.map(renderer)}</div>;
+      }
+      
+      return (
+        <div className="space-y-2">
+          {parsedData.map((item, index) => (
+            <div key={index} className="border rounded-md p-3">
+              {Object.entries(item).map(([key, value]) => (
+                <p key={key} className="text-sm">
+                  <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}: </span>
+                  {String(value)}
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return <p className="text-sm text-muted-foreground italic">Error displaying content</p>;
+    }
+  };
+  
+  // Helper function to render scientific evidence
+  const renderScientificEvidence = (data: any) => {
+    return renderJsonContent(data, (study, index) => (
+      <div key={index} className="border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText className="h-4 w-4 text-blue-500" />
+          <h4 className="font-medium">{study.study}</h4>
+          {study.year && <Badge variant="outline">{study.year}</Badge>}
+        </div>
+        <p className="text-sm">{study.finding}</p>
+      </div>
+    ));
+  };
+  
+  // Helper function to render patient experiences
+  const renderPatientExperiences = (data: any) => {
+    return renderJsonContent(data, (experience, index) => (
+      <div key={index} className="border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-medium">{experience.patient}</h4>
+          {experience.verified && (
+            <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-100">
+              Verified
+            </Badge>
+          )}
+        </div>
+        <p className="text-sm">{experience.experience}</p>
+      </div>
+    ));
+  };
+  
+  // Helper function to render interactions
+  const renderInteractions = (data: any) => {
+    return renderJsonContent(data, (interaction, index) => {
+      const getSeverityColor = (severity: string) => {
+        switch (severity.toLowerCase()) {
+          case 'high':
+            return "destructive";
+          case 'moderate':
+            return "default";
+          case 'low':
+            return "secondary";
+          default:
+            return "outline";
+        }
+      };
+      
+      return (
+        <div key={index} className="border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium">{interaction.treatment}</h4>
+            <Badge variant={getSeverityColor(interaction.severity)}>
+              {interaction.severity} Risk
+            </Badge>
+          </div>
+          <p className="text-sm">{interaction.effect}</p>
+        </div>
+      );
+    });
+  };
+  
   // Helper function to render sources
   const renderSources = () => {
     if (!treatment.sources || (Array.isArray(treatment.sources) && treatment.sources.length === 0)) {
       return <p className="text-sm text-muted-foreground italic">No sources provided</p>;
     }
     
-    const sources = Array.isArray(treatment.sources) ? treatment.sources : [];
+    let sources;
+    try {
+      if (typeof treatment.sources === 'string') {
+        sources = JSON.parse(treatment.sources);
+      } else {
+        sources = treatment.sources;
+      }
+    } catch (error) {
+      console.error("Error parsing sources:", error);
+      return <p className="text-sm text-muted-foreground italic">Error displaying sources</p>;
+    }
+    
+    if (!Array.isArray(sources)) {
+      return <p className="text-sm text-muted-foreground">{JSON.stringify(sources)}</p>;
+    }
     
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {sources.map((source: any, index: number) => (
-          <div key={index} className="border-b pb-2 last:border-0">
-            <p className="font-medium">{source.title}</p>
-            {source.author && <p className="text-sm">Author: {source.author}</p>}
-            {source.year && <p className="text-sm">Year: {source.year}</p>}
-            {source.publisher && <p className="text-sm">Publisher: {source.publisher}</p>}
+          <div key={index} className="border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
+            <h4 className="font-medium text-lg">{source.title}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+              {source.author && <p className="text-sm"><span className="font-medium">Author:</span> {source.author}</p>}
+              {source.year && <p className="text-sm"><span className="font-medium">Year:</span> {source.year}</p>}
+              {source.publisher && <p className="text-sm"><span className="font-medium">Publisher:</span> {source.publisher}</p>}
+            </div>
             {source.url && (
               <a 
                 href={source.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-sm text-blue-600 hover:underline mt-1 block"
+                className="mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
               >
-                View Source
+                <BookOpen className="h-4 w-4" /> View Publication
               </a>
             )}
           </div>
@@ -98,7 +216,7 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">{treatment.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-2 mt-1">
             <Badge variant="outline" className="font-normal">
               {treatment.category}
             </Badge>
@@ -108,7 +226,7 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
                 treatment.evidenceRating === 'Moderate' ? 'secondary' :
                 'outline'
               }>
-                Evidence: {treatment.evidenceRating}
+                <BarChart className="mr-1 h-3 w-3" /> Evidence: {treatment.evidenceRating}
               </Badge>
             )}
             {treatment.safetyRating && (
@@ -118,7 +236,7 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
                 treatment.safetyRating === 'Safe with Precautions' ? 'outline' :
                 'destructive'
               }>
-                Safety: {treatment.safetyRating}
+                <Shield className="mr-1 h-3 w-3" /> Safety: {treatment.safetyRating}
               </Badge>
             )}
           </div>
@@ -133,10 +251,13 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
             <InfoIcon className="mr-2 h-4 w-4" /> Overview
           </TabsTrigger>
           <TabsTrigger value="scientific">
-            <BarChart className="mr-2 h-4 w-4" /> Scientific Information
+            <Beaker className="mr-2 h-4 w-4" /> Scientific Evidence
           </TabsTrigger>
-          <TabsTrigger value="practical">
-            <ThumbsUp className="mr-2 h-4 w-4" /> Practical Information
+          <TabsTrigger value="safety">
+            <Shield className="mr-2 h-4 w-4" /> Safety Profile
+          </TabsTrigger>
+          <TabsTrigger value="compatibility">
+            <Activity className="mr-2 h-4 w-4" /> Compatibility
           </TabsTrigger>
           <TabsTrigger value="sources">
             <BookOpen className="mr-2 h-4 w-4" /> Sources
@@ -146,14 +267,46 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
         <TabsContent value="overview" className="mt-0">
           <Card>
             <CardHeader>
-              <CardTitle>Description</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <InfoIcon className="h-5 w-5 text-primary" />
+                Treatment Overview
+              </CardTitle>
+              <CardDescription>Basic information about this alternative treatment</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-line">{treatment.description}</p>
-              
-              <div className="mt-6 space-y-6">
-                {renderSection("Background", treatment.background)}
-                {renderSection("Traditional Usage", treatment.traditionalUsage)}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Description</h3>
+                  <p className="whitespace-pre-line">{treatment.description}</p>
+                </div>
+                
+                {treatment.background && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Background & History</h3>
+                    <p className="whitespace-pre-line">{treatment.background}</p>
+                  </div>
+                )}
+                
+                {treatment.traditionalUsage && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Traditional Usage</h3>
+                    <p className="whitespace-pre-line">{treatment.traditionalUsage}</p>
+                  </div>
+                )}
+                
+                {treatment.practitionerRequirements && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Practitioner Requirements</h3>
+                    <p className="whitespace-pre-line">{treatment.practitionerRequirements}</p>
+                  </div>
+                )}
+                
+                {treatment.recommendedBy && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Recommended By</h3>
+                    <p className="whitespace-pre-line">{treatment.recommendedBy}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -162,35 +315,106 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
         <TabsContent value="scientific" className="mt-0">
           <Card>
             <CardHeader>
-              <CardTitle>Scientific Information</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Beaker className="h-5 w-5 text-primary" />
+                Scientific Evidence
+              </CardTitle>
               <CardDescription>Research data and scientific evidence for this treatment</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {renderSection("Mechanism of Action", treatment.mechanismOfAction)}
-                {renderSection("Scientific Evidence", treatment.scientificEvidence)}
-                {renderSection("Cancer-Specific Evidence", treatment.cancerSpecificEvidence)}
+                {treatment.mechanismOfAction && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Mechanism of Action</h3>
+                    <p className="whitespace-pre-line">{treatment.mechanismOfAction}</p>
+                  </div>
+                )}
+                
+                {treatment.scientificEvidence && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Scientific Evidence</h3>
+                    {renderScientificEvidence(treatment.scientificEvidence)}
+                  </div>
+                )}
+                
+                {treatment.cancerSpecificEvidence && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Cancer-Specific Evidence</h3>
+                    <p className="whitespace-pre-line">{treatment.cancerSpecificEvidence}</p>
+                  </div>
+                )}
+                
+                {treatment.patientExperiences && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Patient Experiences</h3>
+                    {renderPatientExperiences(treatment.patientExperiences)}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="practical" className="mt-0">
+        <TabsContent value="safety" className="mt-0">
           <Card>
             <CardHeader>
-              <CardTitle>Safety & Practical Information</CardTitle>
-              <CardDescription>Safety information and practical guidance</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Safety Profile
+              </CardTitle>
+              <CardDescription>Safety information and risk assessment</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {renderSection("Safety Profile", treatment.safetyProfile)}
-                {renderSection("Contraindications", treatment.contraindications)}
-                {renderSection("Interactions", treatment.interactions)}
-                <Separator />
-                {renderSection("Practitioner Requirements", treatment.practitionerRequirements)}
-                {renderSection("Recommended By", treatment.recommendedBy)}
-                {renderSection("Patient Experiences", treatment.patientExperiences)}
+                {treatment.safetyProfile && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Safety Profile</h3>
+                    <p className="whitespace-pre-line">{treatment.safetyProfile}</p>
+                  </div>
+                )}
+                
+                {treatment.contraindications && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Contraindications</h3>
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Who Should Avoid This Treatment</AlertTitle>
+                      <AlertDescription className="whitespace-pre-line">
+                        {treatment.contraindications}
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="compatibility" className="mt-0">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Compatibility with Conventional Treatments
+              </CardTitle>
+              <CardDescription>Potential interactions with conventional cancer treatments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {treatment.interactions ? (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Known Interactions</h3>
+                    {renderInteractions(treatment.interactions)}
+                  </div>
+                  <Separator />
+                  <CompatibilityChecker treatment={treatment} />
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-4">No specific interaction data available for this treatment.</p>
+                  <CompatibilityChecker treatment={treatment} />
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -198,8 +422,11 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
         <TabsContent value="sources" className="mt-0">
           <Card>
             <CardHeader>
-              <CardTitle>Sources & References</CardTitle>
-              <CardDescription>Research, studies, and other references</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Sources & References
+              </CardTitle>
+              <CardDescription>Research papers, studies, and other references</CardDescription>
             </CardHeader>
             <CardContent>
               {renderSources()}
