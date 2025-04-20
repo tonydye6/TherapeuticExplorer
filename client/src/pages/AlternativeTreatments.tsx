@@ -199,7 +199,7 @@ export default function AlternativeTreatments() {
   };
 
   return (
-    <div className="container py-6">
+    <div className="max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Non-Traditional Treatment Explorer</h1>
       
       <div className="flex items-center justify-between mb-6">

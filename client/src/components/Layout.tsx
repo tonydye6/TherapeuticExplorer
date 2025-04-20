@@ -45,9 +45,11 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
 
-        {/* Main content container */}
-        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-          {children}
+        {/* Main content container with improved spacing */}
+        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none bg-gray-50">
+          <div className="mx-4 md:mx-6 lg:mx-8 py-4 md:py-6">
+            {children}
+          </div>
         </main>
       </div>
 

@@ -47,9 +47,9 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
   ];
 
   return (
-    <div className="w-64 bg-white h-full border-r border-gray-200">
+    <div className="w-64 bg-white h-full border-r border-gray-200 flex-shrink-0 shadow-sm">
       {/* Logo & title */}
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 border-b border-gray-100">
         <div className="flex items-center">
           <div className="h-8 w-8 rounded-md bg-primary-700 flex items-center justify-center">
             <Home className="h-5 w-5 text-white" />
@@ -62,7 +62,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="mt-2 px-2 space-y-1">
+      <nav className="mt-4 px-3 space-y-1 overflow-y-auto">
         {navigationItems.map((item) => (
           <Link 
             key={item.href} 
