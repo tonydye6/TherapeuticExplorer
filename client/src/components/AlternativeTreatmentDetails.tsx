@@ -7,12 +7,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   InfoIcon, AlertTriangle, FileText, BarChart, ThumbsUp, BookOpen, 
-  Activity, Shield, Beaker, Users, Utensils, LineChart 
+  Activity, Shield, Beaker, Users, Utensils, LineChart, Heart, Award
 } from "lucide-react";
 import CompatibilityChecker from "./CompatibilityChecker";
 import TreatmentVisualization from "./TreatmentVisualization";
 import NutritionalApproaches from "./NutritionalApproaches";
 import PatientExperiences from "./PatientExperiences";
+import SafetyWarningBanner, { 
+  HealthcareDiscussionReminder, 
+  InstitutionalSupportBadge, 
+  SafetyGuidance 
+} from "./SafetyWarningBanner";
 
 interface AlternativeTreatmentDetailsProps {
   treatment: AlternativeTreatment;
@@ -183,38 +188,67 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
     );
   };
   
+  // Get interactions data
+  const getInteractions = (): {treatment: string, severity: string, effect: string}[] => {
+    if (!treatment.interactions) return [];
+    
+    try {
+      let interactionsData;
+      if (typeof treatment.interactions === 'string') {
+        interactionsData = JSON.parse(treatment.interactions);
+      } else {
+        interactionsData = treatment.interactions;
+      }
+      
+      if (!Array.isArray(interactionsData)) return [];
+      
+      return interactionsData.map((item: any) => ({
+        treatment: item.treatment || "Standard treatment",
+        severity: item.severity || "moderate",
+        effect: item.effect || "Unknown effect"
+      }));
+    } catch (error) {
+      console.error("Error parsing interactions:", error);
+      return [];
+    }
+  };
+  
+  // Determine safety warning variant based on safety rating
+  const getSafetyWarningVariant = (): "warning" | "info" | "caution" => {
+    if (!treatment.safetyRating) return "info";
+    
+    switch (treatment.safetyRating) {
+      case "Potentially Harmful":
+      case "Use with Caution":
+        return "warning";
+      case "Safe with Precautions":
+        return "caution";
+      default:
+        return "info";
+    }
+  };
+  
   // Generate safety alert based on safety rating
   const renderSafetyAlert = () => {
     if (!treatment.safetyRating) return null;
     
-    let variant = "default";
-    let message = "";
-    
-    switch (treatment.safetyRating) {
-      case "Very Safe":
-      case "Generally Safe":
-        return null; // No alert needed
-      case "Safe with Precautions":
-        variant = "default";
-        message = "Safe when used properly, but precautions should be observed. Review contraindications and interactions.";
-        break;
-      case "Use with Caution":
-        variant = "default";
-        message = "This treatment should be used with caution. Consult a healthcare provider before use.";
-        break;
-      case "Potentially Harmful":
-        variant = "destructive";
-        message = "This treatment has potential risks and should only be considered under proper medical supervision.";
-        break;
+    // For potentially harmful or cautionary treatments, use our enhanced warning banner
+    if (treatment.safetyRating === "Potentially Harmful" || 
+        treatment.safetyRating === "Use with Caution" ||
+        treatment.safetyRating === "Safe with Precautions") {
+      
+      // Only display interactions banner for higher risk treatments
+      return (
+        <SafetyWarningBanner 
+          variant={getSafetyWarningVariant()}
+          title={`Safety Notice: ${treatment.safetyRating}`}
+          interactions={getInteractions()}
+        />
+      );
     }
     
-    return (
-      <Alert variant={variant as "default" | "destructive"} className="mb-6">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Safety Notice: {treatment.safetyRating}</AlertTitle>
-        <AlertDescription>{message}</AlertDescription>
-      </Alert>
-    );
+    // For safe treatments, no alert needed
+    return null;
   };
 
   return (
@@ -381,17 +415,47 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
+                {/* Institutional support badge - show if supported by cancer centers */}
+                <InstitutionalSupportBadge treatment={treatment} />
+                
+                {/* Safety Guidance component */}
+                <SafetyGuidance safetyRating={treatment.safetyRating || undefined} />
+              
                 {treatment.safetyProfile && (
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Safety Profile</h3>
+                    <h3 className="text-lg font-medium mb-2">Detailed Safety Information</h3>
                     <p className="whitespace-pre-line">{treatment.safetyProfile}</p>
+                  </div>
+                )}
+                
+                {/* Known interactions */}
+                {getInteractions().length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Known Interactions with Conventional Treatments</h3>
+                    <div className="space-y-2">
+                      {getInteractions().map((interaction, index) => (
+                        <div key={index} className="border rounded-md p-4 bg-slate-50 dark:bg-slate-900">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{interaction.treatment}</h4>
+                            <Badge variant={
+                              interaction.severity.toLowerCase() === 'high' ? 'destructive' :
+                              interaction.severity.toLowerCase() === 'moderate' ? 'default' :
+                              'secondary'
+                            }>
+                              {interaction.severity} Risk
+                            </Badge>
+                          </div>
+                          <p className="text-sm">{interaction.effect}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 
                 {treatment.contraindications && (
                   <div>
                     <h3 className="text-lg font-medium mb-2">Contraindications</h3>
-                    <Alert>
+                    <Alert variant="destructive">
                       <AlertTriangle className="h-4 w-4" />
                       <AlertTitle>Who Should Avoid This Treatment</AlertTitle>
                       <AlertDescription className="whitespace-pre-line">
@@ -400,6 +464,9 @@ export default function AlternativeTreatmentDetails({ treatment }: AlternativeTr
                     </Alert>
                   </div>
                 )}
+                
+                {/* Healthcare discussion reminder */}
+                <HealthcareDiscussionReminder />
               </div>
             </CardContent>
           </Card>
