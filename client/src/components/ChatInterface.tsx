@@ -232,9 +232,40 @@ export default function ChatInterface({
     formData.append("title", file.name);
     formData.append("type", "medical_record");
     
+    // Set up loading state and message
+    setIsUploading(true);
+    
+    // Create a temporary "processing" message from the assistant
+    const tempAssistantMessage: Message = {
+      id: uuidv4(),
+      role: "assistant" as MessageRole,
+      content: { text: "Analyzing your document..." },
+      modelUsed: ModelType.CLAUDE,
+      timestamp: new Date(),
+      isLoading: true,
+    };
+    
+    // Add the temporary message to the chat
+    setMessages(prev => [...prev, tempAssistantMessage]);
+    
     // Clear the file input
-    event.target.value = "";
-
+    if (event.target) {
+      event.target.value = "";
+    }
+    
+    try {
+      // Call the API to process the document
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Document upload failed with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
       // Extract relevant information from the OCR results
       const document = result.document;
       const processingResults = result.processingResults;
@@ -323,7 +354,9 @@ export default function ChatInterface({
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsUploading(false);
-      event.target.value = ""; // Reset the file input
+      if (event.target) {
+        event.target.value = ""; // Reset the file input
+      }
     }
   };
 
