@@ -48,45 +48,7 @@ export default function Help() {
             item.answer.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // Video tutorial data
-  const tutorials = [
-    {
-      title: "Getting Started with THRIVE",
-      duration: "3:24",
-      thumbnail: "tutorial-1",
-      description: "Learn the basics of using THRIVE to research your condition"
-    },
-    {
-      title: "Finding and Comparing Treatments",
-      duration: "5:12",
-      thumbnail: "tutorial-2",
-      description: "How to research and compare different treatment options"
-    },
-    {
-      title: "Clinical Trial Matching",
-      duration: "4:45",
-      thumbnail: "tutorial-3",
-      description: "Using THRIVE to find relevant clinical trials"
-    },
-    {
-      title: "Uploading and Managing Documents",
-      duration: "3:56",
-      thumbnail: "tutorial-4",
-      description: "How to add and organize your medical documents"
-    },
-    {
-      title: "Tracking Your Treatment Journey",
-      duration: "6:18",
-      thumbnail: "tutorial-5",
-      description: "Using the treatment tracker to monitor your progress"
-    },
-    {
-      title: "Advanced Research Techniques",
-      duration: "7:42",
-      thumbnail: "tutorial-6",
-      description: "Pro tips for getting the most out of THRIVE's research capabilities"
-    }
-  ];
+  // No tutorials
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -112,10 +74,6 @@ export default function Help() {
             <TabsTrigger value="faq" className="flex items-center gap-1">
               <HelpCircle className="h-4 w-4" />
               FAQs
-            </TabsTrigger>
-            <TabsTrigger value="tutorials" className="flex items-center gap-1">
-              <Play className="h-4 w-4" />
-              Video Tutorials
             </TabsTrigger>
             <TabsTrigger value="guide" className="flex items-center gap-1">
               <BookOpen className="h-4 w-4" />
@@ -169,41 +127,7 @@ export default function Help() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="tutorials" className="pt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Play className="h-5 w-5 text-primary-800" />
-                  Video Tutorials
-                </CardTitle>
-                <CardDescription>
-                  Step-by-step guides to help you get the most out of THRIVE
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tutorials.map((tutorial, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden shadow-sm">
-                      <div className="aspect-video bg-gray-100 relative flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary-700/20 to-primary-900/70"></div>
-                        <Play className="h-12 w-12 text-white opacity-80" />
-                        <span className="absolute bottom-2 right-2 text-xs bg-black/70 text-white px-2 py-1 rounded">
-                          {tutorial.duration}
-                        </span>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-base">{tutorial.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{tutorial.description}</p>
-                        <Button variant="ghost" size="sm" className="mt-2 w-full">
-                          Watch Tutorial
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
           
           <TabsContent value="guide" className="pt-6">
             <Card>
@@ -361,98 +285,35 @@ export default function Help() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Contact Options</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-start p-4 border rounded-lg">
-                        <Mail className="h-5 w-5 text-primary-800 mr-3 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium">Email Support</h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Send us an email and we'll respond within 24 hours
-                          </p>
-                          <Button variant="link" className="p-0 h-auto text-primary-800 mt-1">
-                            support@thrive-assistant.com
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start p-4 border rounded-lg">
-                        <MessageSquare className="h-5 w-5 text-primary-800 mr-3 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium">Live Chat</h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Chat with our support team in real-time
-                          </p>
-                          <Button className="mt-2 bg-primary-800 hover:bg-primary-900">
-                            Start Chat
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-8">
-                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-start">
-                          <Info className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
-                          <div>
-                            <h4 className="font-medium text-blue-800">Important Reminder</h4>
-                            <p className="text-sm text-blue-700 mt-1">
-                              For medical emergencies, please contact your healthcare provider or dial emergency services immediately. THRIVE is a research tool and not a substitute for professional medical advice.
-                            </p>
-                          </div>
-                        </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Contact Options</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start p-4 border rounded-lg">
+                      <Mail className="h-5 w-5 text-primary-800 mr-3 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium">Email Support</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Send us an email and we'll respond within 24 hours
+                        </p>
+                        <Button variant="link" className="p-0 h-auto text-primary-800 mt-1">
+                          tony@sparqgames.com
+                        </Button>
                       </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Send a Support Request</h3>
-                    <form className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <Input placeholder="Your name" />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <Input type="email" placeholder="Your email address" />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                        <Input placeholder="What's your question about?" />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                        <Textarea 
-                          placeholder="Describe your issue or question in detail"
-                          className="h-[120px]" 
-                        />
-                      </div>
-                      
+                  <div className="mt-8">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex items-start">
-                        <div className="flex items-center h-5">
-                          <input
-                            id="terms"
-                            name="terms"
-                            type="checkbox"
-                            className="h-4 w-4 text-primary-800 border-gray-300 rounded focus:ring-primary-700"
-                          />
-                        </div>
-                        <div className="ml-3 text-sm">
-                          <label htmlFor="terms" className="text-gray-700">
-                            I consent to my information being used to process my support request
-                          </label>
+                        <Info className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-blue-800">Important Reminder</h4>
+                          <p className="text-sm text-blue-700 mt-1">
+                            For medical emergencies, please contact your healthcare provider or dial emergency services immediately. THRIVE is a research tool and not a substitute for professional medical advice.
+                          </p>
                         </div>
                       </div>
-                      
-                      <Button type="submit" className="bg-primary-800 hover:bg-primary-900">
-                        Send Request
-                      </Button>
-                    </form>
+                    </div>
                   </div>
                 </div>
               </CardContent>
