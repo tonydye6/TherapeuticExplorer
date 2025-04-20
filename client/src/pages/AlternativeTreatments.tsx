@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AlternativeTreatment } from "@shared/schema";
@@ -10,8 +10,25 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import AlternativeTreatmentForm from "@/components/AlternativeTreatmentForm";
 import AlternativeTreatmentDetails from "@/components/AlternativeTreatmentDetails";
-import { Heart, Search, Plus, Filter, Leaf, Microscope, FlaskConical } from "lucide-react";
+import { 
+  Heart, Search, Plus, Filter, Leaf, Microscope, FlaskConical, 
+  Star, ShieldCheck, Clipboard, Users, Apple, PenTool, Utensils
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuCheckboxItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Define treatment categories with icons
 interface CategoryWithIcon {
@@ -53,11 +70,35 @@ const PREDEFINED_CATEGORIES: CategoryWithIcon[] = [
   }
 ];
 
+// Define filter options
+interface FilterOptions {
+  evidenceLevel: string[];
+  safetyProfile: string[];
+  approachType: string[];
+}
+
+// Constants for filter options
+const EVIDENCE_LEVELS = ["Strong", "Moderate", "Limited", "Preliminary", "Anecdotal", "Insufficient"];
+const SAFETY_PROFILES = ["Very Safe", "Generally Safe", "Safe with Precautions", "Use with Caution", "Potentially Harmful"];
+const APPROACH_TYPES = ["Preventative", "Supportive", "Symptom Management", "Direct Treatment", "Recovery Support"];
+
 export default function AlternativeTreatments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedTreatment, setSelectedTreatment] = useState<AlternativeTreatment | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showNutritionalSection, setShowNutritionalSection] = useState(false);
+  const [showPatientExperiences, setShowPatientExperiences] = useState(false);
+  const [showVisualization, setShowVisualization] = useState(false);
+  
+  // Filtering state
+  const [filters, setFilters] = useState<FilterOptions>({
+    evidenceLevel: [],
+    safetyProfile: [],
+    approachType: []
+  });
+  
   const queryClient = useQueryClient();
 
   // Fetch alternative treatments
@@ -68,13 +109,46 @@ export default function AlternativeTreatments() {
     }
   });
 
-  // Filter treatments based on search term and active category
+  // Handle toggling a filter
+  const toggleFilter = (filterType: keyof FilterOptions, value: string) => {
+    setFilters(prevFilters => {
+      const currentFilters = [...prevFilters[filterType]];
+      const index = currentFilters.indexOf(value);
+      
+      if (index === -1) {
+        // Add the filter
+        return {
+          ...prevFilters,
+          [filterType]: [...currentFilters, value]
+        };
+      } else {
+        // Remove the filter
+        currentFilters.splice(index, 1);
+        return {
+          ...prevFilters,
+          [filterType]: currentFilters
+        };
+      }
+    });
+  };
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      evidenceLevel: [],
+      safetyProfile: [],
+      approachType: []
+    });
+  };
+
+  // Filter treatments based on search term, active category, and selected filters
   const filteredTreatments = treatments.filter(treatment => {
+    // Search term filter
     const matchesSearch = !searchTerm || 
       treatment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       treatment.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // For predefined category tabs, we need to map category names to their IDs
+    // Category filter
     const matchesCategory = !activeCategory || 
       treatment.category === activeCategory || 
       (activeCategory === "herbal-compounds" && treatment.category === "Herbal Compounds and Plant Extracts") ||
@@ -84,7 +158,20 @@ export default function AlternativeTreatments() {
       (activeCategory === "mind-body-therapy" && treatment.category === "Mind-Body Therapy") ||
       (activeCategory === "traditional-chinese-medicine" && treatment.category === "Traditional Chinese Medicine");
     
-    return matchesSearch && matchesCategory;
+    // Evidence level filter
+    const matchesEvidenceLevel = filters.evidenceLevel.length === 0 || 
+      (treatment.evidenceRating && filters.evidenceLevel.includes(treatment.evidenceRating));
+    
+    // Safety profile filter
+    const matchesSafetyProfile = filters.safetyProfile.length === 0 || 
+      (treatment.safetyRating && filters.safetyProfile.includes(treatment.safetyRating));
+    
+    // Approach type filter (this is a placeholder as we don't have this field yet in the data model)
+    // In a real implementation, we would check against an actual property in the treatment data
+    const matchesApproachType = filters.approachType.length === 0;
+    
+    return matchesSearch && matchesCategory && matchesEvidenceLevel && 
+           matchesSafetyProfile && matchesApproachType;
   });
 
   // Get unique categories from treatments
@@ -142,10 +229,157 @@ export default function AlternativeTreatments() {
           </Button>
         </div>
         
-        <Button onClick={() => setShowAddForm(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Treatment
-        </Button>
+        <div className="flex items-center space-x-2">
+          {/* Filters Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10">
+                <Filter className="h-4 w-4 mr-2" /> 
+                Filters 
+                {Object.values(filters).flat().length > 0 && (
+                  <Badge className="ml-2 h-5 px-1.5" variant="secondary">
+                    {Object.values(filters).flat().length}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>Filter By</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              {/* Evidence Level Filters */}
+              <DropdownMenuLabel className="text-xs font-medium">Evidence Level</DropdownMenuLabel>
+              {EVIDENCE_LEVELS.map(level => (
+                <DropdownMenuCheckboxItem
+                  key={level}
+                  checked={filters.evidenceLevel.includes(level)}
+                  onCheckedChange={() => toggleFilter('evidenceLevel', level)}
+                >
+                  <div className="flex items-center">
+                    <Star className={`h-3.5 w-3.5 mr-2 ${
+                      level === 'Strong' ? 'text-green-500' : 
+                      level === 'Moderate' ? 'text-blue-500' : 
+                      level === 'Limited' ? 'text-yellow-500' :
+                      level === 'Preliminary' ? 'text-orange-500' :
+                      'text-gray-400'
+                    }`} />
+                    {level}
+                  </div>
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              
+              {/* Safety Profile Filters */}
+              <DropdownMenuLabel className="text-xs font-medium">Safety Profile</DropdownMenuLabel>
+              {SAFETY_PROFILES.map(profile => (
+                <DropdownMenuCheckboxItem
+                  key={profile}
+                  checked={filters.safetyProfile.includes(profile)}
+                  onCheckedChange={() => toggleFilter('safetyProfile', profile)}
+                >
+                  <div className="flex items-center">
+                    <ShieldCheck className={`h-3.5 w-3.5 mr-2 ${
+                      profile === 'Very Safe' ? 'text-green-500' : 
+                      profile === 'Generally Safe' ? 'text-blue-500' : 
+                      profile === 'Safe with Precautions' ? 'text-yellow-500' :
+                      profile === 'Use with Caution' ? 'text-orange-500' :
+                      'text-red-500'
+                    }`} />
+                    {profile}
+                  </div>
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              
+              {/* Approach Type Filters */}
+              <DropdownMenuLabel className="text-xs font-medium">Approach Type</DropdownMenuLabel>
+              {APPROACH_TYPES.map(type => (
+                <DropdownMenuCheckboxItem
+                  key={type}
+                  checked={filters.approachType.includes(type)}
+                  onCheckedChange={() => toggleFilter('approachType', type)}
+                >
+                  {type}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              
+              {/* Reset Filters */}
+              <div className="p-2">
+                <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Add Treatment Button */}
+          <Button onClick={() => setShowAddForm(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add Treatment
+          </Button>
+        </div>
       </div>
+      
+      {/* Filter badges - show active filters */}
+      {Object.values(filters).flat().length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {filters.evidenceLevel.map(level => (
+            <Badge key={level} variant="secondary" className="flex items-center gap-1">
+              <Star className="h-3 w-3" /> {level}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-4 w-4 ml-1 p-0" 
+                onClick={() => toggleFilter('evidenceLevel', level)}
+              >
+                <span className="sr-only">Remove</span>
+                &times;
+              </Button>
+            </Badge>
+          ))}
+          
+          {filters.safetyProfile.map(profile => (
+            <Badge key={profile} variant="secondary" className="flex items-center gap-1">
+              <ShieldCheck className="h-3 w-3" /> {profile}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-4 w-4 ml-1 p-0" 
+                onClick={() => toggleFilter('safetyProfile', profile)}
+              >
+                <span className="sr-only">Remove</span>
+                &times;
+              </Button>
+            </Badge>
+          ))}
+          
+          {filters.approachType.map(type => (
+            <Badge key={type} variant="secondary" className="flex items-center gap-1">
+              {type}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-4 w-4 ml-1 p-0" 
+                onClick={() => toggleFilter('approachType', type)}
+              >
+                <span className="sr-only">Remove</span>
+                &times;
+              </Button>
+            </Badge>
+          ))}
+          
+          {Object.values(filters).flat().length > 1 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 px-2 text-xs" 
+              onClick={clearFilters}
+            >
+              Clear all
+            </Button>
+          )}
+        </div>
+      )}
       
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-4 flex flex-wrap">
