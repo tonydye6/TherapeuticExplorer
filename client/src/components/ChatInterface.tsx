@@ -68,10 +68,49 @@ export default function ChatInterface({
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
 
+    let messageText = inputValue.trim();
+    let documentAnalysis = null;
+
+    // Check if there's a document to analyze
+    const documentMatch = messageText.match(/\[Analyzing document: (.+?)\.\.\.]/);
+    if (documentMatch) {
+      setIsUploading(true);
+      try {
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to analyze document");
+        }
+
+        documentAnalysis = await response.json();
+        // Remove the document placeholder from the message
+        messageText = messageText.replace(/\[Analyzing document: .+?...]/, '').trim();
+      } catch (error) {
+        console.error("Document analysis error:", error);
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          role: "assistant" as MessageRole,
+          content: { text: `Error analyzing document: ${error.message}` },
+          timestamp: new Date(),
+        }]);
+        setIsUploading(false);
+        setInputValue("");
+        return;
+      }
+      setIsUploading(false);
+    }
+
     const userMessage: Message = {
       id: uuidv4(),
       role: "user" as MessageRole,
-      content: { text: inputValue.trim() },
+      content: { 
+        text: messageText,
+        documentAnalysis: documentAnalysis
+      },
       timestamp: new Date(),
     };
 
@@ -184,44 +223,17 @@ export default function ChatInterface({
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    setIsUploading(true);
-
-    try {
-      const file = files[0];
-      const formData = new FormData();
-      formData.append("file", file); // Changed from "document" to "file" to match backend
-      formData.append("title", file.name);
-      formData.append("type", "medical_record");
-
-      const userMessage: Message = {
-        id: uuidv4(),
-        role: "user" as MessageRole,
-        content: { text: `Uploaded medical document: ${file.name}` },
-        timestamp: new Date(),
-      };
-
-      const tempAssistantMessage: Message = {
-        id: uuidv4(),
-        role: "assistant" as MessageRole,
-        content: { text: "Analyzing document with OCR..." },
-        timestamp: new Date(),
-        isLoading: true,
-        modelUsed: preferredModel || ModelType.CLAUDE,
-      };
-
-      setMessages(prev => [...prev, userMessage, tempAssistantMessage]);
-
-      // Use our new OCR endpoint
-      const response = await fetch("/api/documents/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to analyze document");
-      }
-
-      const result = await response.json();
+    const file = files[0];
+    setInputValue(prev => `${prev}\n[Analyzing document: ${file.name}...]`);
+    
+    // Store the file for later use when sending the message
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", file.name);
+    formData.append("type", "medical_record");
+    
+    // Clear the file input
+    event.target.value = "";
 
       // Extract relevant information from the OCR results
       const document = result.document;
