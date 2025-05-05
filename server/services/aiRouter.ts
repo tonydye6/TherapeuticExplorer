@@ -2,6 +2,17 @@ import { ModelType, QueryType } from '@shared/schema';
 import * as openaiService from './openai-service';
 import * as claudeService from './anthropic-service';
 import * as geminiService from './gemini-service';
+import { storage } from '../storage';
+
+// Types for context data
+interface UserContext {
+  userProfile: any;
+  planItems?: any[];
+  journalLogs?: any[];
+  dietLogs?: any[];
+  treatments?: any[];
+  savedResearch?: any[];
+}
 
 // Configuration for model routing
 const modelConfig = {
@@ -228,11 +239,124 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
 }
 
 /**
+ * Fetches user-specific context based on the query type
+ */
+async function getUserContext(userId: string, queryType: QueryType): Promise<UserContext> {
+  console.log(`Fetching context for user ${userId} and query type ${queryType}`);
+  
+  // Start with the basic user profile
+  const userProfile = await storage.getUser(userId);
+  
+  if (!userProfile) {
+    throw new Error(`User with ID ${userId} not found`);
+  }
+  
+  const context: UserContext = {
+    userProfile
+  };
+  
+  // Fetch additional context based on query type
+  switch (queryType) {
+    case QueryType.TREATMENT:
+      // For treatment queries, fetch user's treatments and conditions
+      context.treatments = await storage.getTreatments(userId);
+      break;
+      
+    case QueryType.RESEARCH:
+      // For research queries, fetch saved research items
+      context.savedResearch = await storage.getResearchItems(userId);
+      break;
+      
+    case QueryType.CLINICAL_TRIAL:
+      // For clinical trial queries, fetch saved trials and treatments
+      context.treatments = await storage.getTreatments(userId);
+      break;
+      
+    // Add more cases for other query types as needed
+  }
+  
+  return context;
+}
+
+/**
+ * Formats user context into a coherent prompt context string for LLMs
+ */
+function formatContextForLLM(context: UserContext, queryType: QueryType): string {
+  let contextStr = "";
+  
+  // Add basic user profile information
+  if (context.userProfile) {
+    contextStr += "User Information:\n";
+    contextStr += `- Name: ${context.userProfile.displayName || context.userProfile.username}\n`;
+    
+    if (context.userProfile.diagnosis) {
+      contextStr += `- Diagnosis: ${context.userProfile.diagnosis}\n`;
+    }
+    
+    if (context.userProfile.diagnosisStage) {
+      contextStr += `- Stage: ${context.userProfile.diagnosisStage}\n`;
+    }
+    
+    if (context.userProfile.diagnosisDate) {
+      const date = new Date(context.userProfile.diagnosisDate);
+      contextStr += `- Diagnosis Date: ${date.toLocaleDateString()}\n`;
+    }
+  }
+  
+  // Add treatment information if available and relevant
+  if (context.treatments && context.treatments.length > 0 && 
+      (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL)) {
+    contextStr += "\nCurrent Treatments:\n";
+    context.treatments.forEach((treatment, index) => {
+      contextStr += `- ${treatment.name} (${treatment.type})\n`;
+      if (treatment.startDate) {
+        const date = new Date(treatment.startDate);
+        contextStr += `  Started: ${date.toLocaleDateString()}\n`;
+      }
+      if (treatment.notes) {
+        contextStr += `  Notes: ${treatment.notes}\n`;
+      }
+    });
+  }
+  
+  // Add research information if available and relevant
+  if (context.savedResearch && context.savedResearch.length > 0 && queryType === QueryType.RESEARCH) {
+    contextStr += "\nSaved Research:\n";
+    context.savedResearch.forEach((item, index) => {
+      contextStr += `- ${item.title}\n`;
+      if (item.evidenceLevel) {
+        contextStr += `  Evidence Level: ${item.evidenceLevel}\n`;
+      }
+    });
+  }
+  
+  // Add more formatted sections as needed for other context types
+  
+  return contextStr;
+}
+
+/**
  * Process a user message and return an AI response
  */
-async function processUserMessage(message: string, userId: string, context?: any, preferredModel?: ModelType): Promise<AIResponse> {
+async function processUserMessage(message: string, userId: string, providedContext?: any, preferredModel?: ModelType): Promise<AIResponse> {
   // Analyze the query type
   const queryType = await analyzeQueryType(message);
+  
+  // Fetch user context if not provided
+  let context = providedContext;
+  if (!context) {
+    try {
+      const userContext = await getUserContext(userId, queryType);
+      context = {
+        userInfo: formatContextForLLM(userContext, queryType)
+      };
+      console.log('Generated context:', context);
+    } catch (error) {
+      console.warn('Error fetching user context:', error);
+      // Continue without context rather than failing the request
+      context = {};
+    }
+  }
   
   // Create the AI query
   const query: AIQuery = {
@@ -253,5 +377,12 @@ export const aiRouter = {
     return processUserMessage(content, userId, context, preferredModel);
   },
   determineModelForQuery,
-  analyzeQueryType
+  analyzeQueryType,
+  // Add the context fetching functionality for use in other parts of the application
+  fetchUserContext: async (userId: string, queryType: QueryType): Promise<UserContext> => {
+    // Using a different name to avoid recursive call
+    const context = await getUserContext(userId, queryType);
+    return context;
+  },
+  formatContextForLLM
 };
