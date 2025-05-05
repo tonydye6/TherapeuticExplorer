@@ -17,6 +17,24 @@ interface ClaudeResponse {
 }
 
 /**
+ * Interface for model settings
+ */
+interface ModelSettings {
+  modelName: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+/**
+ * Interface for text query request
+ */
+interface TextQueryRequest {
+  query: string;
+  systemPrompt?: string;
+  modelSettings?: ModelSettings;
+}
+
+/**
  * Generates a response using Anthropic's Claude models
  * @param prompt The user prompt/question
  * @param context Optional context information to include in the prompt
