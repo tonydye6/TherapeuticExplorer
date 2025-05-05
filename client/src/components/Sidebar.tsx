@@ -36,6 +36,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
 
   const navigationItems = [
     { href: "/", label: "Research Assistant", icon: <MessageSquare className="h-5 w-5" /> },
+    { href: "/dashboard", label: "Patient Dashboard", icon: <BarChart3 className="h-5 w-5" /> },
     { href: "/saved-research", label: "Research Library", icon: <BookOpen className="h-5 w-5" /> },
     { href: "/semantic-search", label: "Semantic Search", icon: <Search className="h-5 w-5" /> },
     { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
@@ -45,7 +46,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { href: "/diet-logs", label: "Diet Logs", icon: <Utensils className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
-    { href: "/treatment-predictor", label: "Treatment Predictor", icon: <BarChart3 className="h-5 w-5" /> },
+    { href: "/treatment-predictor", label: "Treatment Predictor", icon: <Activity className="h-5 w-5" /> },
     { href: "/side-effect-analyzer", label: "Side Effect Analyzer", icon: <AlertTriangle className="h-5 w-5" /> },
     { href: "/treatment-timeline", label: "Treatment Timeline", icon: <Calendar className="h-5 w-5" /> },
     { href: "/clinical-trials", label: "Clinical Trials", icon: <FlaskConical className="h-5 w-5" /> },

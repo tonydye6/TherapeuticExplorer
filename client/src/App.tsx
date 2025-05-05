@@ -21,12 +21,14 @@ import MultimodalChatPage from "./pages/multimodal-chat-page";
 import MyPlanPage from "./pages/MyPlanPage";
 import JournalLogsPage from "./pages/JournalLogsPage";
 import DietLogsPage from "./pages/DietLogsPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function Router() {
   return (
     <Layout>
       <Switch>
         <Route path="/" component={ResearchAssistant} />
+        <Route path="/dashboard" component={DashboardPage} />
         <Route path="/saved-research" component={SavedResearch} />
         <Route path="/treatment-tracker" component={TreatmentTracker} />
         <Route path="/alternative-treatments" component={AlternativeTreatments} />
