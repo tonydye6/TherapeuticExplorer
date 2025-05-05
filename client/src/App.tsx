@@ -10,6 +10,7 @@ import SavedResearch from "./pages/SavedResearch";
 import TreatmentTracker from "./pages/TreatmentTracker";
 import ClinicalTrials from "./pages/ClinicalTrials";
 import Documents from "./pages/Documents";
+import DocumentsPage from "./pages/DocumentsPage";
 import Preferences from "./pages/Preferences";
 import Help from "./pages/Help";
 import SemanticSearch from "./pages/SemanticSearch";
@@ -37,7 +38,7 @@ function Router() {
         <Route path="/side-effect-analyzer" component={SideEffectAnalyzer} />
         <Route path="/treatment-timeline" component={TreatmentTimelinePage} />
         <Route path="/clinical-trials" component={ClinicalTrials} />
-        <Route path="/documents" component={Documents} />
+        <Route path="/documents" component={DocumentsPage} />
         <Route path="/semantic-search" component={SemanticSearch} />
         <Route path="/multimodal-chat" component={MultimodalChatPage} />
         <Route path="/my-plan" component={MyPlanPage} />

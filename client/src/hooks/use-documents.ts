@@ -3,6 +3,22 @@ import { Document } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to handle FormData POST requests
+async function postFormData(url: string, formData: FormData) {
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include'
+  });
+  
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`${response.status}: ${text || response.statusText}`);
+  }
+  
+  return response;
+}
+
 export function useDocuments() {
   const { toast } = useToast();
   const queryKey = ["/api/documents"];
@@ -19,11 +35,7 @@ export function useDocuments() {
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiRequest("POST", "/api/documents/upload", formData, {
-        customHeaders: {
-          // Don't set Content-Type header for FormData, browser will set it with boundary
-        },
-      });
+      const response = await postFormData("/api/documents/upload", formData);
       return response.json();
     },
     onSuccess: () => {
