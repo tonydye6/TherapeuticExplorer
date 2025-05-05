@@ -12,6 +12,7 @@ import { treatmentPredictionService } from "./services/treatmentPredictionServic
 import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { sourceAttributionService } from "./services/sourceAttribution";
+import { interactionService } from "./services/interaction-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -1047,6 +1048,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error toggling alternative treatment favorite status:", error);
       res.status(500).json({ 
         message: "Failed to toggle favorite status", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Interaction Analysis Routes
+  app.post("/api/interactions/analyze", async (req, res) => {
+    try {
+      const { includeAlternative, includeDiet, dietItems, preferredModel } = req.body;
+      
+      const analysisResult = await interactionService.analyzeInteractions(
+        DEFAULT_USER_ID,
+        {
+          includeAlternative,
+          includeDiet,
+          dietItems,
+          preferredModel
+        }
+      );
+      
+      res.json(analysisResult);
+    } catch (error) {
+      console.error("Error analyzing interactions:", error);
+      res.status(500).json({
+        message: "Failed to analyze treatment interactions",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Specific Interaction Analysis Route
+  app.post("/api/interactions/specific", async (req, res) => {
+    try {
+      const { items, preferredModel } = req.body;
+      
+      if (!items || !Array.isArray(items) || items.length < 2) {
+        return res.status(400).json({
+          message: "At least two items are required for interaction analysis"
+        });
+      }
+      
+      const interactionDetail = await interactionService.analyzeSpecificInteraction(
+        DEFAULT_USER_ID,
+        items,
+        preferredModel
+      );
+      
+      if (!interactionDetail) {
+        return res.status(404).json({
+          message: "Could not analyze interaction between the specified items"
+        });
+      }
+      
+      res.json(interactionDetail);
+    } catch (error) {
+      console.error("Error analyzing specific interaction:", error);
+      res.status(500).json({
+        message: "Failed to analyze specific interaction",
         error: error instanceof Error ? error.message : String(error)
       });
     }
