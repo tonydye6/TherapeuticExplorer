@@ -191,6 +191,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   planItems: many(planItems),
   journalLogs: many(journalLogs),
   dietLogs: many(dietLogs),
+  hopeSnippets: many(hopeSnippets),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({

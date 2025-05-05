@@ -22,7 +22,8 @@ import {
   Leaf,
   ImagePlus,
   BookOpen as JournalIcon,
-  Utensils
+  Utensils,
+  Quote
 } from "lucide-react";
 
 interface SidebarProps {
@@ -44,6 +45,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { href: "/my-plan", label: "My Plan", icon: <Calendar className="h-5 w-5" /> },
     { href: "/journal-logs", label: "Journal Logs", icon: <JournalIcon className="h-5 w-5" /> },
     { href: "/diet-logs", label: "Diet Logs", icon: <Utensils className="h-5 w-5" /> },
+    { href: "/hope-snippets", label: "Hope Snippets", icon: <Quote className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
     { href: "/treatment-predictor", label: "Treatment Predictor", icon: <Activity className="h-5 w-5" /> },

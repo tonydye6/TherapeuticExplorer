@@ -1,189 +1,124 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-
-type HopeSnippet = {
-  id: number;
-  title: string;
-  content: string;
-  category: string;
-  author: string | null;
-  source: string | null;
-  tags: string[] | null;
-  isActive: boolean;
-  createdAt: Date;
-};
-
-type CreateHopeSnippetData = {
-  title: string;
-  content: string;
-  category: string;
-  author?: string | null;
-  source?: string | null;
-  tags?: string[] | null;
-  isActive?: boolean;
-};
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { toast } from '@/hooks/use-toast';
 
 export function useHopeSnippets() {
-  const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Query for all hope snippets
-  const {
-    data: snippets = [],
-    isLoading,
-    isError,
-    error,
-    refetch
-  } = useQuery<HopeSnippet[]>({
-    queryKey: ['/api/hope-snippets', selectedCategory],
-    enabled: true,
-    queryFn: async () => {
-      const url = selectedCategory
-        ? `/api/hope-snippets?category=${encodeURIComponent(selectedCategory)}`
-        : '/api/hope-snippets';
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch hope snippets');
-      }
-      return await response.json();
-    }
+  // Fetch all snippets
+  const { data: snippets, isLoading, error, refetch } = useQuery({
+    queryKey: ["/api/hope-snippets"],
+    refetchOnWindowFocus: false,
   });
 
-  // Query for a random hope snippet
-  const {
-    data: randomSnippet,
-    isLoading: isRandomLoading,
-    refetch: refetchRandom
-  } = useQuery<HopeSnippet>({
-    queryKey: ['/api/hope-snippets/random', selectedCategory],
-    enabled: true,
-    queryFn: async () => {
-      const url = selectedCategory
-        ? `/api/hope-snippets/random?category=${encodeURIComponent(selectedCategory)}`
-        : '/api/hope-snippets/random';
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch random hope snippet');
-      }
-      return await response.json();
-    }
-  });
-
-  // Mutation to create a new hope snippet
-  const createSnippetMutation = useMutation({
-    mutationFn: async (snippetData: CreateHopeSnippetData) => {
-      const response = await fetch('/api/hope-snippets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(snippetData)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create hope snippet');
-      }
-      
-      return await response.json();
+  // Create new snippet
+  const { mutateAsync: createSnippet, isPending: isCreating } = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/hope-snippets', data);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets/random"] });
       toast({
         title: "Success",
         description: "Hope snippet created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets/random'] });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create hope snippet",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Mutation to update a hope snippet
-  const updateSnippetMutation = useMutation({
-    mutationFn: async ({id, ...data}: {id: number} & Partial<CreateHopeSnippetData>) => {
-      const response = await fetch(`/api/hope-snippets/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update hope snippet');
-      }
-      
-      return await response.json();
+  // Update snippet
+  const { mutateAsync: updateSnippet, isPending: isUpdating } = useMutation({
+    mutationFn: async (data: any) => {
+      const { id, ...rest } = data;
+      const response = await apiRequest('PUT', `/api/hope-snippets/${id}`, rest);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets/random"] });
       toast({
         title: "Success",
         description: "Hope snippet updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets/random'] });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update hope snippet",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Mutation to delete a hope snippet
-  const deleteSnippetMutation = useMutation({
+  // Delete snippet
+  const { mutateAsync: deleteSnippet, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/hope-snippets/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete hope snippet');
-      }
-      
-      return true;
+      const response = await apiRequest('DELETE', `/api/hope-snippets/${id}`);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hope-snippets/random"] });
       toast({
         title: "Success",
         description: "Hope snippet deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/hope-snippets/random'] });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to delete hope snippet",
         variant: "destructive",
       });
+    },
+  });
+
+  // Fetch a random snippet
+  const queryKey = selectedCategory 
+    ? ["/api/hope-snippets/random", selectedCategory] 
+    : ["/api/hope-snippets/random"];
+
+  const { 
+    data: randomSnippet, 
+    isLoading: isRandomLoading, 
+    refetch: refetchRandom
+  } = useQuery({
+    queryKey,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const url = selectedCategory
+        ? `/api/hope-snippets/random?category=${encodeURIComponent(selectedCategory)}`
+        : '/api/hope-snippets/random';
+      
+      const response = await apiRequest('GET', url);
+      return response.json();
     }
   });
 
   return {
     snippets,
-    randomSnippet,
     isLoading,
-    isRandomLoading,
-    isError,
     error,
     refetch,
+    createSnippet,
+    updateSnippet,
+    deleteSnippet,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    randomSnippet,
+    isRandomLoading,
     refetchRandom,
-    createSnippet: createSnippetMutation.mutate,
-    updateSnippet: updateSnippetMutation.mutate,
-    deleteSnippet: deleteSnippetMutation.mutate,
     selectedCategory,
-    setSelectedCategory,
-    isCreating: createSnippetMutation.isPending,
-    isUpdating: updateSnippetMutation.isPending,
-    isDeleting: deleteSnippetMutation.isPending
+    setSelectedCategory
   };
 }
