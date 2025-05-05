@@ -1,10 +1,13 @@
 import { 
   users, documents, messages, researchItems, 
   savedTrials, treatments, vectorEmbeddings, alternativeTreatments,
+  hopeSnippets, planItems, journalLogs, dietLogs,
   User, InsertUser, UpsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
   SavedTrial, InsertSavedTrial, Document, InsertDocument,
-  VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment
+  VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment,
+  HopeSnippet, InsertHopeSnippet, PlanItem, InsertPlanItem,
+  JournalLog, InsertJournalLog, DietLog, InsertDietLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -296,5 +299,173 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedTreatment;
+  }
+
+  // Hope snippet methods
+  async getHopeSnippets(): Promise<HopeSnippet[]> {
+    return db
+      .select()
+      .from(hopeSnippets)
+      .where(eq(hopeSnippets.isActive, true))
+      .orderBy(hopeSnippets.createdAt, { direction: 'desc' });
+  }
+
+  async getRandomHopeSnippet(category?: string): Promise<HopeSnippet | undefined> {
+    const query = db
+      .select()
+      .from(hopeSnippets)
+      .where(eq(hopeSnippets.isActive, true));
+      
+    if (category) {
+      query.where(eq(hopeSnippets.category, category));
+    }
+      
+    const snippets = await query;
+    
+    if (snippets.length === 0) {
+      return undefined;
+    }
+    
+    // Get a random snippet
+    const randomIndex = Math.floor(Math.random() * snippets.length);
+    return snippets[randomIndex];
+  }
+  
+  async getHopeSnippetById(id: number): Promise<HopeSnippet | undefined> {
+    const [snippet] = await db
+      .select()
+      .from(hopeSnippets)
+      .where(eq(hopeSnippets.id, id));
+    return snippet;
+  }
+  
+  async createHopeSnippet(insertSnippet: InsertHopeSnippet): Promise<HopeSnippet> {
+    const [snippet] = await db
+      .insert(hopeSnippets)
+      .values(insertSnippet)
+      .returning();
+    return snippet;
+  }
+  
+  async updateHopeSnippet(id: number, snippetData: Partial<HopeSnippet>): Promise<HopeSnippet> {
+    const [updatedSnippet] = await db
+      .update(hopeSnippets)
+      .set(snippetData)
+      .where(eq(hopeSnippets.id, id))
+      .returning();
+    
+    if (!updatedSnippet) {
+      throw new Error(`Hope snippet with ID ${id} not found`);
+    }
+    
+    return updatedSnippet;
+  }
+  
+  async deleteHopeSnippet(id: number): Promise<void> {
+    const result = await db
+      .delete(hopeSnippets)
+      .where(eq(hopeSnippets.id, id));
+    
+    if (!result) {
+      throw new Error(`Hope snippet with ID ${id} not found`);
+    }
+  }
+
+  // Journal log methods
+  async getJournalLogs(userId: string): Promise<JournalLog[]> {
+    return db
+      .select()
+      .from(journalLogs)
+      .where(eq(journalLogs.userId, userId))
+      .orderBy(journalLogs.entryDate, { direction: 'desc' });
+  }
+
+  async getJournalLogById(id: number): Promise<JournalLog | undefined> {
+    const [log] = await db
+      .select()
+      .from(journalLogs)
+      .where(eq(journalLogs.id, id));
+    return log;
+  }
+
+  async createJournalLog(insertLog: InsertJournalLog): Promise<JournalLog> {
+    const [log] = await db
+      .insert(journalLogs)
+      .values(insertLog)
+      .returning();
+    return log;
+  }
+
+  async updateJournalLog(id: number, logData: Partial<JournalLog>): Promise<JournalLog> {
+    const [updatedLog] = await db
+      .update(journalLogs)
+      .set(logData)
+      .where(eq(journalLogs.id, id))
+      .returning();
+    
+    if (!updatedLog) {
+      throw new Error(`Journal log with ID ${id} not found`);
+    }
+    
+    return updatedLog;
+  }
+
+  async deleteJournalLog(id: number): Promise<void> {
+    const result = await db
+      .delete(journalLogs)
+      .where(eq(journalLogs.id, id));
+    
+    if (!result) {
+      throw new Error(`Journal log with ID ${id} not found`);
+    }
+  }
+
+  // Diet log methods
+  async getDietLogs(userId: string): Promise<DietLog[]> {
+    return db
+      .select()
+      .from(dietLogs)
+      .where(eq(dietLogs.userId, userId))
+      .orderBy(dietLogs.mealDate, { direction: 'desc' });
+  }
+
+  async getDietLogById(id: number): Promise<DietLog | undefined> {
+    const [log] = await db
+      .select()
+      .from(dietLogs)
+      .where(eq(dietLogs.id, id));
+    return log;
+  }
+
+  async createDietLog(insertLog: InsertDietLog): Promise<DietLog> {
+    const [log] = await db
+      .insert(dietLogs)
+      .values(insertLog)
+      .returning();
+    return log;
+  }
+
+  async updateDietLog(id: number, logData: Partial<DietLog>): Promise<DietLog> {
+    const [updatedLog] = await db
+      .update(dietLogs)
+      .set(logData)
+      .where(eq(dietLogs.id, id))
+      .returning();
+    
+    if (!updatedLog) {
+      throw new Error(`Diet log with ID ${id} not found`);
+    }
+    
+    return updatedLog;
+  }
+
+  async deleteDietLog(id: number): Promise<void> {
+    const result = await db
+      .delete(dietLogs)
+      .where(eq(dietLogs.id, id));
+    
+    if (!result) {
+      throw new Error(`Diet log with ID ${id} not found`);
+    }
   }
 }
