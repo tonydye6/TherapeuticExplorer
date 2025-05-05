@@ -7,7 +7,8 @@
  * responses to user questions.
  */
 
-import { DiscoveryEngineServiceClient } from '@google-cloud/discoveryengine';
+// Import necessary Google Cloud libraries for Vertex AI Search
+import { DiscoveryEngineServiceClient } from '@google-cloud/discoveryengine/build/src/v1';
 import { Source } from '@shared/schema';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -116,7 +117,7 @@ class VertexSearchService {
           
           // Process citations if available
           if (response.summary.citationMetadata && response.summary.citationMetadata.citations) {
-            response.summary.citationMetadata.citations.forEach(citation => {
+            response.summary.citationMetadata.citations.forEach((citation: any) => {
               if (citation.startIndex && citation.endIndex) {
                 const citedText = summary.substring(citation.startIndex, citation.endIndex);
                 
@@ -135,7 +136,7 @@ class VertexSearchService {
           // If no summary, use snippets from results
           const snippets: string[] = [];
           
-          response.results.forEach(result => {
+          response.results.forEach((result: any) => {
             if (result.document && result.document.derivedStructData) {
               try {
                 const documentData = JSON.parse(result.document.derivedStructData.toString());
@@ -164,7 +165,7 @@ class VertexSearchService {
             
             // Add any snippets from the result
             if (result.snippets) {
-              result.snippets.forEach(snippet => {
+              result.snippets.forEach((snippet: any) => {
                 if (snippet.snippet) {
                   snippets.push(snippet.snippet);
                 }

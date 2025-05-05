@@ -350,6 +350,7 @@ export enum QueryType {
   RESEARCH = "research",
   MEDICAL_TERM = "medical_term",
   GENERAL = "general",
+  DOCUMENT_QUESTION = "document_question",
 }
 
 // Source interface for citation and attribution
