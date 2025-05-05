@@ -484,6 +484,84 @@ export class MemStorage implements IStorage {
     this.alternativeTreatments.set(id, updatedTreatment);
     return updatedTreatment;
   }
+
+  // Plan item methods
+  async getPlanItems(userId: string): Promise<PlanItem[]> {
+    return Array.from(this.planItems.values())
+      .filter(planItem => planItem.userId === userId)
+      .sort((a, b) => {
+        // Sort by start date (ascending)
+        if (a.startDate && b.startDate) {
+          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        }
+        return 0;
+      });
+  }
+
+  async getPlanItemById(id: number): Promise<PlanItem | undefined> {
+    return this.planItems.get(id);
+  }
+
+  async createPlanItem(insertPlanItem: InsertPlanItem): Promise<PlanItem> {
+    const id = this.planItemIdCounter++;
+    const createdAt = new Date();
+    const updatedAt = new Date();
+    
+    const planItem: PlanItem = {
+      ...insertPlanItem,
+      id,
+      createdAt,
+      updatedAt
+    };
+    
+    this.planItems.set(id, planItem);
+    return planItem;
+  }
+
+  async updatePlanItem(id: number, planItemData: Partial<PlanItem>): Promise<PlanItem> {
+    const planItem = await this.getPlanItemById(id);
+    
+    if (!planItem) {
+      throw new Error(`Plan item with ID ${id} not found`);
+    }
+    
+    const updatedPlanItem = { 
+      ...planItem, 
+      ...planItemData,
+      updatedAt: new Date() 
+    };
+    
+    this.planItems.set(id, updatedPlanItem);
+    return updatedPlanItem;
+  }
+
+  async deletePlanItem(id: number): Promise<void> {
+    const planItem = await this.getPlanItemById(id);
+    
+    if (!planItem) {
+      throw new Error(`Plan item with ID ${id} not found`);
+    }
+    
+    this.planItems.delete(id);
+  }
+
+  async completePlanItem(id: number, isCompleted: boolean): Promise<PlanItem> {
+    const planItem = await this.getPlanItemById(id);
+    
+    if (!planItem) {
+      throw new Error(`Plan item with ID ${id} not found`);
+    }
+    
+    const updatedPlanItem = { 
+      ...planItem, 
+      isCompleted,
+      completedDate: isCompleted ? new Date() : null,
+      updatedAt: new Date() 
+    };
+    
+    this.planItems.set(id, updatedPlanItem);
+    return updatedPlanItem;
+  }
 }
 
 // Import the storage implementations
@@ -510,80 +588,4 @@ if (useFirestore) {
 
 export const storage = selectedStorage;
 
-// Plan item implementation methods for MemStorage class
-MemStorage.prototype.getPlanItems = async function(userId: string): Promise<PlanItem[]> {
-  return Array.from(this.planItems.values())
-    .filter(planItem => planItem.userId === userId)
-    .sort((a, b) => {
-      // Sort by start date (ascending)
-      if (a.startDate && b.startDate) {
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-      }
-      return 0;
-    });
-};
 
-MemStorage.prototype.getPlanItemById = async function(id: number): Promise<PlanItem | undefined> {
-  return this.planItems.get(id);
-};
-
-MemStorage.prototype.createPlanItem = async function(insertPlanItem: InsertPlanItem): Promise<PlanItem> {
-  const id = this.planItemIdCounter++;
-  const createdAt = new Date();
-  const updatedAt = new Date();
-  
-  const planItem: PlanItem = {
-    ...insertPlanItem,
-    id,
-    createdAt,
-    updatedAt
-  };
-  
-  this.planItems.set(id, planItem);
-  return planItem;
-};
-
-MemStorage.prototype.updatePlanItem = async function(id: number, planItemData: Partial<PlanItem>): Promise<PlanItem> {
-  const planItem = await this.getPlanItemById(id);
-  
-  if (!planItem) {
-    throw new Error(`Plan item with ID ${id} not found`);
-  }
-  
-  const updatedPlanItem = { 
-    ...planItem, 
-    ...planItemData,
-    updatedAt: new Date() 
-  };
-  
-  this.planItems.set(id, updatedPlanItem);
-  return updatedPlanItem;
-};
-
-MemStorage.prototype.deletePlanItem = async function(id: number): Promise<void> {
-  const planItem = await this.getPlanItemById(id);
-  
-  if (!planItem) {
-    throw new Error(`Plan item with ID ${id} not found`);
-  }
-  
-  this.planItems.delete(id);
-};
-
-MemStorage.prototype.completePlanItem = async function(id: number, isCompleted: boolean): Promise<PlanItem> {
-  const planItem = await this.getPlanItemById(id);
-  
-  if (!planItem) {
-    throw new Error(`Plan item with ID ${id} not found`);
-  }
-  
-  const updatedPlanItem = { 
-    ...planItem, 
-    isCompleted,
-    completedDate: isCompleted ? new Date() : null,
-    updatedAt: new Date() 
-  };
-  
-  this.planItems.set(id, updatedPlanItem);
-  return updatedPlanItem;
-};
