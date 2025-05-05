@@ -3,9 +3,9 @@ import { Document } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-// Helper function to handle FormData POST requests
-async function postFormData(url: string, formData: FormData) {
-  const response = await fetch(url, {
+// Helper function to handle FormData upload
+async function uploadFormData(formData: FormData) {
+  const response = await fetch('/api/documents/upload', {
     method: 'POST',
     body: formData,
     credentials: 'include'
@@ -35,7 +35,7 @@ export function useDocuments() {
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await postFormData("/api/documents/upload", formData);
+      const response = await uploadFormData(formData);
       return response.json();
     },
     onSuccess: () => {
@@ -57,7 +57,9 @@ export function useDocuments() {
   // Delete document mutation
   const deleteMutation = useMutation({
     mutationFn: async (documentId: number) => {
-      await apiRequest("DELETE", `/api/documents/${documentId}`);
+      await apiRequest(`/api/documents/${documentId}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -78,8 +80,10 @@ export function useDocuments() {
   // Extract text from document mutation
   const extractTextMutation = useMutation({
     mutationFn: async (documentId: number) => {
-      const response = await apiRequest("POST", `/api/documents/${documentId}/extract-text`);
-      return response.json();
+      const response = await apiRequest(`/api/documents/${documentId}/extract-text`, {
+        method: 'POST'
+      });
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -100,8 +104,8 @@ export function useDocuments() {
   // Search documents
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
-      const response = await apiRequest("GET", `/api/documents/search?q=${encodeURIComponent(query)}`);
-      return response.json();
+      const response = await apiRequest(`/api/documents/search?q=${encodeURIComponent(query)}`);
+      return response;
     },
     onError: (error: Error) => {
       toast({
@@ -115,8 +119,14 @@ export function useDocuments() {
   // Ask question about document
   const askQuestionMutation = useMutation({
     mutationFn: async ({ documentId, question }: { documentId: number; question: string }) => {
-      const response = await apiRequest("POST", `/api/documents/${documentId}/ask`, { question });
-      return response.json();
+      const response = await apiRequest(`/api/documents/${documentId}/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ question })
+      });
+      return response;
     },
     onSuccess: (data) => {
       toast({
