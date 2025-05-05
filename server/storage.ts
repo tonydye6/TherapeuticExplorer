@@ -7,6 +7,7 @@ import {
   documents,
   vectorEmbeddings,
   alternativeTreatments,
+  planItems,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -23,7 +24,9 @@ import {
   type VectorEmbedding,
   type InsertVectorEmbedding,
   type AlternativeTreatment,
-  type InsertAlternativeTreatment
+  type InsertAlternativeTreatment,
+  type PlanItem,
+  type InsertPlanItem
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities
@@ -74,6 +77,14 @@ export interface IStorage {
   createVectorEmbedding(embedding: InsertVectorEmbedding): Promise<VectorEmbedding>;
   getEmbeddingsForResearchItem(researchItemId: number): Promise<VectorEmbedding[]>;
   getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]>;
+  
+  // Plan item methods
+  getPlanItems(userId: string): Promise<PlanItem[]>;
+  getPlanItemById(id: number): Promise<PlanItem | undefined>;
+  createPlanItem(item: InsertPlanItem): Promise<PlanItem>;
+  updatePlanItem(id: number, item: Partial<PlanItem>): Promise<PlanItem>;
+  deletePlanItem(id: number): Promise<void>;
+  completePlanItem(id: number, isCompleted: boolean): Promise<PlanItem>;
 }
 
 export class MemStorage implements IStorage {
@@ -84,6 +95,7 @@ export class MemStorage implements IStorage {
   private savedTrials: Map<number, SavedTrial>;
   private documents: Map<number, Document>;
   private alternativeTreatments: Map<number, AlternativeTreatment>;
+  private planItems: Map<number, PlanItem>;
   
   private userIdCounter: number;
   private messageIdCounter: number;
@@ -92,6 +104,7 @@ export class MemStorage implements IStorage {
   private savedTrialIdCounter: number;
   private documentIdCounter: number;
   private alternativeTreatmentIdCounter: number;
+  private planItemIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -100,6 +113,7 @@ export class MemStorage implements IStorage {
     this.treatments = new Map();
     this.savedTrials = new Map();
     this.documents = new Map();
+    this.planItems = new Map();
     this.alternativeTreatments = new Map();
     
     this.userIdCounter = 1;
@@ -109,6 +123,7 @@ export class MemStorage implements IStorage {
     this.savedTrialIdCounter = 1;
     this.documentIdCounter = 1;
     this.alternativeTreatmentIdCounter = 1;
+    this.planItemIdCounter = 1;
     
     // Initialize with a sample user
     this.createUser({
@@ -494,3 +509,81 @@ if (useFirestore) {
 }
 
 export const storage = selectedStorage;
+
+// Plan item implementation methods for MemStorage class
+MemStorage.prototype.getPlanItems = async function(userId: string): Promise<PlanItem[]> {
+  return Array.from(this.planItems.values())
+    .filter(planItem => planItem.userId === userId)
+    .sort((a, b) => {
+      // Sort by start date (ascending)
+      if (a.startDate && b.startDate) {
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      }
+      return 0;
+    });
+};
+
+MemStorage.prototype.getPlanItemById = async function(id: number): Promise<PlanItem | undefined> {
+  return this.planItems.get(id);
+};
+
+MemStorage.prototype.createPlanItem = async function(insertPlanItem: InsertPlanItem): Promise<PlanItem> {
+  const id = this.planItemIdCounter++;
+  const createdAt = new Date();
+  const updatedAt = new Date();
+  
+  const planItem: PlanItem = {
+    ...insertPlanItem,
+    id,
+    createdAt,
+    updatedAt
+  };
+  
+  this.planItems.set(id, planItem);
+  return planItem;
+};
+
+MemStorage.prototype.updatePlanItem = async function(id: number, planItemData: Partial<PlanItem>): Promise<PlanItem> {
+  const planItem = await this.getPlanItemById(id);
+  
+  if (!planItem) {
+    throw new Error(`Plan item with ID ${id} not found`);
+  }
+  
+  const updatedPlanItem = { 
+    ...planItem, 
+    ...planItemData,
+    updatedAt: new Date() 
+  };
+  
+  this.planItems.set(id, updatedPlanItem);
+  return updatedPlanItem;
+};
+
+MemStorage.prototype.deletePlanItem = async function(id: number): Promise<void> {
+  const planItem = await this.getPlanItemById(id);
+  
+  if (!planItem) {
+    throw new Error(`Plan item with ID ${id} not found`);
+  }
+  
+  this.planItems.delete(id);
+};
+
+MemStorage.prototype.completePlanItem = async function(id: number, isCompleted: boolean): Promise<PlanItem> {
+  const planItem = await this.getPlanItemById(id);
+  
+  if (!planItem) {
+    throw new Error(`Plan item with ID ${id} not found`);
+  }
+  
+  const updatedPlanItem = { 
+    ...planItem, 
+    isCompleted,
+    completedDate: isCompleted ? new Date() : null,
+    updatedAt: new Date() 
+  };
+  
+  this.planItems.set(id, updatedPlanItem);
+  return updatedPlanItem;
+};

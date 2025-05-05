@@ -188,6 +188,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   treatments: many(treatments),
   savedTrials: many(savedTrials),
   documents: many(documents),
+  planItems: many(planItems),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -276,6 +277,50 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
 export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingSchema>;
 
+// Plan Items
+export const planItems = pgTable("plan_items", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // 'medication', 'appointment', 'exercise', 'nutrition', 'other'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  isRecurring: boolean("is_recurring").default(false).notNull(),
+  recurrencePattern: jsonb("recurrence_pattern"), // { frequency: 'daily'|'weekly'|'monthly', interval: number, daysOfWeek: number[] }
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedDate: timestamp("completed_date"),
+  reminder: boolean("reminder").default(false).notNull(),
+  reminderTime: timestamp("reminder_time"),
+  priority: text("priority").default("medium"), // 'high', 'medium', 'low'
+  notes: text("notes"),
+  tags: jsonb("tags"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPlanItemSchema = createInsertSchema(planItems).pick({
+  userId: true,
+  title: true,
+  description: true,
+  category: true,
+  startDate: true,
+  endDate: true,
+  isRecurring: true,
+  recurrencePattern: true,
+  isCompleted: true,
+  completedDate: true,
+  reminder: true,
+  reminderTime: true,
+  priority: true,
+  notes: true,
+  tags: true,
+});
+
+// Define types for plan items
+export type PlanItem = typeof planItems.$inferSelect;
+export type InsertPlanItem = z.infer<typeof insertPlanItemSchema>;
+
 // Non-traditional treatments
 export const alternativeTreatments = pgTable("alternative_treatments", {
   id: serial("id").primaryKey(),
@@ -329,6 +374,14 @@ export const insertAlternativeTreatmentSchema = createInsertSchema(alternativeTr
 export const alternativeTreatmentsRelations = relations(alternativeTreatments, ({ one }) => ({
   user: one(users, {
     fields: [alternativeTreatments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Define relations for plan items
+export const planItemsRelations = relations(planItems, ({ one }) => ({
+  user: one(users, {
+    fields: [planItems.userId],
     references: [users.id],
   }),
 }));

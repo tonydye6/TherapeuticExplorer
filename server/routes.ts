@@ -21,7 +21,7 @@ import { documentAnalysisService } from "./services/document-analysis-service";
 import { multimodalService } from "./services/multimodal-service";
 import { z } from "zod";
 import multer from "multer";
-import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
+import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, QueryType } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -31,6 +31,167 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // API Routes for Plan Items
+  app.get("/api/plan-items", async (req, res) => {
+    try {
+      const DEFAULT_USER_ID = "1";
+      const planItems = await storage.getPlanItems(DEFAULT_USER_ID);
+      res.json(planItems);
+    } catch (error) {
+      console.error("Error fetching plan items:", error);
+      res.status(500).json({ message: "Failed to fetch plan items" });
+    }
+  });
+  
+  app.get("/api/plan-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plan item ID" });
+      }
+      
+      const planItem = await storage.getPlanItemById(id);
+      
+      if (!planItem) {
+        return res.status(404).json({ message: "Plan item not found" });
+      }
+      
+      res.json(planItem);
+    } catch (error) {
+      console.error("Error fetching plan item:", error);
+      res.status(500).json({ message: "Failed to fetch plan item" });
+    }
+  });
+  
+  app.post("/api/plan-items", async (req, res) => {
+    try {
+      const DEFAULT_USER_ID = "1";
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      // Handle date conversion for startDate and endDate if they exist as strings
+      if (requestData.startDate && typeof requestData.startDate === 'string') {
+        requestData.startDate = new Date(requestData.startDate);
+      }
+      
+      if (requestData.endDate && typeof requestData.endDate === 'string') {
+        requestData.endDate = new Date(requestData.endDate);
+      }
+      
+      if (requestData.reminderTime && typeof requestData.reminderTime === 'string') {
+        requestData.reminderTime = new Date(requestData.reminderTime);
+      }
+      
+      const planItemData = insertPlanItemSchema.parse({
+        ...requestData,
+        userId: DEFAULT_USER_ID
+      });
+      
+      const planItem = await storage.createPlanItem(planItemData);
+      res.status(201).json(planItem);
+    } catch (error) {
+      console.error("Error creating plan item:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid plan item data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to create plan item" });
+    }
+  });
+  
+  app.put("/api/plan-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plan item ID" });
+      }
+      
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      // Handle date conversion for startDate and endDate if they exist as strings
+      if (requestData.startDate && typeof requestData.startDate === 'string') {
+        requestData.startDate = new Date(requestData.startDate);
+      }
+      
+      if (requestData.endDate && typeof requestData.endDate === 'string') {
+        requestData.endDate = new Date(requestData.endDate);
+      }
+      
+      if (requestData.reminderTime && typeof requestData.reminderTime === 'string') {
+        requestData.reminderTime = new Date(requestData.reminderTime);
+      }
+      
+      const planItem = await storage.updatePlanItem(id, requestData);
+      res.json(planItem);
+    } catch (error) {
+      console.error("Error updating plan item:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid plan item data", 
+          errors: error.errors 
+        });
+      }
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to update plan item" });
+    }
+  });
+  
+  app.delete("/api/plan-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plan item ID" });
+      }
+      
+      await storage.deletePlanItem(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting plan item:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to delete plan item" });
+    }
+  });
+  
+  app.post("/api/plan-items/:id/complete", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plan item ID" });
+      }
+      
+      const { isCompleted = true } = req.body;
+      
+      const planItem = await storage.completePlanItem(id, isCompleted);
+      res.json(planItem);
+    } catch (error) {
+      console.error("Error completing plan item:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to complete plan item" });
+    }
+  });
+
   // Set default user ID since we're removing auth
   const DEFAULT_USER_ID = "1"; // Using a string since user IDs are strings in our schema
 
