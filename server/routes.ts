@@ -15,6 +15,7 @@ import { sourceAttributionService } from "./services/sourceAttribution";
 import { interactionService } from "./services/interaction-service";
 import { emotionalSupportService } from "./services/emotional-support-service";
 import { nutritionService } from "./services/nutrition-service";
+import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -1196,6 +1197,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error providing recipe recommendation:", error);
       res.status(500).json({
         message: "Failed to provide recipe recommendation",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Creative Exploration Sandbox Routes
+  
+  // Generate creative brainstorming ideas
+  app.post("/api/sandbox/creative-ideas", async (req, res) => {
+    try {
+      const { query, context, images, existingIdeas, preferredModel } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
+      
+      const ideasResponse = await creativeSandboxService.generateCreativeIdeas({
+        userId: String(DEFAULT_USER_ID),
+        query,
+        context,
+        images,
+        existingIdeas,
+        preferredModel
+      });
+      
+      res.json(ideasResponse);
+    } catch (error) {
+      console.error("Error generating creative ideas:", error);
+      res.status(500).json({
+        message: "Failed to generate creative ideas",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Generate doctor discussion brief
+  app.post("/api/sandbox/doctor-brief", async (req, res) => {
+    try {
+      const { explorationType, selectedIdeas, patientNotes, questions } = req.body;
+      
+      if (!explorationType || !selectedIdeas || !Array.isArray(selectedIdeas) || selectedIdeas.length === 0) {
+        return res.status(400).json({ 
+          message: "Exploration type and at least one selected idea are required" 
+        });
+      }
+      
+      const briefResponse = await creativeSandboxService.generateDoctorBrief({
+        userId: String(DEFAULT_USER_ID),
+        explorationType,
+        selectedIdeas,
+        patientNotes,
+        questions
+      });
+      
+      res.json(briefResponse);
+    } catch (error) {
+      console.error("Error generating doctor brief:", error);
+      res.status(500).json({
+        message: "Failed to generate doctor brief",
         error: error instanceof Error ? error.message : String(error)
       });
     }
