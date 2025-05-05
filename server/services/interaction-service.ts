@@ -145,7 +145,7 @@ export async function analyzeInteractions(
     `;
     
     // Use aiRouter to process the prompt and get the response
-    const queryType = QueryType.TREATMENT; // Using TREATMENT type as it's most relevant
+    const queryType = QueryType.INTERACTION; // Using INTERACTION type specifically designed for interactions
     
     // Determine which model to use - prefer Claude for medical analysis if no preference specified
     const preferredModel = options.preferredModel || ModelType.CLAUDE;
@@ -224,8 +224,8 @@ export async function analyzeSpecificInteraction(
       Consider the cancer treatment context in your analysis.
     `;
     
-    // Use aiRouter to process the prompt
-    const response = await aiRouter.processQuery(prompt, preferredModel || ModelType.CLAUDE, userId);
+    // Use aiRouter to process the prompt with the INTERACTION query type
+    const response = await aiRouter.processQuery(prompt, preferredModel || ModelType.CLAUDE, userId, { queryType: QueryType.INTERACTION });
     
     // Parse the response
     try {

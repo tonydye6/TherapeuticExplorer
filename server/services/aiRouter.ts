@@ -27,7 +27,8 @@ const modelConfig = {
     [QueryType.CLINICAL_TRIAL]: ModelType.GPT,
     [QueryType.GENERAL]: ModelType.GEMINI,
     [QueryType.DOCUMENT_QUESTION]: ModelType.GPT, // Use GPT for document-specific questions
-    [QueryType.ALTERNATIVE_TREATMENT]: ModelType.CLAUDE // Use Claude for alternative treatment questions
+    [QueryType.ALTERNATIVE_TREATMENT]: ModelType.CLAUDE, // Use Claude for alternative treatment questions
+    [QueryType.INTERACTION]: ModelType.CLAUDE // Use Claude for interaction analysis due to its medical reasoning
   },
   
   // Fallback models if primary is unavailable
@@ -197,6 +198,21 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
     return QueryType.ALTERNATIVE_TREATMENT;
   }
   
+  // Check for interaction queries
+  if (lowerQuery.includes('interaction') ||
+      lowerQuery.includes('side effect') ||
+      lowerQuery.includes('drug interaction') ||
+      lowerQuery.includes('contraindication') ||
+      lowerQuery.includes('conflict') ||
+      lowerQuery.includes('safe to take') ||
+      lowerQuery.includes('together with') ||
+      lowerQuery.includes('mixed with') ||
+      lowerQuery.includes('combining') ||
+      lowerQuery.includes('affects') ||
+      lowerQuery.includes('react with')) {
+    return QueryType.INTERACTION;
+  }
+  
   if (lowerQuery.includes('what does') || 
       lowerQuery.includes('define') || 
       lowerQuery.includes('meaning of') || 
@@ -263,6 +279,21 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
       lowerQuery.includes('meditation') ||
       lowerQuery.includes('yoga')) {
     return QueryType.ALTERNATIVE_TREATMENT;
+  }
+  
+  // Check for interaction queries
+  if (lowerQuery.includes('interaction') ||
+      lowerQuery.includes('side effect') ||
+      lowerQuery.includes('drug interaction') ||
+      lowerQuery.includes('contraindication') ||
+      lowerQuery.includes('conflict') ||
+      lowerQuery.includes('safe to take') ||
+      lowerQuery.includes('together with') ||
+      lowerQuery.includes('mixed with') ||
+      lowerQuery.includes('combining') ||
+      lowerQuery.includes('affects') ||
+      lowerQuery.includes('react with')) {
+    return QueryType.INTERACTION;
   }
   
   if (lowerQuery.includes('what does') || 
@@ -353,6 +384,17 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
       }
       break;
       
+    case QueryType.INTERACTION:
+      // For interaction queries, fetch both treatments and alternative treatments
+      try {
+        // Fetch both conventional and alternative treatments for interaction analysis
+        context.treatments = await storage.getTreatments(userId);
+        context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
+      } catch (error) {
+        console.warn('Error fetching treatments for interaction analysis:', error);
+      }
+      break;
+      
     // Add more cases for other query types as needed
   }
   
@@ -386,7 +428,8 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   
   // Add treatment information if available and relevant
   if (context.treatments && context.treatments.length > 0 && 
-      (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL || queryType === QueryType.ALTERNATIVE_TREATMENT)) {
+      (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL || 
+       queryType === QueryType.ALTERNATIVE_TREATMENT || queryType === QueryType.INTERACTION)) {
     contextStr += "\nCurrent Treatments:\n";
     context.treatments.forEach((treatment, index) => {
       contextStr += `- ${treatment.name} (${treatment.type})\n`;
@@ -424,7 +467,8 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   }
   
   // Add alternative treatment information if available and relevant
-  if (context.alternativeTreatments && context.alternativeTreatments.length > 0 && queryType === QueryType.ALTERNATIVE_TREATMENT) {
+  if (context.alternativeTreatments && context.alternativeTreatments.length > 0 && 
+      (queryType === QueryType.ALTERNATIVE_TREATMENT || queryType === QueryType.INTERACTION)) {
     contextStr += "\nAlternative Treatments:\n";
     context.alternativeTreatments.forEach((treatment, index) => {
       contextStr += `- ${treatment.name} (${treatment.category})\n`;
