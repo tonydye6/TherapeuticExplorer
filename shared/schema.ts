@@ -189,6 +189,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   savedTrials: many(savedTrials),
   documents: many(documents),
   planItems: many(planItems),
+  journalLogs: many(journalLogs),
+  dietLogs: many(dietLogs),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -428,3 +430,68 @@ export interface Source {
     chicago?: string;   // Chicago format
   };
 }
+
+// Journal Log Schema
+export const journalLogs = pgTable("journal_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  dateCreated: timestamp("date_created").defaultNow().notNull(),
+  entryDate: timestamp("entry_date").notNull(),
+  content: text("content").notNull(),
+  mood: text("mood"),
+  painLevel: integer("pain_level"),
+  energyLevel: integer("energy_level"),
+  sleepQuality: integer("sleep_quality"),
+  symptoms: jsonb("symptoms").$type<string[]>(),
+  tags: jsonb("tags").$type<string[]>(),
+  locationData: jsonb("location_data"),
+  images: jsonb("images").$type<string[]>(),
+});
+
+// Create Zod Schema for Journal Logs
+export const insertJournalLogSchema = createInsertSchema(journalLogs).omit({
+  id: true,
+  dateCreated: true,
+});
+export type JournalLog = typeof journalLogs.$inferSelect;
+export type InsertJournalLog = typeof insertJournalLogSchema.type;
+
+// Diet Log Schema
+export const dietLogs = pgTable("diet_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  dateCreated: timestamp("date_created").defaultNow().notNull(),
+  mealDate: timestamp("meal_date").notNull(),
+  mealType: text("meal_type").notNull(), // breakfast, lunch, dinner, snack
+  foods: jsonb("foods").$type<string[]>(),
+  beverages: jsonb("beverages").$type<string[]>(),
+  calories: integer("calories"),
+  supplements: jsonb("supplements").$type<string[]>(),
+  reactions: jsonb("reactions"),
+  notes: text("notes"),
+  images: jsonb("images").$type<string[]>(),
+});
+
+// Create Zod Schema for Diet Logs
+export const insertDietLogSchema = createInsertSchema(dietLogs).omit({
+  id: true,
+  dateCreated: true,
+});
+export type DietLog = typeof dietLogs.$inferSelect;
+export type InsertDietLog = typeof insertDietLogSchema.type;
+
+// Journal logs relations
+export const journalLogsRelations = relations(journalLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [journalLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+// Diet logs relations
+export const dietLogsRelations = relations(dietLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [dietLogs.userId],
+    references: [users.id],
+  }),
+}));
