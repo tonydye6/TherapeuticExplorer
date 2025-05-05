@@ -484,6 +484,7 @@ export type InsertDietLog = typeof insertDietLogSchema.type;
 // Hope Snippets Schema
 export const hopeSnippets = pgTable("hope_snippets", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   content: text("content").notNull(),
   category: text("category").notNull(), // 'quote', 'story', 'affirmation', etc.
@@ -514,6 +515,14 @@ export const journalLogsRelations = relations(journalLogs, ({ one }) => ({
 export const dietLogsRelations = relations(dietLogs, ({ one }) => ({
   user: one(users, {
     fields: [dietLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+// Hope snippets relations
+export const hopeSnippetsRelations = relations(hopeSnippets, ({ one }) => ({
+  user: one(users, {
+    fields: [hopeSnippets.userId],
     references: [users.id],
   }),
 }));
