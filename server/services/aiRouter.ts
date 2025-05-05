@@ -574,6 +574,51 @@ export const aiRouter = {
       return processUserMessage(content, userId, context, preferredModel);
     }
   },
+  
+  /**
+   * Process a text query that doesn't require as much context as a user message
+   * Used primarily for document analysis and other specialized queries
+   */
+  processTextQuery: async (content: string, preferredModel?: ModelType, userId: string = "1"): Promise<{
+    content: string;
+    modelUsed: string;
+    structuredOutput?: any;
+  }> => {
+    try {
+      // Create a simplified query - using GENERAL type since this is a direct prompt
+      const query: AIQuery = {
+        content,
+        type: QueryType.GENERAL,
+        userPreferredModel: preferredModel,
+        userId
+      };
+      
+      // Route to appropriate model
+      const response = await routeQuery(query);
+      
+      // Check if the response contains structured JSON
+      let structuredOutput = undefined;
+      try {
+        // Try to parse the content as JSON if it looks like JSON
+        if (response.content.trim().startsWith('{') && response.content.trim().endsWith('}')) {
+          structuredOutput = JSON.parse(response.content);
+        }
+      } catch (parseError) {
+        // If parsing fails, just proceed with the text response
+        console.warn('Failed to parse structured JSON output:', parseError);
+      }
+      
+      return {
+        content: response.content,
+        modelUsed: response.modelUsed,
+        structuredOutput
+      };
+    } catch (error) {
+      console.error('Error processing text query:', error);
+      throw error;
+    }
+  },
+  
   determineModelForQuery,
   analyzeQueryType,
   // Add the context fetching functionality for use in other parts of the application

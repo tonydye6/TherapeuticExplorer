@@ -17,6 +17,7 @@ import { emotionalSupportService } from "./services/emotional-support-service";
 import { nutritionService } from "./services/nutrition-service";
 import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { caregiverAccessService } from "./services/caregiver-access-service";
+import { documentAnalysisService } from "./services/document-analysis-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
