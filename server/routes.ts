@@ -21,7 +21,7 @@ import { documentAnalysisService } from "./services/document-analysis-service";
 import { multimodalService } from "./services/multimodal-service";
 import { z } from "zod";
 import multer from "multer";
-import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, QueryType } from "@shared/schema";
+import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, insertJournalLogSchema, insertDietLogSchema, QueryType } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -1769,6 +1769,242 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to get patients",
         error: error instanceof Error ? error.message : String(error)
       });
+    }
+  });
+
+  // Journal Log Routes
+  app.get("/api/journal-logs", async (req, res) => {
+    try {
+      const journalLogs = await storage.getJournalLogs(DEFAULT_USER_ID);
+      res.json(journalLogs);
+    } catch (error) {
+      console.error("Error fetching journal logs:", error);
+      res.status(500).json({ message: "Failed to fetch journal logs" });
+    }
+  });
+
+  app.get("/api/journal-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid journal log ID" });
+      }
+      
+      const journalLog = await storage.getJournalLogById(id);
+      
+      if (!journalLog) {
+        return res.status(404).json({ message: "Journal log not found" });
+      }
+      
+      res.json(journalLog);
+    } catch (error) {
+      console.error("Error fetching journal log:", error);
+      res.status(500).json({ message: "Failed to fetch journal log" });
+    }
+  });
+
+  app.post("/api/journal-logs", async (req, res) => {
+    try {
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      if (requestData.entryDate && typeof requestData.entryDate === 'string') {
+        requestData.entryDate = new Date(requestData.entryDate);
+      }
+      
+      const journalLogData = insertJournalLogSchema.parse({
+        ...requestData,
+        userId: DEFAULT_USER_ID
+      });
+      
+      const journalLog = await storage.createJournalLog(journalLogData);
+      res.status(201).json(journalLog);
+    } catch (error) {
+      console.error("Error creating journal log:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid journal log data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to create journal log" });
+    }
+  });
+
+  app.put("/api/journal-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid journal log ID" });
+      }
+      
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      if (requestData.entryDate && typeof requestData.entryDate === 'string') {
+        requestData.entryDate = new Date(requestData.entryDate);
+      }
+      
+      const journalLog = await storage.updateJournalLog(id, requestData);
+      res.json(journalLog);
+    } catch (error) {
+      console.error("Error updating journal log:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid journal log data", 
+          errors: error.errors 
+        });
+      }
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to update journal log" });
+    }
+  });
+
+  app.delete("/api/journal-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid journal log ID" });
+      }
+      
+      await storage.deleteJournalLog(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting journal log:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to delete journal log" });
+    }
+  });
+  
+  // Diet Log Routes
+  app.get("/api/diet-logs", async (req, res) => {
+    try {
+      const dietLogs = await storage.getDietLogs(DEFAULT_USER_ID);
+      res.json(dietLogs);
+    } catch (error) {
+      console.error("Error fetching diet logs:", error);
+      res.status(500).json({ message: "Failed to fetch diet logs" });
+    }
+  });
+
+  app.get("/api/diet-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid diet log ID" });
+      }
+      
+      const dietLog = await storage.getDietLogById(id);
+      
+      if (!dietLog) {
+        return res.status(404).json({ message: "Diet log not found" });
+      }
+      
+      res.json(dietLog);
+    } catch (error) {
+      console.error("Error fetching diet log:", error);
+      res.status(500).json({ message: "Failed to fetch diet log" });
+    }
+  });
+
+  app.post("/api/diet-logs", async (req, res) => {
+    try {
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      if (requestData.mealDate && typeof requestData.mealDate === 'string') {
+        requestData.mealDate = new Date(requestData.mealDate);
+      }
+      
+      const dietLogData = insertDietLogSchema.parse({
+        ...requestData,
+        userId: DEFAULT_USER_ID
+      });
+      
+      const dietLog = await storage.createDietLog(dietLogData);
+      res.status(201).json(dietLog);
+    } catch (error) {
+      console.error("Error creating diet log:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid diet log data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to create diet log" });
+    }
+  });
+
+  app.put("/api/diet-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid diet log ID" });
+      }
+      
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      if (requestData.mealDate && typeof requestData.mealDate === 'string') {
+        requestData.mealDate = new Date(requestData.mealDate);
+      }
+      
+      const dietLog = await storage.updateDietLog(id, requestData);
+      res.json(dietLog);
+    } catch (error) {
+      console.error("Error updating diet log:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid diet log data", 
+          errors: error.errors 
+        });
+      }
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to update diet log" });
+    }
+  });
+
+  app.delete("/api/diet-logs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid diet log ID" });
+      }
+      
+      await storage.deleteDietLog(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting diet log:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to delete diet log" });
     }
   });
 

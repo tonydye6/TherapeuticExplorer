@@ -590,6 +590,102 @@ export class MemStorage implements IStorage {
     this.planItems.set(id, updatedPlanItem);
     return updatedPlanItem;
   }
+
+  // Journal log methods
+  async getJournalLogs(userId: string): Promise<JournalLog[]> {
+    return Array.from(this.journalLogs.values())
+      .filter(log => log.userId === userId)
+      .sort((a, b) => {
+        return new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime();
+      });
+  }
+  
+  async getJournalLogById(id: number): Promise<JournalLog | undefined> {
+    return this.journalLogs.get(id);
+  }
+  
+  async createJournalLog(insertLog: InsertJournalLog): Promise<JournalLog> {
+    const id = this.journalLogIdCounter++;
+    const dateCreated = new Date();
+    
+    const journalLog: JournalLog = {
+      ...insertLog,
+      id,
+      dateCreated
+    };
+    
+    this.journalLogs.set(id, journalLog);
+    return journalLog;
+  }
+  
+  async updateJournalLog(id: number, logData: Partial<JournalLog>): Promise<JournalLog> {
+    const log = await this.getJournalLogById(id);
+    
+    if (!log) {
+      throw new Error(`Journal log with ID ${id} not found`);
+    }
+    
+    const updatedLog = { ...log, ...logData };
+    this.journalLogs.set(id, updatedLog);
+    
+    return updatedLog;
+  }
+  
+  async deleteJournalLog(id: number): Promise<void> {
+    if (!this.journalLogs.has(id)) {
+      throw new Error(`Journal log with ID ${id} not found`);
+    }
+    
+    this.journalLogs.delete(id);
+  }
+  
+  // Diet log methods
+  async getDietLogs(userId: string): Promise<DietLog[]> {
+    return Array.from(this.dietLogs.values())
+      .filter(log => log.userId === userId)
+      .sort((a, b) => {
+        return new Date(b.mealDate).getTime() - new Date(a.mealDate).getTime();
+      });
+  }
+  
+  async getDietLogById(id: number): Promise<DietLog | undefined> {
+    return this.dietLogs.get(id);
+  }
+  
+  async createDietLog(insertLog: InsertDietLog): Promise<DietLog> {
+    const id = this.dietLogIdCounter++;
+    const dateCreated = new Date();
+    
+    const dietLog: DietLog = {
+      ...insertLog,
+      id,
+      dateCreated
+    };
+    
+    this.dietLogs.set(id, dietLog);
+    return dietLog;
+  }
+  
+  async updateDietLog(id: number, logData: Partial<DietLog>): Promise<DietLog> {
+    const log = await this.getDietLogById(id);
+    
+    if (!log) {
+      throw new Error(`Diet log with ID ${id} not found`);
+    }
+    
+    const updatedLog = { ...log, ...logData };
+    this.dietLogs.set(id, updatedLog);
+    
+    return updatedLog;
+  }
+  
+  async deleteDietLog(id: number): Promise<void> {
+    if (!this.dietLogs.has(id)) {
+      throw new Error(`Diet log with ID ${id} not found`);
+    }
+    
+    this.dietLogs.delete(id);
+  }
 }
 
 // Import the storage implementations
