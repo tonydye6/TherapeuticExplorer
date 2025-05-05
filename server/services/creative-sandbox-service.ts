@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ModelType } from '@shared/schema';
 import { storage } from '../storage';
 
@@ -107,8 +107,8 @@ export class CreativeSandboxService {
       // Format the user context
       const userContext = user ? `User Information:\n` +
         `Name: ${user.username}\n` +
-        `Diagnosis: ${user.profile?.diagnosis || 'Not specified'}\n` +
-        `Treatment Stage: ${user.profile?.treatmentStage || 'Not specified'}\n` : '';
+        `Diagnosis: ${user.diagnosis || 'Not specified'}\n` +
+        `Treatment Stage: ${user.diagnosisStage || 'Not specified'}\n` : '';
       
       // Format the existing ideas if provided
       const existingIdeasContext = request.existingIdeas && request.existingIdeas.length > 0 ?
@@ -117,65 +117,66 @@ export class CreativeSandboxService {
       // Format the additional context if provided
       const additionalContext = request.context ? `Additional context from user:\n${request.context}\n\n` : '';
       
-      // Prepare the content parts for the model
-      const contentParts: Content[] = [
-        { text: `You are Sophera's Creative Exploration Sandbox, a creative brainstorming assistant for cancer patients.
-        Your purpose is to help patients explore unconventional ideas and approaches that they might want to discuss with their healthcare team.
-        
-        Key guidelines:
-        - Be creative, open-minded, but responsible
-        - Generate innovative ideas that might be worth discussing with healthcare providers
-        - Never present ideas as medical advice or guaranteed treatments
-        - For each idea, explain the potential reasoning or mechanism that could make it worth exploring
-        - Include important safety considerations and precautions for each idea
-        - Suggest thoughtful questions the patient could ask their doctor about these ideas
-        - Include a clear disclaimer about the explorative nature of these ideas
-        - If scientific research exists that relates to an idea, briefly mention it
-        - Focus on quality of ideas rather than quantity
-        
-        IMPORTANT: This is a creative brainstorming exercise. Be creative while being responsible.
-        
-        ${userContext}${existingIdeasContext}${additionalContext}
-        
-        The user is exploring: ${request.query}
-        
-        Respond with JSON in the following format:
-        {
-          "summary": "Brief summary of the creative exploration",
-          "ideas": [
-            {
-              "title": "Concise name of the idea",
-              "description": "Detailed explanation of the idea",
-              "potential": "Why this might be worth discussing with healthcare providers",
-              "considerations": ["Important safety considerations", "Precautions", "Limitations"],
-              "researchPointers": ["Related research areas or studies"],
-              "scientificBasis": "Brief explanation of any scientific principles that may relate to this idea"
-            }
-          ],
-          "insightsFromImages": ["If images were provided, insights gained from them"],
-          "suggestedQuestions": ["Questions to ask healthcare provider 1", "Question 2"],
-          "disclaimer": "Clear disclaimer about the explorative nature of these ideas",
-          "modelUsed": "gemini-1.5-pro"
-        }` }
-      ];
+      // Create the prompt text
+      const promptText = `You are Sophera's Creative Exploration Sandbox, a creative brainstorming assistant for cancer patients.
+      Your purpose is to help patients explore unconventional ideas and approaches that they might want to discuss with their healthcare team.
+      
+      Key guidelines:
+      - Be creative, open-minded, but responsible
+      - Generate innovative ideas that might be worth discussing with healthcare providers
+      - Never present ideas as medical advice or guaranteed treatments
+      - For each idea, explain the potential reasoning or mechanism that could make it worth exploring
+      - Include important safety considerations and precautions for each idea
+      - Suggest thoughtful questions the patient could ask their doctor about these ideas
+      - Include a clear disclaimer about the explorative nature of these ideas
+      - If scientific research exists that relates to an idea, briefly mention it
+      - Focus on quality of ideas rather than quantity
+      
+      IMPORTANT: This is a creative brainstorming exercise. Be creative while being responsible.
+      
+      ${userContext}${existingIdeasContext}${additionalContext}
+      
+      The user is exploring: ${request.query}
+      
+      Respond with JSON in the following format:
+      {
+        "summary": "Brief summary of the creative exploration",
+        "ideas": [
+          {
+            "title": "Concise name of the idea",
+            "description": "Detailed explanation of the idea",
+            "potential": "Why this might be worth discussing with healthcare providers",
+            "considerations": ["Important safety considerations", "Precautions", "Limitations"],
+            "researchPointers": ["Related research areas or studies"],
+            "scientificBasis": "Brief explanation of any scientific principles that may relate to this idea"
+          }
+        ],
+        "insightsFromImages": ["If images were provided, insights gained from them"],
+        "suggestedQuestions": ["Questions to ask healthcare provider 1", "Question 2"],
+        "disclaimer": "Clear disclaimer about the explorative nature of these ideas",
+        "modelUsed": "gemini-1.5-pro"
+      }`;
+      
+      // Get Gemini model
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+      
+      // Create parts array for multimodal capability
+      const parts: any[] = [{ text: promptText }];
       
       // Add images if provided
       if (request.images && request.images.length > 0) {
         for (const imageData of request.images) {
-          contentParts.push({
+          parts.push({
             inlineData: {
               data: imageData,
-              mimeType: 'image/jpeg' // Assuming JPEG format, adjust as needed
+              mimeType: 'image/jpeg'
             }
           });
         }
       }
       
-      // Get Gemini model
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-      
       // Generate creative ideas
-      const result = await model.generateContent(contentParts);
+      const result = await model.generateContent(parts);
       const responseText = result.response.text();
       
       // Parse the JSON response
@@ -244,8 +245,8 @@ export class CreativeSandboxService {
       
       Patient Information:
       Name: ${user.username}
-      Diagnosis: ${user.profile?.diagnosis || 'Not specified'}
-      Treatment Stage: ${user.profile?.treatmentStage || 'Not specified'}
+      Diagnosis: ${user.diagnosis || 'Not specified'}
+      Treatment Stage: ${user.diagnosisStage || 'Not specified'}
       
       Exploration Type: ${request.explorationType}
       
@@ -307,8 +308,8 @@ export class CreativeSandboxService {
           title: "Doctor Discussion Brief",
           patientInfo: {
             name: user.username,
-            diagnosis: user.profile?.diagnosis || 'Not specified',
-            currentTreatment: user.profile?.currentTreatment || 'Not specified'
+            diagnosis: user.diagnosis || 'Not specified',
+            currentTreatment: 'Unknown'
           },
           briefSummary: `${user.username} would like to discuss some approaches related to ${request.explorationType}.`,
           explorationDetails: {
