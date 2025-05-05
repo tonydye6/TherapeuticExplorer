@@ -18,6 +18,7 @@ import SideEffectAnalyzer from "./pages/SideEffectAnalyzer";
 import TreatmentTimelinePage from "./pages/TreatmentTimelinePage";
 import AlternativeTreatments from "./pages/AlternativeTreatments";
 import MultimodalChatPage from "./pages/multimodal-chat-page";
+import MyPlanPage from "./pages/MyPlanPage";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
         <Route path="/documents" component={Documents} />
         <Route path="/semantic-search" component={SemanticSearch} />
         <Route path="/multimodal-chat" component={MultimodalChatPage} />
+        <Route path="/my-plan" component={MyPlanPage} />
         <Route path="/preferences" component={Preferences} />
         <Route path="/help" component={Help} />
         <Route component={NotFound} />

@@ -38,6 +38,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { href: "/semantic-search", label: "Semantic Search", icon: <Search className="h-5 w-5" /> },
     { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
     { href: "/multimodal-chat", label: "Image Analysis", icon: <ImagePlus className="h-5 w-5" /> },
+    { href: "/my-plan", label: "My Plan", icon: <Calendar className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
     { href: "/treatment-predictor", label: "Treatment Predictor", icon: <BarChart3 className="h-5 w-5" /> },
