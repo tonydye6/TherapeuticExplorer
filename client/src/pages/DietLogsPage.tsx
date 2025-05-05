@@ -59,7 +59,7 @@ export default function DietLogsPage() {
     return (
       log.mealType.toLowerCase().includes(lowerCaseQuery) ||
       (log.notes && log.notes.toLowerCase().includes(lowerCaseQuery)) ||
-      (log.foodItems && log.foodItems.some(item => item.toLowerCase().includes(lowerCaseQuery)))
+      (log.foods && log.foods.some(item => item.toLowerCase().includes(lowerCaseQuery)))
     );
   });
 

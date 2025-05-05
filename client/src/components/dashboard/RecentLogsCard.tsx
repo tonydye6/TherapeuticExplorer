@@ -47,7 +47,7 @@ export function RecentLogsCard({
                     {format(new Date(log.entryDate), "MMM d, yyyy")}
                   </h4>
                   {log.mood && (
-                    <Badge className={`${moodColors[log.mood.toLowerCase()] || "bg-gray-200"}`}>
+                    <Badge className={`${moodColors[log.mood.toLowerCase()] || "bg-gray-200 text-gray-800"}`}>
                       {log.mood}
                     </Badge>
                   )}

@@ -30,26 +30,37 @@ export function useDashboardData() {
   // Calculate recent logs (last 7 days)
   const sevenDaysAgo = subDays(new Date(), 7);
   
-  const recentJournalLogs = journalLogs?.filter(log => {
-    const entryDate = new Date(log.entryDate);
-    return isAfter(entryDate, sevenDaysAgo);
-  }) || [];
+  const recentJournalLogs = Array.isArray(journalLogs) 
+    ? journalLogs.filter(log => {
+        const entryDate = new Date(log.entryDate);
+        return isAfter(entryDate, sevenDaysAgo);
+      })
+    : [];
 
-  const recentDietLogs = dietLogs?.filter(log => {
-    const mealDate = new Date(log.mealDate);
-    return isAfter(mealDate, sevenDaysAgo);
-  }) || [];
+  const recentDietLogs = Array.isArray(dietLogs)
+    ? dietLogs.filter(log => {
+        const mealDate = new Date(log.mealDate);
+        return isAfter(mealDate, sevenDaysAgo);
+      })
+    : [];
 
   // Get upcoming plan items
-  const upcomingPlanItems = planItems?.filter(item => {
-    const startDate = new Date(item.startDate);
-    return isAfter(startDate, new Date()) && !item.isCompleted;
-  }).sort((a, b) => {
-    return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-  }).slice(0, 5) || [];
+  const upcomingPlanItems = Array.isArray(planItems)
+    ? planItems
+        .filter(item => {
+          const startDate = new Date(item.startDate);
+          return isAfter(startDate, new Date()) && !item.isCompleted;
+        })
+        .sort((a, b) => {
+          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        })
+        .slice(0, 5)
+    : [];
 
   // Get active treatments
-  const activeTreatments = treatments?.filter(treatment => treatment.active) || [];
+  const activeTreatments = Array.isArray(treatments) 
+    ? treatments.filter(treatment => treatment.active) 
+    : [];
 
   const isLoading = userLoading || journalLoading || dietLoading || planLoading || treatmentsLoading;
 
@@ -60,9 +71,9 @@ export function useDashboardData() {
     upcomingPlanItems,
     activeTreatments,
     isLoading,
-    planCount: planItems?.length || 0,
-    journalCount: journalLogs?.length || 0,
-    dietCount: dietLogs?.length || 0,
-    treatmentCount: treatments?.length || 0,
+    planCount: Array.isArray(planItems) ? planItems.length : 0,
+    journalCount: Array.isArray(journalLogs) ? journalLogs.length : 0,
+    dietCount: Array.isArray(dietLogs) ? dietLogs.length : 0,
+    treatmentCount: Array.isArray(treatments) ? treatments.length : 0,
   };
 }

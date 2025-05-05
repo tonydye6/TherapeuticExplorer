@@ -1,108 +1,107 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { PlanItem, InsertPlanItem } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PlanItem } from "@shared/schema";
 
-type PlanItemInput = Omit<PlanItem, 'id' | 'createdAt' | 'updatedAt'>;
-type PlanItemUpdate = Partial<Omit<PlanItem, 'id' | 'createdAt' | 'updatedAt'>>;
-
-/**
- * Custom hook to fetch and manage plan items
- */
 export function usePlanItems() {
   const { toast } = useToast();
 
   // Fetch all plan items
-  const { data: planItems = [], isLoading, error, refetch } = useQuery<PlanItem[]>({
+  const {
+    data: planItems = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["/api/plan-items"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/plan-items");
-      return response.json();
-    },
   });
 
-  // Create a new plan item
-  const createMutation = useMutation({
-    mutationFn: async (planItem: PlanItemInput) => {
-      const response = await apiRequest("POST", "/api/plan-items", planItem);
-      return response.json();
+  // Create plan item
+  const { mutate: createPlanItem, isPending: isCreating } = useMutation({
+    mutationFn: async (data: Omit<InsertPlanItem, "userId">) => {
+      const response = await apiRequest("POST", "/api/plan-items", data);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newItem: PlanItem) => {
       queryClient.invalidateQueries({ queryKey: ["/api/plan-items"] });
       toast({
-        title: "Success",
-        description: "Plan item created successfully",
+        title: "Plan item created",
+        description: "Your plan item has been added.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to create plan item: ${error.message}`,
+        title: "Failed to create plan item",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Update an existing plan item
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: number } & PlanItemUpdate) => {
-      const response = await apiRequest("PUT", `/api/plan-items/${id}`, data);
-      return response.json();
+  // Update plan item
+  const { mutate: updatePlanItem, isPending: isUpdating } = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<PlanItem> }) => {
+      const response = await apiRequest("PATCH", `/api/plan-items/${id}`, data);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedItem: PlanItem) => {
       queryClient.invalidateQueries({ queryKey: ["/api/plan-items"] });
       toast({
-        title: "Success",
-        description: "Plan item updated successfully",
+        title: "Plan item updated",
+        description: "Your plan item has been updated.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to update plan item: ${error.message}`,
+        title: "Failed to update plan item",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Delete a plan item
-  const deleteMutation = useMutation({
+  // Delete plan item
+  const { mutate: deletePlanItem, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/plan-items/${id}`);
+      const response = await apiRequest("DELETE", `/api/plan-items/${id}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete plan item");
+      }
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id: number) => {
       queryClient.invalidateQueries({ queryKey: ["/api/plan-items"] });
       toast({
-        title: "Success",
-        description: "Plan item deleted successfully",
+        title: "Plan item deleted",
+        description: "Your plan item has been removed.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to delete plan item: ${error.message}`,
+        title: "Failed to delete plan item",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Toggle completion status of a plan item
-  const toggleCompletionMutation = useMutation({
+  // Mark plan item as complete/incomplete
+  const { mutate: togglePlanItemComplete, isPending: isToggling } = useMutation({
     mutationFn: async ({ id, isCompleted }: { id: number; isCompleted: boolean }) => {
-      const response = await apiRequest(
-        "POST", 
-        `/api/plan-items/${id}/complete`, 
-        { isCompleted }
-      );
-      return response.json();
+      const response = await apiRequest("PATCH", `/api/plan-items/${id}/complete`, { isCompleted });
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedItem: PlanItem) => {
       queryClient.invalidateQueries({ queryKey: ["/api/plan-items"] });
+      toast({
+        title: updatedItem.isCompleted ? "Marked as complete" : "Marked as incomplete",
+        description: "Your plan item has been updated.",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to update completion status: ${error.message}`,
+        title: "Failed to update plan item status",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -111,17 +110,14 @@ export function usePlanItems() {
   return {
     planItems,
     isLoading,
-    error,
-    refetch,
-    createPlanItem: createMutation.mutate,
-    updatePlanItem: updateMutation.mutate,
-    deletePlanItem: deleteMutation.mutate,
-    toggleCompletion: toggleCompletionMutation.mutate,
-    isPending: {
-      create: createMutation.isPending,
-      update: updateMutation.isPending,
-      delete: deleteMutation.isPending,
-      toggleCompletion: toggleCompletionMutation.isPending,
-    },
+    isError,
+    createPlanItem,
+    updatePlanItem,
+    deletePlanItem,
+    togglePlanItemComplete,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    isToggling,
   };
 }
