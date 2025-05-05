@@ -1265,6 +1265,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Multimodal Message Routes
+  
+  // File upload middleware for multimodal images
+  const multimodalUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB file size limit
+      files: 5 // Maximum 5 files per upload
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept only image files
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+  
+  // Endpoint for uploading images for multimodal chat
+  app.post("/api/multimodal/upload", multimodalUpload.array('images', 5), async (req, res) => {
+    try {
+      // Check if files were provided
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: "No images uploaded" });
+      }
+      
+      // Convert uploaded images to base64
+      const base64Images = (req.files as Express.Multer.File[]).map(file => {
+        return Buffer.from(file.buffer).toString('base64');
+      });
+      
+      // Return the processed images
+      res.json({
+        success: true,
+        count: base64Images.length,
+        images: base64Images
+      });
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      res.status(500).json({
+        message: "Failed to process uploaded images",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   app.post("/api/multimodal/message", async (req, res) => {
     try {
       const { message, images, preferredModel } = req.body;
