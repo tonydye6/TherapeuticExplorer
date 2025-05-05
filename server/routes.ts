@@ -13,7 +13,7 @@ import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { z } from "zod";
 import multer from "multer";
-import { insertAlternativeTreatmentSchema } from "@shared/schema";
+import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -24,7 +24,7 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set default user ID since we're removing auth
-  const DEFAULT_USER_ID = 1;
+  const DEFAULT_USER_ID = "1"; // Using a string since user IDs are strings in our schema
 
   // API Routes
   app.get("/api/user", async (req, res) => {

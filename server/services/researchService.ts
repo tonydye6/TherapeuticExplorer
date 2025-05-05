@@ -1,8 +1,31 @@
 // This service handles research-related functionality
 // It connects to medical databases and APIs to fetch research information
 
-import { aiRouter, TreatmentInfo, ClinicalTrialInfo, ResearchSummary } from "./aiRouter";
+import * as aiRouter from "./aiRouter";
 import { ModelType, QueryType } from "@shared/schema";
+
+export interface TreatmentInfo {
+  name: string;
+  evidenceLevel: string;
+  benefits: Array<{text: string, warning?: boolean, info?: boolean}>;
+  sideEffects: Array<{text: string, warning?: boolean, info?: boolean}>;
+  source: string;
+}
+
+export interface ClinicalTrialInfo {
+  title: string;
+  phase: string;
+  matchScore: number;
+  location: string;
+  distance: number;
+  id: string;
+  status: string;
+}
+
+export interface ResearchSummary {
+  text: string;
+  sources: string[];
+}
 
 export type ResearchResults = {
   treatments?: TreatmentInfo[];
@@ -152,7 +175,8 @@ class ResearchService {
   async performResearch(query: string): Promise<ResearchResults> {
     console.log(`Performing comprehensive research for: ${query}`);
     
-    const { modelType, queryType } = aiRouter.determineModelForQuery(query);
+    // Analyze the query type
+    const queryType = await aiRouter.analyzeQueryType(query);
     
     // Initialize results
     const results: ResearchResults = {

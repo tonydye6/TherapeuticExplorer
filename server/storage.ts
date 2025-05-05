@@ -219,7 +219,7 @@ export class MemStorage implements IStorage {
   }
   
   // Message methods
-  async getMessages(userId: number): Promise<Message[]> {
+  async getMessages(userId: string): Promise<Message[]> {
     return Array.from(this.messages.values())
       .filter(message => message.userId === userId)
       .sort((a, b) => {
@@ -242,7 +242,7 @@ export class MemStorage implements IStorage {
   }
   
   // Research item methods
-  async getResearchItems(userId: number): Promise<ResearchItem[]> {
+  async getResearchItems(userId: string): Promise<ResearchItem[]> {
     return Array.from(this.researchItems.values())
       .filter(item => item.userId === userId)
       .sort((a, b) => {
@@ -285,7 +285,7 @@ export class MemStorage implements IStorage {
   }
   
   // Treatment methods
-  async getTreatments(userId: number): Promise<Treatment[]> {
+  async getTreatments(userId: string): Promise<Treatment[]> {
     return Array.from(this.treatments.values())
       .filter(treatment => treatment.userId === userId)
       .sort((a, b) => {
@@ -327,7 +327,7 @@ export class MemStorage implements IStorage {
   }
   
   // Saved trial methods
-  async getSavedTrials(userId: number): Promise<SavedTrial[]> {
+  async getSavedTrials(userId: string): Promise<SavedTrial[]> {
     return Array.from(this.savedTrials.values())
       .filter(trial => trial.userId === userId)
       .sort((a, b) => {
@@ -354,7 +354,7 @@ export class MemStorage implements IStorage {
   }
   
   // Document methods
-  async getDocuments(userId: number): Promise<Document[]> {
+  async getDocuments(userId: string): Promise<Document[]> {
     return Array.from(this.documents.values())
       .filter(doc => doc.userId === userId)
       .sort((a, b) => {
@@ -471,10 +471,26 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Import the DatabaseStorage
+// Import the storage implementations
 import { DatabaseStorage } from "./storageDB";
+import { FirestoreStorage } from "./storage-firestore";
 
-// Use DatabaseStorage for production and MemStorage for development if needed
-const useDatabase = process.env.NODE_ENV !== "test";
+// Determine which storage implementation to use
+const useFirestore = process.env.USE_FIRESTORE === "true";
+const useDatabase = process.env.NODE_ENV !== "test" && !useFirestore;
 
-export const storage = useDatabase ? new DatabaseStorage() : new MemStorage();
+// Initialize the appropriate storage implementation
+let selectedStorage: IStorage;
+
+if (useFirestore) {
+  console.log("Using Firestore storage implementation");
+  selectedStorage = new FirestoreStorage();
+} else if (useDatabase) {
+  console.log("Using PostgreSQL database storage implementation");
+  selectedStorage = new DatabaseStorage();
+} else {
+  console.log("Using in-memory storage implementation");
+  selectedStorage = new MemStorage();
+}
+
+export const storage = selectedStorage;

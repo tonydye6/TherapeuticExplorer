@@ -1,171 +1,90 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-// the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
-const MODEL = "claude-3-7-sonnet-20250219";
-
+// Initialize Anthropic client with API key from environment variables
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-export interface AnthropicOptions {
-  temperature?: number;
-  maxTokens?: number;
+/**
+ * Interface for structured Claude responses
+ */
+interface ClaudeResponse {
+  text: string;
+  sources?: any[];
+  metadata?: any;
 }
 
 /**
- * Process a text query using Anthropic's Claude models
+ * Generates a response using Anthropic's Claude models
+ * @param prompt The user prompt/question
+ * @param context Optional context information to include in the prompt
+ * @returns Structured response with text and metadata
  */
-export async function processTextQuery(
-  query: string, 
-  systemPrompt: string,
-  options: AnthropicOptions = {}
-): Promise<string> {
+export async function generateResponse(prompt: string, context?: any): Promise<ClaudeResponse> {
   try {
-    const message = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: options.maxTokens || 2048,
-      temperature: options.temperature || 0.3,
+    console.log('Generating response with Claude');
+    
+    // Format context if provided
+    let formattedContext = '';
+    if (context) {
+      if (Array.isArray(context)) {
+        formattedContext = '\nContext:\n' + context.map((c, i) => `[${i+1}] ${c.text || c}`).join('\n');
+      } else if (typeof context === 'object') {
+        formattedContext = '\nContext:\n' + Object.entries(context)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('\n');
+      } else if (typeof context === 'string') {
+        formattedContext = '\nContext:\n' + context;
+      }
+    }
+    
+    // Clear system instructions focused on health information
+    const systemPrompt = `You are Sophera, an empathetic and informative health companion for cancer patients.
+    Your primary purpose is to help patients understand complex medical information in simple language and provide emotional support.
+    
+    Important guidelines:
+    - Always provide information in a clear, compassionate manner
+    - Prioritize emotional well-being alongside factual accuracy
+    - Never diagnose conditions or predict outcomes
+    - Never prescribe treatments or medications
+    - Always clarify that you are providing information, not medical advice
+    - Be clear about limitations in medical knowledge
+    - When sharing medical information, focus on helping users understand their doctor's guidance
+    - If you reference research or studies, be transparent about their limitations
+    - When appropriate, encourage patients to consult with their healthcare team
+    
+    Remember that you are a companion on the patient's healing journey, not a replacement for medical professionals.`;
+    
+    // Call the Anthropic API using their Claude model
+    const response = await anthropic.messages.create({
+      model: "claude-3-opus-20240229", // Currently the most capable Claude model
       system: systemPrompt,
       messages: [
-        { role: "user", content: query }
-      ]
+        { role: "user", content: prompt + formattedContext }
+      ],
+      temperature: 0.7,
+      max_tokens: 1200,
     });
-
-    // Access the content safely
-    if (message.content && message.content.length > 0) {
-      const firstContent = message.content[0];
-      if ('text' in firstContent) {
-        return firstContent.text;
-      }
-    }
     
-    return "No response generated";
-  } catch (error: any) {
-    console.error("Anthropic API error:", error);
-    throw new Error(`Anthropic service failed: ${error.message}`);
-  }
-}
-
-/**
- * Process a structured query requiring JSON output
- */
-export async function processStructuredQuery<T>(
-  query: string,
-  systemPrompt: string,
-  options: AnthropicOptions = {}
-): Promise<T> {
-  const jsonSystemPrompt = `${systemPrompt}
-  
-IMPORTANT: You must respond with valid JSON only. No explanations or other text outside the JSON structure.`;
-
-  try {
-    const message = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: options.maxTokens || 2048,
-      temperature: options.temperature || 0.2,
-      system: jsonSystemPrompt,
-      messages: [
-        { role: "user", content: query }
-      ]
-    });
-
-    // Access the content safely
-    let jsonString = "{}";
-    if (message.content && message.content.length > 0) {
-      const firstContent = message.content[0];
-      if ('text' in firstContent) {
-        jsonString = firstContent.text;
-      }
-    }
+    // Extract the assistant's message
+    const responseText = response.content[0].type === 'text' ? response.content[0].text : 'No text response available';
     
-    return JSON.parse(jsonString) as T;
-  } catch (error: any) {
-    console.error("Anthropic structured query error:", error);
-    throw new Error(`Anthropic structured query failed: ${error.message}`);
-  }
-}
-
-/**
- * Process research literature queries
- */
-export async function processResearchQuery(query: string): Promise<any> {
-  const systemPrompt = `You are THRIVE, an expert AI research assistant specializing in esophageal cancer medical literature.
-  
-Your task is to analyze the user's query about medical research and provide accurate, evidence-based information from the literature.
-When responding to questions about research, follow these guidelines:
-
-1. Focus on esophageal cancer research from reputable medical journals and institutions
-2. Provide accurate summaries of relevant research findings
-3. Include information about the strength of evidence and consensus in the field
-4. Clearly identify areas where research is ongoing or consensus is lacking
-5. Return a structured JSON response
-
-Format your response as JSON with the following structure:
-{
-  "summary": "Clear summary addressing the user's research question",
-  "keyFindings": [
-    {
-      "finding": "Description of key research finding",
-      "evidenceStrength": "strong/moderate/limited",
-      "consensus": "high/moderate/low/emerging"
-    }
-  ],
-  "clinicalImplications": ["Relevant clinical implications"],
-  "ongoingResearch": ["Areas of active research"],
-  "sources": [
-    {
-      "title": "Source title",
-      "authors": "Authors",
-      "publication": "Journal/Publication",
-      "year": "Publication year"
-    }
-  ]
-}`;
-
-  try {
-    return await processStructuredQuery(query, systemPrompt);
-  } catch (error: any) {
-    console.error("Research query error:", error);
-    throw error;
-  }
-}
-
-/**
- * Process document analysis queries
- */
-export async function processDocumentAnalysisQuery(document: string): Promise<any> {
-  const systemPrompt = `You are THRIVE, an expert AI research assistant specializing in analyzing medical documents related to esophageal cancer.
-  
-Your task is to analyze the provided medical document and extract key information in a structured format.
-When analyzing medical documents, follow these guidelines:
-
-1. Identify the document type (lab report, imaging, clinical notes, pathology, etc.)
-2. Extract key information including diagnoses, test results, recommendations, and treatments
-3. Highlight any critical or abnormal findings
-4. Organize information in a clear, structured format
-5. Return a structured JSON response
-
-Format your response as JSON with the following structure:
-{
-  "documentType": "Type of medical document",
-  "summary": "Brief summary of the document's key points",
-  "keyFindings": [
-    {
-      "category": "Category (e.g., diagnosis, lab value, treatment)",
-      "finding": "Description of finding",
-      "significance": "Interpretation or significance"
-    }
-  ],
-  "diagnoses": ["Any diagnoses mentioned"],
-  "recommendations": ["Any recommendations or next steps"],
-  "abnormalResults": ["Any abnormal test results or findings"],
-  "medications": ["Any medications mentioned"]
-}`;
-
-  try {
-    return await processStructuredQuery(document, systemPrompt);
-  } catch (error: any) {
-    console.error("Document analysis error:", error);
-    throw error;
+    // Prepare the response object
+    const result: ClaudeResponse = {
+      text: responseText || 'Sorry, I was unable to generate a response.',
+      metadata: {
+        model: response.model,
+        usage: {
+          input_tokens: response.usage.input_tokens,
+          output_tokens: response.usage.output_tokens
+        },
+        stop_reason: response.stop_reason
+      }
+    };
+    
+    return result;
+  } catch (error) {
+    console.error('Error generating Claude response:', error);
+    throw new Error(`Claude error: ${error.message}`);
   }
 }
