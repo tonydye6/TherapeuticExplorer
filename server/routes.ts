@@ -13,6 +13,8 @@ import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { sourceAttributionService } from "./services/sourceAttribution";
 import { interactionService } from "./services/interaction-service";
+import { emotionalSupportService } from "./services/emotional-support-service";
+import { nutritionService } from "./services/nutrition-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -1053,6 +1055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  
   // Interaction Analysis Routes
   app.post("/api/interactions/analyze", async (req, res) => {
     try {

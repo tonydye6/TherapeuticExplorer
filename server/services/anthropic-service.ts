@@ -123,3 +123,60 @@ export async function generateResponse(prompt: string, context?: any, userId: st
     throw new Error(`Claude error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+
+/**
+ * Process a text query specifically for specialized responses (like emotional support)
+ * @param request Text query request with query, systemPrompt, and modelSettings
+ * @returns Structured Claude response with text and metadata
+ */
+export async function processTextQuery(request: TextQueryRequest): Promise<ClaudeResponse> {
+  try {
+    console.log('Processing specialized text query with Claude');
+    
+    // Get default model settings or use provided ones
+    const modelName = request.modelSettings?.modelName || "claude-3-opus-20240229";
+    const temperature = request.modelSettings?.temperature || 0.7;
+    const maxTokens = request.modelSettings?.maxTokens || 1500;
+
+    // Use the provided system prompt or a default one
+    const systemPrompt = request.systemPrompt || `You are Sophera, an empathetic and informative health companion for cancer patients.`;
+    
+    // Call the Anthropic API
+    const response = await anthropic.messages.create({
+      model: modelName,
+      system: systemPrompt,
+      messages: [
+        { role: "user", content: request.query }
+      ],
+      temperature: temperature,
+      max_tokens: maxTokens,
+    });
+    
+    // Extract the assistant's message
+    const responseText = response.content[0].type === 'text' ? response.content[0].text : 'No text response available';
+    
+    // Prepare the response object
+    const result: ClaudeResponse = {
+      text: responseText,
+      metadata: {
+        model: response.model,
+        usage: {
+          input_tokens: response.usage.input_tokens,
+          output_tokens: response.usage.output_tokens
+        },
+        stop_reason: response.stop_reason
+      }
+    };
+    
+    return result;
+  } catch (error) {
+    console.error('Error processing text query with Claude:', error);
+    throw new Error(`Claude error: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+// Export an instance of the service for easier imports
+export const anthropicService = {
+  generateResponse,
+  processTextQuery
+};
