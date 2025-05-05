@@ -1263,6 +1263,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document Analysis Routes
+  app.post("/api/documents/analyze", async (req, res) => {
+    try {
+      const { documentId, analysisType, customPrompt, preferredModel } = req.body;
+      
+      if (!documentId || !analysisType) {
+        return res.status(400).json({ 
+          message: "Document ID and analysis type are required" 
+        });
+      }
+      
+      // Validate analysis type
+      const validAnalysisTypes = ['summary', 'key_findings', 'patient_impact', 'custom'];
+      if (!validAnalysisTypes.includes(analysisType)) {
+        return res.status(400).json({ 
+          message: `Invalid analysis type. Must be one of: ${validAnalysisTypes.join(', ')}` 
+        });
+      }
+      
+      // For custom analysis, a custom prompt is required
+      if (analysisType === 'custom' && !customPrompt) {
+        return res.status(400).json({ 
+          message: "Custom prompt is required for custom analysis type" 
+        });
+      }
+      
+      const analysisResponse = await documentAnalysisService.analyzeDocument({
+        documentId: Number(documentId),
+        analysisType,
+        customPrompt,
+        preferredModel
+      });
+      
+      res.json(analysisResponse);
+    } catch (error) {
+      console.error("Error analyzing document:", error);
+      res.status(500).json({
+        message: "Failed to analyze document",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post("/api/documents/compare", async (req, res) => {
+    try {
+      const { documentIds, comparisonFocus, customPrompt, preferredModel } = req.body;
+      
+      if (!documentIds || !Array.isArray(documentIds) || documentIds.length < 2) {
+        return res.status(400).json({ 
+          message: "At least two document IDs are required for comparison" 
+        });
+      }
+      
+      // Validate comparison focus if provided
+      if (comparisonFocus && !['findings', 'methods', 'results', 'general'].includes(comparisonFocus)) {
+        return res.status(400).json({ 
+          message: "Invalid comparison focus. Must be one of: findings, methods, results, general" 
+        });
+      }
+      
+      // Convert string IDs to numbers
+      const numericDocumentIds = documentIds.map(id => Number(id));
+      
+      const comparisonResponse = await documentAnalysisService.compareDocuments({
+        documentIds: numericDocumentIds,
+        comparisonFocus,
+        customPrompt,
+        preferredModel
+      });
+      
+      res.json(comparisonResponse);
+    } catch (error) {
+      console.error("Error comparing documents:", error);
+      res.status(500).json({
+        message: "Failed to compare documents",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post("/api/documents/explain-term", async (req, res) => {
+    try {
+      const { documentId, term, preferredModel } = req.body;
+      
+      if (!documentId || !term) {
+        return res.status(400).json({ 
+          message: "Document ID and term are required" 
+        });
+      }
+      
+      const explanationResponse = await documentAnalysisService.explainTerm({
+        documentId: Number(documentId),
+        term,
+        preferredModel
+      });
+      
+      res.json(explanationResponse);
+    } catch (error) {
+      console.error("Error explaining medical term:", error);
+      res.status(500).json({
+        message: "Failed to explain medical term",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Caregiver Access Routes
   app.post("/api/caregiver/invitations", async (req, res) => {
     try {
