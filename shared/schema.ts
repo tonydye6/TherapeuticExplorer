@@ -351,3 +351,22 @@ export enum QueryType {
   MEDICAL_TERM = "medical_term",
   GENERAL = "general",
 }
+
+// Source interface for citation and attribution
+export interface Source {
+  id: string;           // Unique identifier for the source
+  title: string;        // Title of the source
+  type: string;         // Type of source: 'research_paper', 'clinical_trial', 'publication', etc.
+  url?: string;         // Optional URL to the source
+  authors?: string[];   // Optional list of authors
+  publicationDate?: string; // Optional publication date
+  publisher?: string;   // Optional publisher information
+  description?: string; // Short description or summary
+  confidence: number;   // Confidence score (0-1) for this source's relevance
+  snippet?: string;     // Relevant excerpt from the source
+  citationFormat?: {    // Formatted citations
+    apa?: string;       // APA format
+    mla?: string;       // MLA format
+    chicago?: string;   // Chicago format
+  };
+}

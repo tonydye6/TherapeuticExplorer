@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { Source } from '@shared/schema';
+import { sourceAttributionService } from './sourceAttribution';
 
 // Initialize OpenAI client with API key from environment variables
 const openai = new OpenAI({
@@ -10,7 +12,7 @@ const openai = new OpenAI({
  */
 interface OpenAIResponse {
   text: string;
-  sources?: any[];
+  sources?: Source[];
   metadata?: any;
 }
 
@@ -18,9 +20,10 @@ interface OpenAIResponse {
  * Generates a response using OpenAI's GPT models
  * @param prompt The user prompt/question
  * @param context Optional context information to include in the prompt
+ * @param userId User ID for source attribution
  * @returns Structured response with text and metadata
  */
-export async function generateResponse(prompt: string, context?: any): Promise<OpenAIResponse> {
+export async function generateResponse(prompt: string, context?: any, userId: string = '1'): Promise<OpenAIResponse> {
   try {
     console.log('Generating response with GPT');
     
@@ -38,7 +41,7 @@ export async function generateResponse(prompt: string, context?: any): Promise<O
       }
     }
     
-    // Clear system instructions focused on health information
+    // Enhanced system instructions with source attribution guidelines
     const systemPrompt = `You are Sophera, an empathetic and informative health companion for cancer patients.
     Your primary purpose is to help patients understand complex medical information in simple language and provide emotional support.
     
@@ -50,10 +53,17 @@ export async function generateResponse(prompt: string, context?: any): Promise<O
     - Always clarify that you are providing information, not medical advice
     - Be clear about limitations in medical knowledge
     - When sharing medical information, focus on helping users understand their doctor's guidance
-    - If you reference research or studies, be transparent about their limitations
+    - When you reference research or studies, clearly cite them using standard citation format
+    - Include specific article titles, authors, and years when citing research
     - When appropriate, encourage patients to consult with their healthcare team
     
-    Remember that you are a companion on the patient's healing journey, not a replacement for medical professionals.`;
+    Remember that you are a companion on the patient's healing journey, not a replacement for medical professionals.
+    
+    For citations and references:
+    - When discussing research findings, use clear citation markers like (Author et al., Year)
+    - For statistics or specific claims, always cite your sources
+    - For general medical knowledge, still try to reference authoritative sources
+    - At the end of detailed responses, include a "Sources:" section with key references`;
     
     // Call the OpenAI API using the GPT-4o model
     const response = await openai.chat.completions.create({
@@ -69,9 +79,16 @@ export async function generateResponse(prompt: string, context?: any): Promise<O
     // Extract the assistant's message
     const responseText = response.choices[0].message.content;
     
-    // Prepare the response object
+    // Process the response to extract and enhance sources
+    const { processedText, sources } = await sourceAttributionService.processResponseWithSources(
+      responseText || 'Sorry, I was unable to generate a response.',
+      userId
+    );
+    
+    // Prepare the response object with sources
     const result: OpenAIResponse = {
-      text: responseText || 'Sorry, I was unable to generate a response.',
+      text: processedText,
+      sources: sources,
       metadata: {
         model: response.model,
         usage: response.usage,
@@ -82,6 +99,6 @@ export async function generateResponse(prompt: string, context?: any): Promise<O
     return result;
   } catch (error) {
     console.error('Error generating OpenAI response:', error);
-    throw new Error(`OpenAI error: ${error.message}`);
+    throw new Error(`OpenAI error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

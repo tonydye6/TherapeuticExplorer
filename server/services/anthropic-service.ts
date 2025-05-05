@@ -1,4 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { Source } from '@shared/schema';
+import { sourceAttributionService } from './sourceAttribution';
 
 // Initialize Anthropic client with API key from environment variables
 const anthropic = new Anthropic({
@@ -10,7 +12,7 @@ const anthropic = new Anthropic({
  */
 interface ClaudeResponse {
   text: string;
-  sources?: any[];
+  sources?: Source[];
   metadata?: any;
 }
 
@@ -18,9 +20,10 @@ interface ClaudeResponse {
  * Generates a response using Anthropic's Claude models
  * @param prompt The user prompt/question
  * @param context Optional context information to include in the prompt
+ * @param userId User ID for source attribution
  * @returns Structured response with text and metadata
  */
-export async function generateResponse(prompt: string, context?: any): Promise<ClaudeResponse> {
+export async function generateResponse(prompt: string, context?: any, userId: string = '1'): Promise<ClaudeResponse> {
   try {
     console.log('Generating response with Claude');
     
@@ -38,7 +41,7 @@ export async function generateResponse(prompt: string, context?: any): Promise<C
       }
     }
     
-    // Clear system instructions focused on health information
+    // Enhanced system instructions with source attribution guidelines
     const systemPrompt = `You are Sophera, an empathetic and informative health companion for cancer patients.
     Your primary purpose is to help patients understand complex medical information in simple language and provide emotional support.
     
@@ -50,10 +53,17 @@ export async function generateResponse(prompt: string, context?: any): Promise<C
     - Always clarify that you are providing information, not medical advice
     - Be clear about limitations in medical knowledge
     - When sharing medical information, focus on helping users understand their doctor's guidance
-    - If you reference research or studies, be transparent about their limitations
+    - When you reference research or studies, clearly cite them using standard citation format
+    - Include specific article titles, authors, and years when citing research
     - When appropriate, encourage patients to consult with their healthcare team
     
-    Remember that you are a companion on the patient's healing journey, not a replacement for medical professionals.`;
+    Remember that you are a companion on the patient's healing journey, not a replacement for medical professionals.
+    
+    For citations and references:
+    - When discussing research findings, use clear citation markers like (Author et al., Year)
+    - For statistics or specific claims, always cite your sources
+    - For general medical knowledge, still try to reference authoritative sources
+    - At the end of detailed responses, include a "Sources:" section with key references`;
     
     // Call the Anthropic API using their Claude model
     const response = await anthropic.messages.create({
@@ -69,9 +79,16 @@ export async function generateResponse(prompt: string, context?: any): Promise<C
     // Extract the assistant's message
     const responseText = response.content[0].type === 'text' ? response.content[0].text : 'No text response available';
     
-    // Prepare the response object
+    // Process the response to extract and enhance sources
+    const { processedText, sources } = await sourceAttributionService.processResponseWithSources(
+      responseText || 'Sorry, I was unable to generate a response.',
+      userId
+    );
+    
+    // Prepare the response object with sources
     const result: ClaudeResponse = {
-      text: responseText || 'Sorry, I was unable to generate a response.',
+      text: processedText,
+      sources: sources,
       metadata: {
         model: response.model,
         usage: {
@@ -85,6 +102,6 @@ export async function generateResponse(prompt: string, context?: any): Promise<C
     return result;
   } catch (error) {
     console.error('Error generating Claude response:', error);
-    throw new Error(`Claude error: ${error.message}`);
+    throw new Error(`Claude error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
