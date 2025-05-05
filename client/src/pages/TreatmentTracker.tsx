@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
+import { Separator } from "@/components/ui/separator";
 import MedicalTimeline, { MedicalEvent, MedicalEventType } from "@/components/MedicalTimeline";
 import AddTreatmentDialog from "@/components/AddTreatmentDialog";
+import TreatmentCard from "@/components/TreatmentCard";
+import { useTreatments } from "@/hooks/use-treatments";
 import { 
   LineChart, 
   Line, 
@@ -26,7 +27,8 @@ import {
   Activity,
   Pill,
   Stethoscope,
-  Clock
+  Clock,
+  History
 } from "lucide-react";
 
 import { Treatment } from "@shared/schema";
@@ -59,22 +61,25 @@ export default function TreatmentTracker() {
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedTreatmentId, setSelectedTreatmentId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("current");
 
-  // Fetch treatments from API
-  const { data: treatments, isLoading, error } = useQuery<Treatment[]>({
-    queryKey: ['/api/treatments'],
-    // If API doesn't exist yet, return empty array
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/treatments');
-        if (!response.ok) return [];
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching treatments:", error);
-        return [];
-      }
-    },
-  });
+  // Use our custom hook for treatments
+  const {
+    treatments,
+    activeTreatments,
+    inactiveTreatments,
+    isLoading,
+    error,
+    addTreatment,
+    updateTreatment,
+    toggleActive,
+    deleteTreatment,
+    addSideEffect,
+    addEffectiveness,
+    isAddingSideEffect,
+    isAddingEffectiveness
+  } = useTreatments();
 
   // Format dates for charts
   const formatDate = (dateString: string) => {
@@ -205,6 +210,16 @@ export default function TreatmentTracker() {
   const closeAddTreatmentDialog = () => {
     setIsAddDialogOpen(false);
   };
+  
+  // Open edit treatment dialog
+  const handleEditTreatment = (treatmentId: number) => {
+    setSelectedTreatmentId(treatmentId);
+    // In a real app, you would open an edit dialog here
+    toast({
+      title: "Edit Treatment",
+      description: `Edit functionality would open for treatment ${treatmentId}`,
+    });
+  };
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -226,193 +241,100 @@ export default function TreatmentTracker() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Current Treatment Panel */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Pill className="h-5 w-5 mr-2 text-primary-800" />
-                Current Treatment
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
+        {/* Treatments Section */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="current" className="flex items-center">
+              <Pill className="h-4 w-4 mr-2" />
+              Current Treatments
+            </TabsTrigger>
+            <TabsTrigger value="past" className="flex items-center">
+              <History className="h-4 w-4 mr-2" />
+              Past Treatments
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="current" className="mt-4">
+            {isLoading ? (
+              <div className="p-8 text-center">
                 <p>Loading treatments...</p>
-              ) : error ? (
-                <p>Error loading treatments</p>
-              ) : treatments && treatments.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="flex justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={openAddTreatmentDialog}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Treatment
-                    </Button>
-                  </div>
-                  {treatments.filter(t => t.active).map((treatment) => (
-                    <div key={treatment.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium text-base">{treatment.name}</h3>
-                          <p className="text-sm text-gray-500">
-                            {treatment.type} • Started {new Date(treatment.startDate!).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const dialog = document.createElement('dialog');
-                            dialog.className = 'fixed inset-0 z-50 bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto mt-20';
-                            
-                            dialog.innerHTML = `
-                              <div class="flex justify-between items-start mb-4">
-                                <div>
-                                  <h2 class="text-xl font-bold">${treatment.name}</h2>
-                                  <p class="text-gray-500">${treatment.type}</p>
-                                </div>
-                                <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('dialog').close()">
-                                  ✕
-                                </button>
-                              </div>
-                              <div class="space-y-4">
-                                <div>
-                                  <h3 class="font-medium">Start Date</h3>
-                                  <p>${new Date(treatment.startDate!).toLocaleDateString()}</p>
-                                </div>
-                                ${treatment.endDate ? `
-                                  <div>
-                                    <h3 class="font-medium">End Date</h3>
-                                    <p>${new Date(treatment.endDate).toLocaleDateString()}</p>
-                                  </div>
-                                ` : ''}
-                                ${treatment.notes ? `
-                                  <div>
-                                    <h3 class="font-medium">Notes</h3>
-                                    <p class="whitespace-pre-wrap">${treatment.notes}</p>
-                                  </div>
-                                ` : ''}
-                              </div>
-                            `;
-
-                            document.body.appendChild(dialog);
-                            dialog.showModal();
-
-                            dialog.addEventListener('close', () => {
-                              dialog.remove();
-                            });
-                          }}
-                        >
-                          View Details
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          className="mt-2"
-                          onClick={async () => {
-                            try {
-                              const previousData = queryClient.getQueryData<Treatment[]>(['/api/treatments']);
-                              
-                              // Optimistically update UI
-                              queryClient.setQueryData(['/api/treatments'], (old: Treatment[] | undefined) => 
-                                old ? old.filter(t => t.id !== treatment.id) : []
-                              );
-
-                              const response = await fetch(`/api/treatments/${treatment.id}`, {
-                                method: 'DELETE'
-                              });
-                              
-                              if (!response.ok) {
-                                // Revert on error
-                                queryClient.setQueryData(['/api/treatments'], previousData);
-                                throw new Error('Failed to delete treatment');
-                              }
-                              
-                              toast({
-                                title: "Success",
-                                description: "Treatment deleted successfully",
-                              });
-                            } catch (error) {
-                              console.error('Failed to delete treatment:', error);
-                              toast({
-                                title: "Error",
-                                description: "Failed to delete treatment",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                      {treatment.notes && (
-                        <p className="mt-2 text-sm">{treatment.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Pill className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-500">No active treatments found</p>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center">
+                <p className="text-red-500">Error loading treatments</p>
+              </div>
+            ) : activeTreatments.length === 0 ? (
+              <div className="text-center p-8 border rounded-lg">
+                <Pill className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500 mb-4">No active treatments found</p>
+                <Button 
+                  variant="outline" 
+                  onClick={openAddTreatmentDialog}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Add Your First Treatment
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activeTreatments.map((treatment) => (
+                  <TreatmentCard 
+                    key={treatment.id}
+                    treatment={treatment}
+                    onEdit={handleEditTreatment}
+                    onDelete={deleteTreatment}
+                    onToggleActive={toggleActive}
+                    onAddSideEffect={addSideEffect}
+                    onAddEffectiveness={addEffectiveness}
+                    isSubmittingSideEffect={isAddingSideEffect}
+                    isSubmittingEffectiveness={isAddingEffectiveness}
+                  />
+                ))}
+                <div className="flex items-center justify-center border-2 border-dashed rounded-lg p-6 border-gray-300 h-full min-h-[220px]">
                   <Button 
-                    variant="outline" 
-                    className="mt-4"
+                    variant="ghost" 
+                    className="flex flex-col h-auto py-6" 
                     onClick={openAddTreatmentDialog}
                   >
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Add Your First Treatment
+                    <PlusCircle className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <span className="text-muted-foreground">Add Treatment</span>
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Calendar and Upcoming */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <CalendarIcon className="h-5 w-5 mr-2 text-primary-800" />
-                Treatment Calendar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md border mb-4"
-              />
-
-              <div className="border-t pt-4 mt-2">
-                <h3 className="font-medium mb-2">Upcoming Appointments</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">Oncologist Follow-up</p>
-                      <p className="text-sm text-gray-500">Feb 15, 2024 • 10:30 AM</p>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">CT Scan</p>
-                      <p className="text-sm text-gray-500">Mar 3, 2024 • 2:00 PM</p>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="past" className="mt-4">
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <p>Loading treatments...</p>
+              </div>
+            ) : inactiveTreatments.length === 0 ? (
+              <div className="text-center p-8 border rounded-lg">
+                <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500">No past treatments found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {inactiveTreatments.map((treatment) => (
+                  <TreatmentCard 
+                    key={treatment.id}
+                    treatment={treatment}
+                    onEdit={handleEditTreatment}
+                    onDelete={deleteTreatment}
+                    onToggleActive={toggleActive}
+                    onAddSideEffect={addSideEffect}
+                    onAddEffectiveness={addEffectiveness}
+                    isSubmittingSideEffect={isAddingSideEffect}
+                    isSubmittingEffectiveness={isAddingEffectiveness}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        <Separator className="my-2" />
 
         {/* Charts and Metrics */}
         {/* Medical Timeline */}
