@@ -2,6 +2,7 @@ import { ModelType, QueryType } from '@shared/schema';
 import * as openaiService from './openai-service';
 import * as claudeService from './anthropic-service';
 import * as geminiService from './gemini-service';
+import { vertexSearchService } from './vertex-search-service';
 import { storage } from '../storage';
 
 // Types for context data
@@ -12,6 +13,7 @@ interface UserContext {
   dietLogs?: any[];
   treatments?: any[];
   savedResearch?: any[];
+  documents?: any[];
 }
 
 // Configuration for model routing
@@ -22,7 +24,8 @@ const modelConfig = {
     [QueryType.RESEARCH]: ModelType.CLAUDE,
     [QueryType.TREATMENT]: ModelType.GPT,
     [QueryType.CLINICAL_TRIAL]: ModelType.GPT,
-    [QueryType.GENERAL]: ModelType.GEMINI
+    [QueryType.GENERAL]: ModelType.GEMINI,
+    [QueryType.DOCUMENT_QUESTION]: ModelType.GPT // Use GPT for document-specific questions
   },
   
   // Fallback models if primary is unavailable
@@ -165,6 +168,17 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
   // Simple rule-based approach, same logic as async version
   const lowerQuery = queryText.toLowerCase();
   
+  // Check for document-specific queries first
+  if (lowerQuery.includes('document') || 
+      lowerQuery.includes('in my files') || 
+      lowerQuery.includes('uploaded') || 
+      lowerQuery.includes('my records') ||
+      lowerQuery.includes('my medical records') ||
+      lowerQuery.includes('my notes') ||
+      lowerQuery.includes('my documents')) {
+    return QueryType.DOCUMENT_QUESTION;
+  }
+  
   if (lowerQuery.includes('what does') || 
       lowerQuery.includes('define') || 
       lowerQuery.includes('meaning of') || 
@@ -205,6 +219,17 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
   // In a more advanced implementation, this would use embeddings or a classifier
   
   const lowerQuery = queryText.toLowerCase();
+  
+  // Check for document-specific queries first
+  if (lowerQuery.includes('document') || 
+      lowerQuery.includes('in my files') || 
+      lowerQuery.includes('uploaded') || 
+      lowerQuery.includes('my records') ||
+      lowerQuery.includes('my medical records') ||
+      lowerQuery.includes('my notes') ||
+      lowerQuery.includes('my documents')) {
+    return QueryType.DOCUMENT_QUESTION;
+  }
   
   if (lowerQuery.includes('what does') || 
       lowerQuery.includes('define') || 
@@ -272,6 +297,16 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
       context.treatments = await storage.getTreatments(userId);
       break;
       
+    case QueryType.DOCUMENT_QUESTION:
+      // For document questions, fetch the user's documents
+      try {
+        const documents = await storage.getDocuments(userId);
+        context.documents = documents;
+      } catch (error) {
+        console.warn('Error fetching documents for document question:', error);
+      }
+      break;
+      
     // Add more cases for other query types as needed
   }
   
@@ -330,6 +365,18 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
     });
   }
   
+  // Add document information if available and relevant for document questions
+  if (context.documents && context.documents.length > 0 && queryType === QueryType.DOCUMENT_QUESTION) {
+    contextStr += "\nAvailable Documents:\n";
+    context.documents.forEach((document, index) => {
+      contextStr += `- ${document.title} (${document.type})\n`;
+      if (document.dateAdded) {
+        const date = new Date(document.dateAdded);
+        contextStr += `  Added: ${date.toLocaleDateString()}\n`;
+      }
+    });
+  }
+  
   // Add more formatted sections as needed for other context types
   
   return contextStr;
@@ -341,6 +388,26 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
 async function processUserMessage(message: string, userId: string, providedContext?: any, preferredModel?: ModelType): Promise<AIResponse> {
   // Analyze the query type
   const queryType = await analyzeQueryType(message);
+  
+  // Special handling for document questions using Vertex AI Search
+  if (queryType === QueryType.DOCUMENT_QUESTION) {
+    try {
+      console.log('Handling document question with Vertex AI Search');
+      const searchResult = await vertexSearchService.searchGroundedAnswer(userId, message);
+      
+      return {
+        content: searchResult.summary,
+        modelUsed: ModelType.GPT, // We're not actually using GPT, but need to specify a model type
+        sources: searchResult.sources,
+        timestamp: new Date(),
+        metadata: searchResult.metadata
+      };
+    } catch (error) {
+      console.error('Error using Vertex AI Search:', error);
+      console.log('Falling back to standard AI processing for document question');
+      // Fall through to standard processing if Vertex Search fails
+    }
+  }
   
   // Fetch user context if not provided
   let context = providedContext;

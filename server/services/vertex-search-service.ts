@@ -8,7 +8,7 @@
  */
 
 // Import necessary Google Cloud libraries for Vertex AI Search
-import { DiscoveryEngineServiceClient } from '@google-cloud/discoveryengine/build/src/v1';
+import { SearchServiceClient } from '@google-cloud/discoveryengine';
 import { Source } from '@shared/schema';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +23,7 @@ interface GroundedSearchResult {
  * Service class for managing Vertex AI Search operations
  */
 class VertexSearchService {
-  private client: DiscoveryEngineServiceClient | null = null;
+  private client: SearchServiceClient | null = null;
   private projectId: string;
   private locationId: string;
   private dataStoreId: string;
@@ -50,7 +50,7 @@ class VertexSearchService {
         return;
       }
       
-      this.client = new DiscoveryEngineServiceClient();
+      this.client = new SearchServiceClient();
       this.initialized = true;
       console.log('Vertex AI Search client initialized successfully');
     } catch (error) {
