@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ModelType } from './aiRouter';
+import { ModelType } from '@shared/schema';
 
 // Initialize OpenAI client with API key from environment variables
 const openai = new OpenAI({

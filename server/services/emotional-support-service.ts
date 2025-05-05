@@ -1,4 +1,4 @@
-import { ModelType } from './aiRouter';
+import { ModelType } from '@shared/schema';
 import { anthropicService } from './anthropic-service';
 
 export interface EmotionalSupportRequest {
