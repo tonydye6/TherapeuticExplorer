@@ -1,0 +1,107 @@
+## **Sophera UX/UI Implementation Plan (Chunk by Chunk)**
+
+**Objective:** Implement frontend changes for Sophera based on the human-centric redesign (sophera\_ux\_ui\_design\_doc and sophera\_new\_vision), focusing on creating a calming, supportive, and intuitive user experience. Implement these changes sequentially, checking in after each chunk.
+
+**Target Audience:** Replit Agent
+
+**Framework:** React/TypeScript (using existing components as a base where applicable)
+
+**Chunk 1: Rebranding & Core Layout/Theme**
+
+* **Goal:** Update branding to "Sophera" and establish the new visual theme and navigation structure.  
+* **Steps:**  
+  1. Replace "Thrive" text and any logos with "Sophera" throughout the application.  
+  2. Update the primary color palette, typography (fonts, sizes, weights), and overall visual style according to sophera\_ux\_ui\_design\_doc (calming blues/greens, warm neutrals, legible sans-serif font). Apply globally using CSS variables or theme provider.  
+  3. Refactor the main layout (Layout.tsx?): Implement the primary navigation structure (e.g., bottom tab bar for mobile, sidebar for desktop) based on the core sections (Today, My Journey, Understand, Explore, Connect & Hope).  
+  4. Ensure basic responsiveness of the new layout.  
+* **CHECK-IN POINT:** Verify rebranding, new theme application, and core navigation structure.
+
+**Chunk 2: Redesign "Today" Dashboard**
+
+* **Goal:** Implement the redesigned, simplified home screen.  
+* **Steps:**  
+  1. Modify the existing dashboard component or create a new TodayDashboard.tsx.  
+  2. Implement the clean, focused layout described in the design doc.  
+  3. Add components for:  
+     * Warm greeting.  
+     * "Today's Focus" section (fetch 1-3 key plan items for the day from the backend \- requires backend API).  
+     * Simple Journal prompt component (linking to the journal).  
+     * "Hope Snippet" component (displaying static or fetched curated content).  
+  4. Style according to the new theme (calm, uncluttered).  
+* **CHECK-IN POINT:** Verify the layout and components of the new "Today" dashboard.
+
+**Chunk 3: Implement "My Journey" Section (Plan & Journal UI)**
+
+* **Goal:** Create the integrated section for managing the plan and journal entries with the new UX focus.  
+* **Steps:**  
+  1. Create/Refactor components for the "My Journey" section (MyJourneyPage.tsx?).  
+  2. Implement the "My Plan" view:  
+     * Develop Calendar and List view components.  
+     * Fetch plan items from the backend (requires Chunk 2 of backend plan).  
+     * Display items clearly with visual distinctions.  
+     * Implement easy check-off functionality (update status via backend API).  
+     * Implement UI for adding/editing/deleting plan items (modal/form, requires backend API).  
+  3. Implement the "My Journal" view:  
+     * Develop components for daily log input (mood/energy sliders, symptom selection/severity rating, text areas for notes/diet).  
+     * Implement saving journal entries via backend API (requires Chunk 3 of backend plan).  
+     * Develop components to display past journal entries.  
+  4. Implement simple trend visualization charts (using a library like Recharts or similar) for mood/energy/symptoms based on fetched journal data.  
+* **CHECK-IN POINT:** Verify UI and interaction for "My Plan" and "My Journal" within the "My Journey" section, including data fetching/saving.
+
+**Chunk 4: Implement "Understand" Section (Knowledge Hub UI)**
+
+* **Goal:** Build the UI for accessing translated medical information and analysis tools.  
+* **Steps:**  
+  1. Create/Refactor components for the "Understand" section (UnderstandPage.tsx?).  
+  2. Implement the "AI Explainer" UI: Search input, results display area. Connect to backend endpoint that triggers AI translation/explanation. Implement tap-to-define functionality if feasible.  
+  3. Implement "Treatment Guides" UI: Display list/cards of treatments from "My Plan." Clicking shows simplified guide fetched from backend (requires AI logic).  
+  4. Implement "Interaction Checker" UI: Add visual flags to items in the "My Plan" list component (Chunk 3). Clicking triggers a modal/popover displaying the simplified explanation fetched from the backend interaction analysis endpoint (requires Chunk 7 of backend plan).  
+  5. Implement "Document Summarizer" UI: File upload component. Display area for AI-generated summary, key takeaways, terms, and questions (requires Chunk 5 & 6 of backend plan).  
+* **CHECK-IN POINT:** Verify UI components and basic interaction flows for the "Understand" section.
+
+**Chunk 5: Implement "Explore" Section (Research & Sandbox UI)**
+
+* **Goal:** Build the UI for standard research/trials and the new Creative Exploration Sandbox.  
+* **Steps:**  
+  1. Create/Refactor components for the "Explore" section (ExplorePage.tsx?).  
+  2. Implement UI for "Guided Search" and "Clinical Trial Finder": Search inputs, filters (phase, status, distance), results display (simplified summaries/cards). Connect to relevant backend endpoints.  
+  3. Implement the "Creative Exploration Sandbox" UI:  
+     * Display the one-time disclaimer checkbox on first entry.  
+     * Provide a chat-like interface for interaction.  
+     * Include input mechanisms for different modalities (text, file upload references, potentially URL inputs) supported by the backend (Gemini).  
+     * Implement the "Export Doctor Discussion Brief" button, triggering the backend generation and providing the document for download/display (requires Chunk 8 of backend plan).  
+* **CHECK-IN POINT:** Verify UI components and interaction flows for the "Explore" section, including the Sandbox disclaimer and export trigger.
+
+**Chunk 6: Implement "Connect & Hope" Section UI**
+
+* **Goal:** Build the UI for the support and mindset features.  
+* **Steps:**  
+  1. Create/Refactor components for the "Connect & Hope" section (ConnectHopePage.tsx?).  
+  2. Implement UI for "Survivor Stories": Display curated stories (potentially fetched from Firestore or hardcoded initially). Add search/filter capabilities.  
+  3. Implement UI for "Mindfulness Corner" & "Resource Hub": Display categorized links clearly.  
+  4. Implement "Caregiver Connect" UI:  
+     * Interface for patient to send invitations (email input, requires backend logic).  
+     * Interface for patient to manage caregiver permissions.  
+     * Interface for caregiver to accept/decline invitations (likely handled via email link directing back to the app).  
+* **CHECK-IN POINT:** Verify UI components for the "Connect & Hope" section, including the caregiver invitation flow.
+
+**Chunk 7: Implement Caregiver View UI**
+
+* **Goal:** Create the specific view for logged-in caregivers.  
+* **Steps:**  
+  1. Implement conditional rendering based on user role (patient vs. caregiver) upon login.  
+  2. Create components for the "Caregiver View" dashboard: Patient Status Summary, Shared Journal/Notes area.  
+  3. Adapt "My Plan" and "Explore" components to function within the caregiver view, respecting permissions fetched from the backend (e.g., disabling editing if not permitted).  
+  4. Ensure actions taken by caregivers (e.g., adding a note, checking off a plan item) are visually distinct or logged appropriately (requires backend support).  
+* **CHECK-IN POINT:** Verify the distinct Caregiver View UI and its components, including permission-based interactions.
+
+**Chunk 8: General UI Polish & Accessibility**
+
+* **Goal:** Refine the overall look and feel, ensure consistency, and address accessibility.  
+* **Steps:**  
+  1. Review all sections for consistent styling, typography, and interaction patterns.  
+  2. Implement subtle, non-intrusive animations for loading states and transitions.  
+  3. Improve error message presentation (user-friendly, non-technical).  
+  4. Conduct accessibility review: Check color contrast, keyboard navigation, screen reader compatibility (add ARIA attributes where needed), touch target sizes.  
+  5. Refine responsiveness across different screen sizes (mobile, tablet, desktop).  
+* **CHECK-IN POINT:** Verify overall UI polish, consistency, responsiveness, and accessibility improvements.
