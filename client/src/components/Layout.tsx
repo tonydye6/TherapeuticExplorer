@@ -40,7 +40,7 @@ export default function Layout({ children }: LayoutProps) {
             </svg>
           </button>
           <div className="flex-1 flex justify-center">
-            <span className="text-primary-800 font-bold text-xl">THRIVE</span>
+            <span className="text-primary-800 font-bold text-xl">Sophera</span>
             <span className="ml-1 text-xs text-gray-500 font-normal">BETA</span>
           </div>
         </div>

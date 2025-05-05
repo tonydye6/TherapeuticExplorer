@@ -19,7 +19,8 @@ import {
   BarChart3,
   AlertTriangle,
   Calendar,
-  Leaf
+  Leaf,
+  ImagePlus
 } from "lucide-react";
 
 interface SidebarProps {
@@ -36,6 +37,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { href: "/saved-research", label: "Research Library", icon: <BookOpen className="h-5 w-5" /> },
     { href: "/semantic-search", label: "Semantic Search", icon: <Search className="h-5 w-5" /> },
     { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
+    { href: "/multimodal-chat", label: "Image Analysis", icon: <ImagePlus className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
     { href: "/treatment-predictor", label: "Treatment Predictor", icon: <BarChart3 className="h-5 w-5" /> },
@@ -55,8 +57,8 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
             <Home className="h-5 w-5 text-white" />
           </div>
           <div className="ml-2">
-            <h2 className="text-lg font-bold text-primary-800">THRIVE</h2>
-            <p className="text-xs text-gray-500 -mt-1">Cancer Research Assistant</p>
+            <h2 className="text-lg font-bold text-primary-800">Sophera</h2>
+            <p className="text-xs text-gray-500 -mt-1">Your Healing Companion</p>
           </div>
         </div>
       </div>

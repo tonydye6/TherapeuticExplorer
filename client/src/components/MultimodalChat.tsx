@@ -59,7 +59,13 @@ export function MultimodalChat({ onSend }: MultimodalChatProps) {
       images?: string[];
       preferredModel?: ModelType;
     }) => {
-      const response = await apiRequest('POST', '/api/multimodal/message', data);
+      const response = await fetch('/api/multimodal/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
       return await response.json();
     },
     onSuccess: (data) => {
