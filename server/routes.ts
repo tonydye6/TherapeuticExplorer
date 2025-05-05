@@ -11,6 +11,7 @@ import { ocrService } from "./services/ocrService";
 import { treatmentPredictionService } from "./services/treatmentPredictionService";
 import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
+import { sourceAttributionService } from "./services/sourceAttribution";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -808,6 +809,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user context:", error);
       res.status(500).json({ message: "Failed to fetch user context" });
+    }
+  });
+  
+  // Test endpoint for source attribution system
+  app.post("/api/test/source-attribution", async (req, res) => {
+    try {
+      const { content } = req.body;
+      const userId = DEFAULT_USER_ID;
+      
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+      
+      // Process test content through the source attribution system
+      const { processedText, sources } = await sourceAttributionService.processResponseWithSources(
+        content,
+        userId
+      );
+      
+      res.json({
+        original: content,
+        processed: processedText,
+        sources: sources
+      });
+    } catch (error) {
+      console.error("Error testing source attribution:", error);
+      res.status(500).json({ 
+        message: "Source attribution test failed", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
   
