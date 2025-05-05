@@ -105,6 +105,14 @@ export interface IStorage {
   createDietLog(log: InsertDietLog): Promise<DietLog>;
   updateDietLog(id: number, log: Partial<DietLog>): Promise<DietLog>;
   deleteDietLog(id: number): Promise<void>;
+  
+  // Hope snippet methods
+  getHopeSnippets(): Promise<HopeSnippet[]>;
+  getRandomHopeSnippet(category?: string): Promise<HopeSnippet | undefined>;
+  getHopeSnippetById(id: number): Promise<HopeSnippet | undefined>;
+  createHopeSnippet(snippet: InsertHopeSnippet): Promise<HopeSnippet>;
+  updateHopeSnippet(id: number, snippet: Partial<HopeSnippet>): Promise<HopeSnippet>;
+  deleteHopeSnippet(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -118,6 +126,7 @@ export class MemStorage implements IStorage {
   private planItems: Map<number, PlanItem>;
   private journalLogs: Map<number, JournalLog>;
   private dietLogs: Map<number, DietLog>;
+  private hopeSnippets: Map<number, HopeSnippet>;
   
   private userIdCounter: number;
   private messageIdCounter: number;
@@ -129,6 +138,7 @@ export class MemStorage implements IStorage {
   private planItemIdCounter: number;
   private journalLogIdCounter: number;
   private dietLogIdCounter: number;
+  private hopeSnippetIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -141,6 +151,7 @@ export class MemStorage implements IStorage {
     this.alternativeTreatments = new Map();
     this.journalLogs = new Map();
     this.dietLogs = new Map();
+    this.hopeSnippets = new Map();
     
     this.userIdCounter = 1;
     this.messageIdCounter = 1;
@@ -152,6 +163,7 @@ export class MemStorage implements IStorage {
     this.planItemIdCounter = 1;
     this.journalLogIdCounter = 1;
     this.dietLogIdCounter = 1;
+    this.hopeSnippetIdCounter = 1;
     
     // Initialize with a sample user
     this.createUser({
@@ -685,6 +697,65 @@ export class MemStorage implements IStorage {
     }
     
     this.dietLogs.delete(id);
+  }
+  
+  // Hope snippet methods
+  async getHopeSnippets(): Promise<HopeSnippet[]> {
+    return Array.from(this.hopeSnippets.values())
+      .filter(snippet => snippet.isActive)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async getRandomHopeSnippet(category?: string): Promise<HopeSnippet | undefined> {
+    const snippets = Array.from(this.hopeSnippets.values())
+      .filter(snippet => snippet.isActive && (!category || snippet.category === category));
+      
+    if (snippets.length === 0) {
+      return undefined;
+    }
+    
+    // Get a random snippet
+    const randomIndex = Math.floor(Math.random() * snippets.length);
+    return snippets[randomIndex];
+  }
+  
+  async getHopeSnippetById(id: number): Promise<HopeSnippet | undefined> {
+    return this.hopeSnippets.get(id);
+  }
+  
+  async createHopeSnippet(insertSnippet: InsertHopeSnippet): Promise<HopeSnippet> {
+    const id = this.hopeSnippetIdCounter++;
+    
+    const snippet: HopeSnippet = {
+      ...insertSnippet,
+      id,
+      isActive: insertSnippet.isActive !== undefined ? insertSnippet.isActive : true,
+      createdAt: new Date()
+    };
+    
+    this.hopeSnippets.set(id, snippet);
+    return snippet;
+  }
+  
+  async updateHopeSnippet(id: number, snippetData: Partial<HopeSnippet>): Promise<HopeSnippet> {
+    const snippet = await this.getHopeSnippetById(id);
+    
+    if (!snippet) {
+      throw new Error(`Hope snippet with ID ${id} not found`);
+    }
+    
+    const updatedSnippet = { ...snippet, ...snippetData };
+    this.hopeSnippets.set(id, updatedSnippet);
+    
+    return updatedSnippet;
+  }
+  
+  async deleteHopeSnippet(id: number): Promise<void> {
+    if (!this.hopeSnippets.has(id)) {
+      throw new Error(`Hope snippet with ID ${id} not found`);
+    }
+    
+    this.hopeSnippets.delete(id);
   }
 }
 

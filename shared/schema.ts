@@ -480,6 +480,27 @@ export const insertDietLogSchema = createInsertSchema(dietLogs).omit({
 export type DietLog = typeof dietLogs.$inferSelect;
 export type InsertDietLog = typeof insertDietLogSchema.type;
 
+// Hope Snippets Schema
+export const hopeSnippets = pgTable("hope_snippets", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull(), // 'quote', 'story', 'affirmation', etc.
+  author: text("author"),
+  source: text("source"),
+  tags: jsonb("tags").$type<string[]>(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Create Zod Schema for Hope Snippets
+export const insertHopeSnippetSchema = createInsertSchema(hopeSnippets).omit({
+  id: true,
+  createdAt: true,
+});
+export type HopeSnippet = typeof hopeSnippets.$inferSelect;
+export type InsertHopeSnippet = typeof insertHopeSnippetSchema.type;
+
 // Journal logs relations
 export const journalLogsRelations = relations(journalLogs, ({ one }) => ({
   user: one(users, {
