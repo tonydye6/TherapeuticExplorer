@@ -16,6 +16,7 @@ import { interactionService } from "./services/interaction-service";
 import { emotionalSupportService } from "./services/emotional-support-service";
 import { nutritionService } from "./services/nutrition-service";
 import { creativeSandboxService } from "./services/creative-sandbox-service";
+import { caregiverAccessService } from "./services/caregiver-access-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -1256,6 +1257,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating doctor brief:", error);
       res.status(500).json({
         message: "Failed to generate doctor brief",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Caregiver Access Routes
+  app.post("/api/caregiver/invitations", async (req, res) => {
+    try {
+      const { patientId, caregiverEmail, permissions, message } = req.body;
+      
+      if (!patientId || !caregiverEmail || !permissions) {
+        return res.status(400).json({ 
+          message: "Patient ID, caregiver email, and permissions are required" 
+        });
+      }
+      
+      const invitation = await caregiverAccessService.createInvitation({
+        patientId,
+        caregiverEmail,
+        permissions,
+        message
+      });
+      
+      res.status(201).json(invitation);
+    } catch (error) {
+      console.error("Error creating caregiver invitation:", error);
+      res.status(500).json({ 
+        message: "Failed to create invitation",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post("/api/caregiver/invitations/:token/accept", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { caregiverId } = req.body;
+      
+      if (!token || !caregiverId) {
+        return res.status(400).json({ message: "Token and caregiver ID are required" });
+      }
+      
+      const relationship = await caregiverAccessService.acceptInvitation(token, caregiverId);
+      res.json(relationship);
+    } catch (error) {
+      console.error("Error accepting caregiver invitation:", error);
+      res.status(500).json({ 
+        message: "Failed to accept invitation",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post("/api/caregiver/invitations/:token/decline", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Token is required" });
+      }
+      
+      await caregiverAccessService.declineInvitation(token);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error declining caregiver invitation:", error);
+      res.status(500).json({ 
+        message: "Failed to decline invitation",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.put("/api/caregiver/relationships/:id/permissions", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { permissions } = req.body;
+      
+      if (!id || !permissions) {
+        return res.status(400).json({ message: "Relationship ID and permissions are required" });
+      }
+      
+      const updatedPermissions = await caregiverAccessService.updatePermissions(id, permissions);
+      res.json(updatedPermissions);
+    } catch (error) {
+      console.error("Error updating caregiver permissions:", error);
+      res.status(500).json({ 
+        message: "Failed to update permissions",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.delete("/api/caregiver/relationships/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ message: "Relationship ID is required" });
+      }
+      
+      await caregiverAccessService.revokeAccess(id);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error revoking caregiver access:", error);
+      res.status(500).json({ 
+        message: "Failed to revoke access",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.get("/api/caregiver/patients/:patientId/summary", async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const caregiverId = DEFAULT_USER_ID; // In a real app, this would come from the authenticated user
+      
+      if (!patientId) {
+        return res.status(400).json({ message: "Patient ID is required" });
+      }
+      
+      const patientSummary = await caregiverAccessService.getPatientSummary(patientId, caregiverId);
+      res.json(patientSummary);
+    } catch (error) {
+      console.error("Error getting patient summary:", error);
+      res.status(500).json({ 
+        message: "Failed to get patient summary",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.get("/api/caregiver/patients", async (req, res) => {
+    try {
+      const caregiverId = DEFAULT_USER_ID; // In a real app, this would come from the authenticated user
+      
+      const patients = await caregiverAccessService.getCaregiverPatients(caregiverId);
+      res.json(patients);
+    } catch (error) {
+      console.error("Error getting caregiver patients:", error);
+      res.status(500).json({ 
+        message: "Failed to get patients",
         error: error instanceof Error ? error.message : String(error)
       });
     }
