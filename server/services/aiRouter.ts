@@ -386,7 +386,7 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   
   // Add treatment information if available and relevant
   if (context.treatments && context.treatments.length > 0 && 
-      (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL)) {
+      (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL || queryType === QueryType.ALTERNATIVE_TREATMENT)) {
     contextStr += "\nCurrent Treatments:\n";
     context.treatments.forEach((treatment, index) => {
       contextStr += `- ${treatment.name} (${treatment.type})\n`;
@@ -423,7 +423,32 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
     });
   }
   
-  // Add more formatted sections as needed for other context types
+  // Add alternative treatment information if available and relevant
+  if (context.alternativeTreatments && context.alternativeTreatments.length > 0 && queryType === QueryType.ALTERNATIVE_TREATMENT) {
+    contextStr += "\nAlternative Treatments:\n";
+    context.alternativeTreatments.forEach((treatment, index) => {
+      contextStr += `- ${treatment.name} (${treatment.category})\n`;
+      
+      if (treatment.background) {
+        contextStr += `  Background: ${treatment.background}\n`;
+      }
+      
+      if (treatment.evidenceRating) {
+        contextStr += `  Evidence Rating: ${treatment.evidenceRating}\n`;
+      }
+      
+      if (treatment.safetyRating) {
+        contextStr += `  Safety Rating: ${treatment.safetyRating}\n`;
+      }
+      
+      // Add a brief excerpt from the description if available
+      if (treatment.description) {
+        const descriptionSnippet = treatment.description.length > 100 ? 
+          treatment.description.substring(0, 100) + '...' : treatment.description;
+        contextStr += `  Description: ${descriptionSnippet}\n`;
+      }
+    });
+  }
   
   return contextStr;
 }

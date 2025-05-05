@@ -352,6 +352,7 @@ export enum QueryType {
   GENERAL = "general",
   DOCUMENT_QUESTION = "document_question",
   ALTERNATIVE_TREATMENT = "alternative_treatment",
+  INTERACTION = "interaction",
 }
 
 // Source interface for citation and attribution
