@@ -14,6 +14,7 @@ interface UserContext {
   treatments?: any[];
   savedResearch?: any[];
   documents?: any[];
+  alternativeTreatments?: any[];
 }
 
 // Configuration for model routing
@@ -25,7 +26,8 @@ const modelConfig = {
     [QueryType.TREATMENT]: ModelType.GPT,
     [QueryType.CLINICAL_TRIAL]: ModelType.GPT,
     [QueryType.GENERAL]: ModelType.GEMINI,
-    [QueryType.DOCUMENT_QUESTION]: ModelType.GPT // Use GPT for document-specific questions
+    [QueryType.DOCUMENT_QUESTION]: ModelType.GPT, // Use GPT for document-specific questions
+    [QueryType.ALTERNATIVE_TREATMENT]: ModelType.CLAUDE // Use Claude for alternative treatment questions
   },
   
   // Fallback models if primary is unavailable
@@ -179,6 +181,22 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
     return QueryType.DOCUMENT_QUESTION;
   }
   
+  // Check for alternative treatment queries
+  if (lowerQuery.includes('alternative treatment') || 
+      lowerQuery.includes('holistic') || 
+      lowerQuery.includes('complementary') || 
+      lowerQuery.includes('integrative') ||
+      lowerQuery.includes('natural medicine') ||
+      lowerQuery.includes('supplements') ||
+      lowerQuery.includes('herbal') ||
+      lowerQuery.includes('acupuncture') ||
+      lowerQuery.includes('traditional chinese medicine') ||
+      lowerQuery.includes('ayurvedic') ||
+      lowerQuery.includes('meditation') ||
+      lowerQuery.includes('yoga')) {
+    return QueryType.ALTERNATIVE_TREATMENT;
+  }
+  
   if (lowerQuery.includes('what does') || 
       lowerQuery.includes('define') || 
       lowerQuery.includes('meaning of') || 
@@ -229,6 +247,22 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
       lowerQuery.includes('my notes') ||
       lowerQuery.includes('my documents')) {
     return QueryType.DOCUMENT_QUESTION;
+  }
+  
+  // Check for alternative treatment queries
+  if (lowerQuery.includes('alternative treatment') || 
+      lowerQuery.includes('holistic') || 
+      lowerQuery.includes('complementary') || 
+      lowerQuery.includes('integrative') ||
+      lowerQuery.includes('natural medicine') ||
+      lowerQuery.includes('supplements') ||
+      lowerQuery.includes('herbal') ||
+      lowerQuery.includes('acupuncture') ||
+      lowerQuery.includes('traditional chinese medicine') ||
+      lowerQuery.includes('ayurvedic') ||
+      lowerQuery.includes('meditation') ||
+      lowerQuery.includes('yoga')) {
+    return QueryType.ALTERNATIVE_TREATMENT;
   }
   
   if (lowerQuery.includes('what does') || 
@@ -304,6 +338,18 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
         context.documents = documents;
       } catch (error) {
         console.warn('Error fetching documents for document question:', error);
+      }
+      break;
+      
+    case QueryType.ALTERNATIVE_TREATMENT:
+      // For alternative treatment queries, fetch relevant alternative treatments
+      try {
+        const alternativeTreatments = await storage.getAlternativeTreatments(userId);
+        context.alternativeTreatments = alternativeTreatments;
+        // Also get standard treatments for comparison/integration context
+        context.treatments = await storage.getTreatments(userId);
+      } catch (error) {
+        console.warn('Error fetching alternative treatments:', error);
       }
       break;
       

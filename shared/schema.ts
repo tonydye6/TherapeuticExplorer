@@ -351,6 +351,7 @@ export enum QueryType {
   MEDICAL_TERM = "medical_term",
   GENERAL = "general",
   DOCUMENT_QUESTION = "document_question",
+  ALTERNATIVE_TREATMENT = "alternative_treatment",
 }
 
 // Source interface for citation and attribution
