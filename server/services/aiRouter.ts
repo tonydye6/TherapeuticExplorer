@@ -555,8 +555,24 @@ async function processUserMessage(message: string, userId: string, providedConte
 
 // Create a standardized interface for the aiRouter to be used in routes.ts
 export const aiRouter = {
-  processQuery: async (content: string, preferredModel?: ModelType, userId: string = "1", context?: any): Promise<AIResponse> => {
-    return processUserMessage(content, userId, context, preferredModel);
+  processQuery: async (content: string, preferredModel?: ModelType, userId: string = "1", context?: any, options?: { queryType?: QueryType }): Promise<AIResponse> => {
+    // If a specific queryType is provided in options, override the auto-detection
+    if (options?.queryType) {
+      // Create the AI query with the specified type
+      const query: AIQuery = {
+        content,
+        type: options.queryType,
+        userPreferredModel: preferredModel,
+        context: context || {},
+        userId
+      };
+      
+      // Route directly to the appropriate model
+      return routeQuery(query);
+    } else {
+      // Use the standard process with query type detection
+      return processUserMessage(content, userId, context, preferredModel);
+    }
   },
   determineModelForQuery,
   analyzeQueryType,

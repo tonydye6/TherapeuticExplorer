@@ -150,8 +150,8 @@ export async function analyzeInteractions(
     // Determine which model to use - prefer Claude for medical analysis if no preference specified
     const preferredModel = options.preferredModel || ModelType.CLAUDE;
     
-    // Process the query
-    const response = await aiRouter.processQuery(fullPrompt, preferredModel, userId);
+    // Process the query with the INTERACTION query type
+    const response = await aiRouter.processQuery(fullPrompt, preferredModel, userId, undefined, { queryType: QueryType.INTERACTION });
     
     // Parse the response content - expecting JSON format
     try {
