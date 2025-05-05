@@ -13,7 +13,7 @@ import { sideEffectService } from "./services/sideEffectService";
 import { timelineService } from "./services/timelineService";
 import { z } from "zod";
 import multer from "multer";
-import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema } from "@shared/schema";
+import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -781,6 +781,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user preferences:", error);
       res.status(500).json({ message: "Failed to update user preferences" });
+    }
+  });
+
+  // User Context Route - used to fetch context for AI models
+  app.get("/api/user/context", async (req, res) => {
+    try {
+      // Get query type from query parameter, default to GENERAL if not specified
+      const queryTypeStr = req.query.type as string || 'GENERAL';
+      
+      // Validate the query type
+      const queryType = Object.values(QueryType).includes(queryTypeStr as any) 
+        ? queryTypeStr as QueryType 
+        : QueryType.GENERAL;
+      
+      // Fetch user context based on query type
+      const userContext = await aiRouter.fetchUserContext(DEFAULT_USER_ID, queryType);
+      
+      // Format the context for readability if format=true in query params
+      if (req.query.format === 'true') {
+        const formattedContext = aiRouter.formatContextForLLM(userContext, queryType);
+        return res.json({ raw: userContext, formatted: formattedContext });
+      }
+      
+      res.json(userContext);
+    } catch (error) {
+      console.error("Error fetching user context:", error);
+      res.status(500).json({ message: "Failed to fetch user context" });
     }
   });
   
