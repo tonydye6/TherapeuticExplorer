@@ -1110,6 +1110,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Emotional Support Route
+  app.post("/api/support/emotional", async (req, res) => {
+    try {
+      const { query, emotionalState, recentJournalEntries, preferredModel } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
+      
+      const supportResponse = await emotionalSupportService.provideSupport({
+        userId: String(DEFAULT_USER_ID),
+        query,
+        emotionalState,
+        recentJournalEntries,
+        preferredModel
+      });
+      
+      res.json(supportResponse);
+    } catch (error) {
+      console.error("Error providing emotional support:", error);
+      res.status(500).json({
+        message: "Failed to provide emotional support",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Nutrition Recommendations Route
+  app.post("/api/support/nutrition", async (req, res) => {
+    try {
+      const {
+        treatmentName,
+        symptoms,
+        dietaryRestrictions,
+        allergies,
+        preferences,
+        nutritionalGoals,
+        recentDietEntries,
+        preferredModel
+      } = req.body;
+      
+      const nutritionResponse = await nutritionService.provideNutritionRecommendations({
+        userId: String(DEFAULT_USER_ID),
+        treatmentName,
+        symptoms,
+        dietaryRestrictions,
+        allergies,
+        preferences,
+        nutritionalGoals,
+        recentDietEntries,
+        preferredModel
+      });
+      
+      res.json(nutritionResponse);
+    } catch (error) {
+      console.error("Error providing nutrition recommendations:", error);
+      res.status(500).json({
+        message: "Failed to provide nutrition recommendations",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Recipe Recommendation Route
+  app.post("/api/support/recipe", async (req, res) => {
+    try {
+      const { mealType, ingredients, dietary, symptom, difficulty, prepTime } = req.body;
+      
+      const recipeResponse = await nutritionService.getRecipeRecommendation({
+        mealType,
+        ingredients,
+        dietary,
+        symptom,
+        difficulty,
+        prepTime
+      });
+      
+      res.json(recipeResponse);
+    } catch (error) {
+      console.error("Error providing recipe recommendation:", error);
+      res.status(500).json({
+        message: "Failed to provide recipe recommendation",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   const httpServer = createServer(app);
 
