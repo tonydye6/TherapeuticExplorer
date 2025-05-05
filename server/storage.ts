@@ -10,6 +10,7 @@ import {
   planItems,
   journalLogs,
   dietLogs,
+  hopeSnippets,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -32,7 +33,9 @@ import {
   type JournalLog,
   type InsertJournalLog,
   type DietLog,
-  type InsertDietLog
+  type InsertDietLog,
+  type HopeSnippet,
+  type InsertHopeSnippet
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities

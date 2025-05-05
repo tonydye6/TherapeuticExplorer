@@ -21,7 +21,7 @@ import { documentAnalysisService } from "./services/document-analysis-service";
 import { multimodalService } from "./services/multimodal-service";
 import { z } from "zod";
 import multer from "multer";
-import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, insertJournalLogSchema, insertDietLogSchema, QueryType } from "@shared/schema";
+import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, insertJournalLogSchema, insertDietLogSchema, insertHopeSnippetSchema, QueryType } from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -2005,6 +2005,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(500).json({ message: "Failed to delete diet log" });
+    }
+  });
+
+  // Hope Snippet Routes
+  app.get("/api/hope-snippets", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      let snippets;
+      
+      if (category) {
+        // If a specific category is requested, return only snippets from that category
+        snippets = (await storage.getHopeSnippets()).filter(snippet => snippet.category === category);
+      } else {
+        // Otherwise return all snippets
+        snippets = await storage.getHopeSnippets();
+      }
+      
+      res.json(snippets);
+    } catch (error) {
+      console.error("Error fetching hope snippets:", error);
+      res.status(500).json({ message: "Failed to fetch hope snippets" });
+    }
+  });
+  
+  app.get("/api/hope-snippets/random", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const snippet = await storage.getRandomHopeSnippet(category);
+      
+      if (!snippet) {
+        return res.status(404).json({ message: "No hope snippets found" });
+      }
+      
+      res.json(snippet);
+    } catch (error) {
+      console.error("Error fetching random hope snippet:", error);
+      res.status(500).json({ message: "Failed to fetch random hope snippet" });
+    }
+  });
+  
+  app.get("/api/hope-snippets/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid hope snippet ID" });
+      }
+      
+      const snippet = await storage.getHopeSnippetById(id);
+      
+      if (!snippet) {
+        return res.status(404).json({ message: "Hope snippet not found" });
+      }
+      
+      res.json(snippet);
+    } catch (error) {
+      console.error("Error fetching hope snippet:", error);
+      res.status(500).json({ message: "Failed to fetch hope snippet" });
+    }
+  });
+  
+  app.post("/api/hope-snippets", async (req, res) => {
+    try {
+      const snippetData = insertHopeSnippetSchema.parse(req.body);
+      const snippet = await storage.createHopeSnippet(snippetData);
+      res.status(201).json(snippet);
+    } catch (error) {
+      console.error("Error creating hope snippet:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid hope snippet data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to create hope snippet" });
+    }
+  });
+  
+  app.put("/api/hope-snippets/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid hope snippet ID" });
+      }
+      
+      const snippet = await storage.updateHopeSnippet(id, req.body);
+      res.json(snippet);
+    } catch (error) {
+      console.error("Error updating hope snippet:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid hope snippet data", 
+          errors: error.errors 
+        });
+      }
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to update hope snippet" });
+    }
+  });
+  
+  app.delete("/api/hope-snippets/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid hope snippet ID" });
+      }
+      
+      await storage.deleteHopeSnippet(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting hope snippet:", error);
+      
+      if (error.message && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to delete hope snippet" });
     }
   });
 
