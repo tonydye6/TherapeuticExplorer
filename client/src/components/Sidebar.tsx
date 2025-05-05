@@ -20,7 +20,9 @@ import {
   AlertTriangle,
   Calendar,
   Leaf,
-  ImagePlus
+  ImagePlus,
+  BookOpen as JournalIcon,
+  Utensils
 } from "lucide-react";
 
 interface SidebarProps {
@@ -39,6 +41,8 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
     { href: "/multimodal-chat", label: "Image Analysis", icon: <ImagePlus className="h-5 w-5" /> },
     { href: "/my-plan", label: "My Plan", icon: <Calendar className="h-5 w-5" /> },
+    { href: "/journal-logs", label: "Journal Logs", icon: <JournalIcon className="h-5 w-5" /> },
+    { href: "/diet-logs", label: "Diet Logs", icon: <Utensils className="h-5 w-5" /> },
     { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
     { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
     { href: "/treatment-predictor", label: "Treatment Predictor", icon: <BarChart3 className="h-5 w-5" /> },

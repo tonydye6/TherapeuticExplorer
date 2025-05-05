@@ -19,6 +19,8 @@ import TreatmentTimelinePage from "./pages/TreatmentTimelinePage";
 import AlternativeTreatments from "./pages/AlternativeTreatments";
 import MultimodalChatPage from "./pages/multimodal-chat-page";
 import MyPlanPage from "./pages/MyPlanPage";
+import JournalLogsPage from "./pages/JournalLogsPage";
+import DietLogsPage from "./pages/DietLogsPage";
 
 function Router() {
   return (
@@ -36,6 +38,8 @@ function Router() {
         <Route path="/semantic-search" component={SemanticSearch} />
         <Route path="/multimodal-chat" component={MultimodalChatPage} />
         <Route path="/my-plan" component={MyPlanPage} />
+        <Route path="/journal-logs" component={JournalLogsPage} />
+        <Route path="/diet-logs" component={DietLogsPage} />
         <Route path="/preferences" component={Preferences} />
         <Route path="/help" component={Help} />
         <Route component={NotFound} />
