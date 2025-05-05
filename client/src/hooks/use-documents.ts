@@ -1,136 +1,122 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { useToast } from "./use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function useDocuments() {
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const queryKey = ["/api/documents"];
 
-  // Fetch all documents
+  // Get all documents
   const {
     data: documents = [],
     isLoading,
-    isError,
     error,
   } = useQuery<Document[]>({
-    queryKey: ["/api/documents"],
+    queryKey,
   });
 
-  // Add a new document
-  const addDocumentMutation = useMutation({
+  // Upload document mutation
+  const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        body: formData,
+      const response = await apiRequest("POST", "/api/documents/upload", formData, {
+        customHeaders: {
+          // Don't set Content-Type header for FormData, browser will set it with boundary
+        },
       });
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Failed to upload document");
-      }
-      return res.json();
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey });
       toast({
-        title: "Success",
-        description: "Document uploaded successfully",
+        title: "Document uploaded",
+        description: "Your document has been successfully uploaded.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to upload document: ${error.message}`,
+        title: "Upload failed",
+        description: error.message || "Failed to upload document.",
         variant: "destructive",
       });
     },
   });
 
-  // Delete a document
-  const deleteDocumentMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/documents/${id}`);
-      return res.json();
+  // Delete document mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (documentId: number) => {
+      await apiRequest("DELETE", `/api/documents/${documentId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey });
       toast({
-        title: "Success",
-        description: "Document deleted successfully",
+        title: "Document deleted",
+        description: "Document has been removed.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to delete document: ${error.message}`,
+        title: "Delete failed",
+        description: error.message || "Failed to delete document.",
         variant: "destructive",
       });
     },
   });
 
-  // Get a document by ID
-  const getDocumentById = (id: number) => {
-    return useQuery<Document>({
-      queryKey: ["/api/documents", id],
-      queryFn: async () => {
-        const res = await apiRequest("GET", `/api/documents/${id}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch document");
-        }
-        return res.json();
-      },
-      enabled: !!id,
-    });
-  };
-
-  // Search within documents
-  const searchDocumentsMutation = useMutation({
-    mutationFn: async (query: string) => {
-      const res = await apiRequest("POST", "/api/documents/search", { query });
-      return res.json();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Search Error",
-        description: `Failed to search documents: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Extract text from a document
+  // Extract text from document mutation
   const extractTextMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("POST", `/api/documents/${id}/extract`);
-      return res.json();
+    mutationFn: async (documentId: number) => {
+      const response = await apiRequest("POST", `/api/documents/${documentId}/extract-text`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast({
+        title: "Text extracted",
+        description: "Text content has been extracted from the document.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Extraction failed",
+        description: error.message || "Failed to extract text from document.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Search documents
+  const searchMutation = useMutation({
+    mutationFn: async (query: string) => {
+      const response = await apiRequest("GET", `/api/documents/search?q=${encodeURIComponent(query)}`);
+      return response.json();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Search failed",
+        description: error.message || "Failed to search documents.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Ask question about document
+  const askQuestionMutation = useMutation({
+    mutationFn: async ({ documentId, question }: { documentId: number; question: string }) => {
+      const response = await apiRequest("POST", `/api/documents/${documentId}/ask`, { question });
+      return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
       toast({
-        title: "Success",
-        description: "Text extracted successfully",
+        title: "Answer ready",
+        description: "AI has analyzed the document and provided an answer.",
       });
       return data;
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to extract text: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Ask a question about a document
-  const askQuestionMutation = useMutation({
-    mutationFn: async ({ documentId, question }: { documentId: number; question: string }) => {
-      const res = await apiRequest("POST", `/api/documents/${documentId}/ask`, { question });
-      return res.json();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: `Failed to ask question: ${error.message}`,
+        title: "Question failed",
+        description: error.message || "Failed to process your question.",
         variant: "destructive",
       });
     },
@@ -139,18 +125,17 @@ export function useDocuments() {
   return {
     documents,
     isLoading,
-    isError,
     error,
-    uploadDocument: addDocumentMutation.mutate,
-    deleteDocument: deleteDocumentMutation.mutate,
-    getDocumentById,
-    searchDocuments: searchDocumentsMutation.mutate,
+    uploadDocument: uploadMutation.mutate,
+    deleteDocument: deleteMutation.mutate,
     extractText: extractTextMutation.mutate,
-    askQuestion: askQuestionMutation.mutate,
-    isUploading: addDocumentMutation.isPending,
-    isDeleting: deleteDocumentMutation.isPending,
-    isSearching: searchDocumentsMutation.isPending,
+    searchDocuments: searchMutation.mutate,
+    askQuestion: (documentId: number, question: string) =>
+      askQuestionMutation.mutate({ documentId, question }),
+    isUploading: uploadMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     isExtracting: extractTextMutation.isPending,
+    isSearching: searchMutation.isPending,
     isAsking: askQuestionMutation.isPending,
   };
 }
