@@ -8,6 +8,8 @@ import {
   vectorEmbeddings,
   alternativeTreatments,
   planItems,
+  journalLogs,
+  dietLogs,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -26,7 +28,11 @@ import {
   type AlternativeTreatment,
   type InsertAlternativeTreatment,
   type PlanItem,
-  type InsertPlanItem
+  type InsertPlanItem,
+  type JournalLog,
+  type InsertJournalLog,
+  type DietLog,
+  type InsertDietLog
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities
@@ -85,6 +91,20 @@ export interface IStorage {
   updatePlanItem(id: number, item: Partial<PlanItem>): Promise<PlanItem>;
   deletePlanItem(id: number): Promise<void>;
   completePlanItem(id: number, isCompleted: boolean): Promise<PlanItem>;
+  
+  // Journal log methods
+  getJournalLogs(userId: string): Promise<JournalLog[]>;
+  getJournalLogById(id: number): Promise<JournalLog | undefined>;
+  createJournalLog(log: InsertJournalLog): Promise<JournalLog>;
+  updateJournalLog(id: number, log: Partial<JournalLog>): Promise<JournalLog>;
+  deleteJournalLog(id: number): Promise<void>;
+  
+  // Diet log methods
+  getDietLogs(userId: string): Promise<DietLog[]>;
+  getDietLogById(id: number): Promise<DietLog | undefined>;
+  createDietLog(log: InsertDietLog): Promise<DietLog>;
+  updateDietLog(id: number, log: Partial<DietLog>): Promise<DietLog>;
+  deleteDietLog(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -96,6 +116,8 @@ export class MemStorage implements IStorage {
   private documents: Map<number, Document>;
   private alternativeTreatments: Map<number, AlternativeTreatment>;
   private planItems: Map<number, PlanItem>;
+  private journalLogs: Map<number, JournalLog>;
+  private dietLogs: Map<number, DietLog>;
   
   private userIdCounter: number;
   private messageIdCounter: number;
@@ -105,6 +127,8 @@ export class MemStorage implements IStorage {
   private documentIdCounter: number;
   private alternativeTreatmentIdCounter: number;
   private planItemIdCounter: number;
+  private journalLogIdCounter: number;
+  private dietLogIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -115,6 +139,8 @@ export class MemStorage implements IStorage {
     this.documents = new Map();
     this.planItems = new Map();
     this.alternativeTreatments = new Map();
+    this.journalLogs = new Map();
+    this.dietLogs = new Map();
     
     this.userIdCounter = 1;
     this.messageIdCounter = 1;
@@ -124,6 +150,8 @@ export class MemStorage implements IStorage {
     this.documentIdCounter = 1;
     this.alternativeTreatmentIdCounter = 1;
     this.planItemIdCounter = 1;
+    this.journalLogIdCounter = 1;
+    this.dietLogIdCounter = 1;
     
     // Initialize with a sample user
     this.createUser({
