@@ -18,6 +18,7 @@ import { nutritionService } from "./services/nutrition-service";
 import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { caregiverAccessService } from "./services/caregiver-access-service";
 import { documentAnalysisService } from "./services/document-analysis-service";
+import { multimodalService } from "./services/multimodal-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, QueryType } from "@shared/schema";
@@ -1263,6 +1264,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multimodal Message Routes
+  app.post("/api/multimodal/message", async (req, res) => {
+    try {
+      const { message, images, preferredModel } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message text is required" });
+      }
+      
+      // Save user message
+      const userMessage = await storage.createMessage({
+        userId: DEFAULT_USER_ID,
+        content: message,
+        role: "user",
+        metadata: images && images.length > 0 ? { hasImages: true } : undefined
+      });
+      
+      // Process multimodal query
+      const multimodalResponse = await multimodalService.processMultimodalQuery({
+        userId: DEFAULT_USER_ID,
+        message,
+        images,
+        preferredModel
+      });
+      
+      // Save AI response
+      const assistantMessage = await storage.createMessage({
+        userId: DEFAULT_USER_ID,
+        content: multimodalResponse.content,
+        role: "assistant",
+        modelUsed: multimodalResponse.modelUsed,
+        metadata: {
+          imageAnalysis: multimodalResponse.imageAnalysis,
+          contextualInsights: multimodalResponse.contextualInsights
+        }
+      });
+      
+      // Return the processed response
+      res.json({
+        id: assistantMessage.id,
+        content: multimodalResponse.content,
+        imageAnalysis: multimodalResponse.imageAnalysis,
+        contextualInsights: multimodalResponse.contextualInsights,
+        modelUsed: multimodalResponse.modelUsed
+      });
+    } catch (error) {
+      console.error("Error processing multimodal message:", error);
+      res.status(500).json({
+        message: "Failed to process multimodal message",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   // Document Analysis Routes
   app.post("/api/documents/analyze", async (req, res) => {
     try {

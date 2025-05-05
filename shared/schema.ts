@@ -68,6 +68,7 @@ export const messages = pgTable("messages", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
   sources: jsonb("sources"),
   modelUsed: text("model_used"),
+  metadata: jsonb("metadata"),
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({
@@ -76,6 +77,7 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
   role: true,
   sources: true,
   modelUsed: true,
+  metadata: true,
 });
 
 // Saved research items
