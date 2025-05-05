@@ -22,6 +22,7 @@ import MyPlanPage from "./pages/MyPlanPage";
 import JournalLogsPage from "./pages/JournalLogsPage";
 import DietLogsPage from "./pages/DietLogsPage";
 import DashboardPage from "./pages/DashboardPage";
+import HopeSnippetsPage from "./pages/HopeSnippetsPage";
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function Router() {
         <Route path="/my-plan" component={MyPlanPage} />
         <Route path="/journal-logs" component={JournalLogsPage} />
         <Route path="/diet-logs" component={DietLogsPage} />
+        <Route path="/hope-snippets" component={HopeSnippetsPage} />
         <Route path="/preferences" component={Preferences} />
         <Route path="/help" component={Help} />
         <Route component={NotFound} />
