@@ -38,7 +38,7 @@ export class SourceAttributionService {
     });
     
     // Deduplicate matches
-    const uniqueMatches = [...new Set(allMatches)];
+    const uniqueMatches = Array.from(new Set(allMatches));
     
     // For each potential citation, try to match with research items or create a placeholder
     for (const match of uniqueMatches) {
