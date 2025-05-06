@@ -35,6 +35,7 @@ interface DocumentCardProps {
   onDelete: (id: number) => void;
   onExtractText: (id: number) => void;
   onAskQuestion: (id: number, question: string) => void;
+  onView?: (id: number) => void;
   isDeleting: boolean;
   isExtracting: boolean;
 }
@@ -44,6 +45,7 @@ export default function DocumentCard({
   onDelete, 
   onExtractText,
   onAskQuestion,
+  onView,
   isDeleting,
   isExtracting
 }: DocumentCardProps) {
@@ -52,9 +54,10 @@ export default function DocumentCard({
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   
   // Format date for display
-  const formatDate = (dateString: string | null | undefined) => {
+  const formatDate = (dateString: string | null | undefined | Date) => {
     if (!dateString) return "Not specified";
-    return new Date(dateString).toLocaleDateString();
+    const date = dateString instanceof Date ? dateString : new Date(dateString);
+    return date.toLocaleDateString();
   };
 
   // Get document type display name
@@ -204,7 +207,7 @@ export default function DocumentCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => window.open(`/documents/${document.id}`, '_blank')}>
+            <DropdownMenuItem onClick={() => onView ? onView(document.id) : window.open(`/documents/${document.id}`, '_blank')}>
               <SearchIcon className="h-4 w-4 mr-2" />
               View Details
             </DropdownMenuItem>

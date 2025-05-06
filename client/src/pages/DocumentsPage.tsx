@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDocuments } from "@/hooks/use-documents";
 import DocumentUpload from "@/components/document/DocumentUpload";
 import DocumentCard from "@/components/document/DocumentCard";
+import DocumentViewer from "@/components/document/DocumentViewer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,6 +83,8 @@ export default function DocumentsPage() {
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [selectedTab, setSelectedTab] = useState("all");
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   const {
     documents,
