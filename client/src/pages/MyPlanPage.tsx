@@ -191,7 +191,10 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
           ) : isError ? (
-            <ErrorMessage />
+            <ErrorMessage 
+              title="Unable to Load Active Plan Items" 
+              message="We're having trouble connecting to the database. Please check your connection and try again."
+            />
           ) : activeItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {activeItems.map((item: any) => (
@@ -219,7 +222,10 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
           ) : isError ? (
-            <ErrorMessage />
+            <ErrorMessage 
+              title="Unable to Load Completed Plan Items" 
+              message="We're having trouble connecting to the database. Please check your connection and try again."
+            />
           ) : completedItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {completedItems.map((item: any) => (
@@ -240,7 +246,10 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
           ) : isError ? (
-            <ErrorMessage />
+            <ErrorMessage 
+              title="Unable to Load Plan Items" 
+              message="We're having trouble connecting to the database. Please check your connection and try again."
+            />
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredItems.map((item: any) => (
