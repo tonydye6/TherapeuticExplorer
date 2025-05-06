@@ -4,6 +4,7 @@ import * as claudeService from './anthropic-service';
 import * as geminiService from './gemini-service';
 import { vertexSearchService } from './vertex-search-service';
 import { storage } from '../storage';
+import * as firestoreService from './firestore-service';
 
 // Types for context data
 interface UserContext {
@@ -335,70 +336,156 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
   console.log(`Fetching context for user ${userId} and query type ${queryType}`);
   
   // Start with the basic user profile
-  const userProfile = await storage.getUser(userId);
-  
-  if (!userProfile) {
-    throw new Error(`User with ID ${userId} not found`);
+  try {
+    // Use Firestore service directly to get user profile
+    const userProfile = await firestoreService.getUserProfile(userId);
+    
+    if (!userProfile) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const context: UserContext = {
+      userProfile
+    };
+    
+    // Fetch additional context based on query type
+    switch (queryType) {
+      case QueryType.TREATMENT:
+      case QueryType.CLINICAL_TRIAL:
+        // For treatment/trial queries, include plan items, treatments from plan
+        try {
+          // Fetch the user's plan items related to treatment
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems.filter((item: any) => 
+            item.type === 'medication' || 
+            item.type === 'treatment' || 
+            item.type === 'procedure' ||
+            item.type === 'appointment');
+          
+          // Maintain backward compatibility with treatments array if still used elsewhere
+          if (storage.getTreatments) {
+            context.treatments = await storage.getTreatments(userId);
+          }
+        } catch (error) {
+          console.warn('Error fetching treatment context:', error);
+        }
+        break;
+        
+      case QueryType.RESEARCH:
+        // For research queries, fetch saved research items
+        try {
+          if (storage.getResearchItems) {
+            context.savedResearch = await storage.getResearchItems(userId);
+          }
+        } catch (error) {
+          console.warn('Error fetching research items:', error);
+        }
+        break;
+        
+      case QueryType.DOCUMENT_QUESTION:
+        // For document questions, fetch the user's documents
+        try {
+          if (storage.getDocuments) {
+            context.documents = await storage.getDocuments(userId);
+          }
+        } catch (error) {
+          console.warn('Error fetching documents for document question:', error);
+        }
+        break;
+        
+      case QueryType.ALTERNATIVE_TREATMENT:
+        // For alternative treatment queries, fetch relevant alternative treatments
+        try {
+          // Fetch plan items related to supplements and alternative treatments
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems.filter((item: any) => 
+            item.type === 'supplement' || 
+            item.type === 'alternative' ||
+            item.type === 'herb' ||
+            item.type === 'vitamin');
+          
+          // Maintain backward compatibility
+          if (storage.getAlternativeTreatments) {
+            context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
+          }
+          if (storage.getTreatments) {
+            context.treatments = await storage.getTreatments(userId);
+          }
+        } catch (error) {
+          console.warn('Error fetching alternative treatments:', error);
+        }
+        break;
+        
+      case QueryType.INTERACTION:
+        // For interaction queries, fetch all medications, supplements, etc.
+        try {
+          // Get all plan items for comprehensive interaction analysis
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems.filter((item: any) => 
+            item.type === 'medication' || 
+            item.type === 'treatment' ||
+            item.type === 'supplement' || 
+            item.type === 'alternative' ||
+            item.type === 'herb' ||
+            item.type === 'vitamin' ||
+            item.type === 'diet');
+          
+          // Include recent journal logs for symptoms context
+          const today = new Date();
+          const twoWeeksAgo = new Date(today);
+          twoWeeksAgo.setDate(today.getDate() - 14);
+          
+          context.journalLogs = await firestoreService.getJournalLogs(userId, twoWeeksAgo);
+          
+          // Include recent diet logs for dietary factors
+          context.dietLogs = await firestoreService.getDietLogs(userId, twoWeeksAgo);
+          
+          // Maintain backward compatibility
+          if (storage.getTreatments) {
+            context.treatments = await storage.getTreatments(userId);
+          }
+          if (storage.getAlternativeTreatments) {
+            context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
+          }
+        } catch (error) {
+          console.warn('Error fetching interaction analysis context:', error);
+        }
+        break;
+        
+      case QueryType.MEDICAL_TERM:
+        // For medical term explanations, include diagnosis context
+        // User profile already includes diagnosis information
+        break;
+        
+      case QueryType.GENERAL:
+        // For general queries, include recent journal logs for current state context
+        try {
+          // Get journal logs from the past week
+          const today = new Date();
+          const oneWeekAgo = new Date(today);
+          oneWeekAgo.setDate(today.getDate() - 7);
+          
+          context.journalLogs = await firestoreService.getJournalLogs(userId, oneWeekAgo);
+          
+          // Include active plan items
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems.filter((item: any) => 
+            !item.completed && 
+            (!item.dueDate || new Date(item.dueDate) >= new Date()));
+        } catch (error) {
+          console.warn('Error fetching general context:', error);
+        }
+        break;
+        
+      // Add more cases for other query types as needed
+    }
+    
+    return context;
+  } catch (error) {
+    console.error('Error in getUserContext:', error);
+    // Return minimal context to avoid breaking the entire request
+    return { userProfile: { id: userId } };
   }
-  
-  const context: UserContext = {
-    userProfile
-  };
-  
-  // Fetch additional context based on query type
-  switch (queryType) {
-    case QueryType.TREATMENT:
-      // For treatment queries, fetch user's treatments and conditions
-      context.treatments = await storage.getTreatments(userId);
-      break;
-      
-    case QueryType.RESEARCH:
-      // For research queries, fetch saved research items
-      context.savedResearch = await storage.getResearchItems(userId);
-      break;
-      
-    case QueryType.CLINICAL_TRIAL:
-      // For clinical trial queries, fetch saved trials and treatments
-      context.treatments = await storage.getTreatments(userId);
-      break;
-      
-    case QueryType.DOCUMENT_QUESTION:
-      // For document questions, fetch the user's documents
-      try {
-        const documents = await storage.getDocuments(userId);
-        context.documents = documents;
-      } catch (error) {
-        console.warn('Error fetching documents for document question:', error);
-      }
-      break;
-      
-    case QueryType.ALTERNATIVE_TREATMENT:
-      // For alternative treatment queries, fetch relevant alternative treatments
-      try {
-        const alternativeTreatments = await storage.getAlternativeTreatments(userId);
-        context.alternativeTreatments = alternativeTreatments;
-        // Also get standard treatments for comparison/integration context
-        context.treatments = await storage.getTreatments(userId);
-      } catch (error) {
-        console.warn('Error fetching alternative treatments:', error);
-      }
-      break;
-      
-    case QueryType.INTERACTION:
-      // For interaction queries, fetch both treatments and alternative treatments
-      try {
-        // Fetch both conventional and alternative treatments for interaction analysis
-        context.treatments = await storage.getTreatments(userId);
-        context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
-      } catch (error) {
-        console.warn('Error fetching treatments for interaction analysis:', error);
-      }
-      break;
-      
-    // Add more cases for other query types as needed
-  }
-  
-  return context;
 }
 
 /**
@@ -426,19 +513,130 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
     }
   }
   
-  // Add treatment information if available and relevant
+  // Add plan items if available and relevant
+  if (context.planItems && context.planItems.length > 0) {
+    contextStr += "\nCurrent Health Plan:\n";
+    // Group items by type for better organization
+    const groupedItems: Record<string, any[]> = {};
+    
+    context.planItems.forEach((item: any) => {
+      if (!groupedItems[item.type]) {
+        groupedItems[item.type] = [];
+      }
+      groupedItems[item.type].push(item);
+    });
+    
+    // Display items by type groups
+    Object.keys(groupedItems).forEach(type => {
+      contextStr += `\n${type.charAt(0).toUpperCase() + type.slice(1)}s:\n`;
+      
+      groupedItems[type].forEach((item: any) => {
+        contextStr += `- ${item.title}\n`;
+        
+        if (item.dueDate) {
+          const date = new Date(item.dueDate);
+          contextStr += `  Due: ${date.toLocaleDateString()}\n`;
+        }
+        
+        if (item.notes) {
+          contextStr += `  Notes: ${item.notes}\n`;
+        }
+        
+        if (item.frequency) {
+          contextStr += `  Frequency: ${item.frequency}\n`;
+        }
+        
+        if (item.dosage) {
+          contextStr += `  Dosage: ${item.dosage}\n`;
+        }
+      });
+    });
+  }
+  
+  // Add treatment information if available and relevant (legacy support)
   if (context.treatments && context.treatments.length > 0 && 
       (queryType === QueryType.TREATMENT || queryType === QueryType.CLINICAL_TRIAL || 
        queryType === QueryType.ALTERNATIVE_TREATMENT || queryType === QueryType.INTERACTION)) {
-    contextStr += "\nCurrent Treatments:\n";
-    context.treatments.forEach((treatment, index) => {
-      contextStr += `- ${treatment.name} (${treatment.type})\n`;
-      if (treatment.startDate) {
-        const date = new Date(treatment.startDate);
-        contextStr += `  Started: ${date.toLocaleDateString()}\n`;
+    // Only add this section if we don't already have plan items of type 'treatment'
+    if (!context.planItems || !context.planItems.some((item: any) => item.type === 'treatment' || item.type === 'medication')) {
+      contextStr += "\nCurrent Treatments (Legacy):\n";
+      context.treatments.forEach((treatment, index) => {
+        contextStr += `- ${treatment.name} (${treatment.type})\n`;
+        if (treatment.startDate) {
+          const date = new Date(treatment.startDate);
+          contextStr += `  Started: ${date.toLocaleDateString()}\n`;
+        }
+        if (treatment.notes) {
+          contextStr += `  Notes: ${treatment.notes}\n`;
+        }
+      });
+    }
+  }
+  
+  // Add journal logs if available and relevant
+  if (context.journalLogs && context.journalLogs.length > 0) {
+    contextStr += "\nRecent Journal Entries:\n";
+    
+    // Limit to most recent 3 entries to avoid too much context
+    const recentLogs = context.journalLogs.slice(0, 3);
+    
+    recentLogs.forEach(log => {
+      const date = new Date(log.entryDate);
+      contextStr += `- Entry from ${date.toLocaleDateString()}\n`;
+      
+      if (log.mood) {
+        contextStr += `  Mood: ${log.mood}\n`;
       }
-      if (treatment.notes) {
-        contextStr += `  Notes: ${treatment.notes}\n`;
+      
+      if (log.painLevel !== null && log.painLevel !== undefined) {
+        contextStr += `  Pain Level: ${log.painLevel}/10\n`;
+      }
+      
+      if (log.energyLevel !== null && log.energyLevel !== undefined) {
+        contextStr += `  Energy Level: ${log.energyLevel}/10\n`;
+      }
+      
+      if (log.sleepQuality !== null && log.sleepQuality !== undefined) {
+        contextStr += `  Sleep Quality: ${log.sleepQuality}/10\n`;
+      }
+      
+      if (log.symptoms && log.symptoms.length > 0) {
+        contextStr += `  Symptoms: ${log.symptoms.join(', ')}\n`;
+      }
+      
+      // Include a snippet of the content if available
+      if (log.content) {
+        const contentSnippet = log.content.length > 100 ? 
+          log.content.substring(0, 100) + '...' : log.content;
+        contextStr += `  Notes: ${contentSnippet}\n`;
+      }
+    });
+  }
+  
+  // Add diet logs if available and relevant for treatment and interaction queries
+  if (context.dietLogs && context.dietLogs.length > 0 && 
+      (queryType === QueryType.INTERACTION || queryType === QueryType.TREATMENT)) {
+    contextStr += "\nRecent Diet Information:\n";
+    
+    // Limit to most recent 3 entries
+    const recentDietLogs = context.dietLogs.slice(0, 3);
+    
+    recentDietLogs.forEach(log => {
+      const date = new Date(log.mealDate);
+      contextStr += `- Meal on ${date.toLocaleDateString()}\n`;
+      
+      if (log.mealType) {
+        contextStr += `  Type: ${log.mealType}\n`;
+      }
+      
+      if (log.foods && log.foods.length > 0) {
+        contextStr += `  Foods: ${log.foods.join(', ')}\n`;
+      }
+      
+      if (log.notes) {
+        const notesSnippet = log.notes.length > 100 ? 
+          log.notes.substring(0, 100) + '...' : log.notes;
+        contextStr += `  Notes: ${notesSnippet}\n`;
       }
     });
   }
@@ -469,29 +667,36 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   // Add alternative treatment information if available and relevant
   if (context.alternativeTreatments && context.alternativeTreatments.length > 0 && 
       (queryType === QueryType.ALTERNATIVE_TREATMENT || queryType === QueryType.INTERACTION)) {
-    contextStr += "\nAlternative Treatments:\n";
-    context.alternativeTreatments.forEach((treatment, index) => {
-      contextStr += `- ${treatment.name} (${treatment.category})\n`;
-      
-      if (treatment.background) {
-        contextStr += `  Background: ${treatment.background}\n`;
-      }
-      
-      if (treatment.evidenceRating) {
-        contextStr += `  Evidence Rating: ${treatment.evidenceRating}\n`;
-      }
-      
-      if (treatment.safetyRating) {
-        contextStr += `  Safety Rating: ${treatment.safetyRating}\n`;
-      }
-      
-      // Add a brief excerpt from the description if available
-      if (treatment.description) {
-        const descriptionSnippet = treatment.description.length > 100 ? 
-          treatment.description.substring(0, 100) + '...' : treatment.description;
-        contextStr += `  Description: ${descriptionSnippet}\n`;
-      }
-    });
+    // Only add if we don't already have plan items of type 'alternative' or 'supplement'
+    if (!context.planItems || !context.planItems.some((item: any) => 
+        item.type === 'alternative' || 
+        item.type === 'supplement' || 
+        item.type === 'herb' || 
+        item.type === 'vitamin')) {
+      contextStr += "\nAlternative Treatments (Legacy):\n";
+      context.alternativeTreatments.forEach((treatment, index) => {
+        contextStr += `- ${treatment.name} (${treatment.category})\n`;
+        
+        if (treatment.background) {
+          contextStr += `  Background: ${treatment.background}\n`;
+        }
+        
+        if (treatment.evidenceRating) {
+          contextStr += `  Evidence Rating: ${treatment.evidenceRating}\n`;
+        }
+        
+        if (treatment.safetyRating) {
+          contextStr += `  Safety Rating: ${treatment.safetyRating}\n`;
+        }
+        
+        // Add a brief excerpt from the description if available
+        if (treatment.description) {
+          const descriptionSnippet = treatment.description.length > 100 ? 
+            treatment.description.substring(0, 100) + '...' : treatment.description;
+          contextStr += `  Description: ${descriptionSnippet}\n`;
+        }
+      });
+    }
   }
   
   return contextStr;
