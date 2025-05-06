@@ -13,16 +13,16 @@ export default function Help() {
   // Sample FAQ data
   const faqItems = [
     {
-      question: "What is THRIVE and how does it work?",
-      answer: "THRIVE (Therapeutic Health Research Intelligent Virtual Explorer) is an AI research assistant designed specifically for cancer patients. It uses advanced AI models to help you research your condition, understand treatment options, find clinical trials, and organize your medical information. THRIVE connects to medical databases like PubMed and ClinicalTrials.gov to provide you with accurate, up-to-date information."
+      question: "What is Sophera and how does it work?",
+      answer: "Sophera (formerly THRIVE) is a human-centric AI healing companion designed specifically for cancer patients. It uses advanced AI models to help you research your condition, understand treatment options, find clinical trials, and organize your medical information in a compassionate way. Sophera connects to medical databases like PubMed and ClinicalTrials.gov to provide you with accurate, up-to-date information while focusing on the human elements of your healing journey."
     },
     {
-      question: "How accurate is the information THRIVE provides?",
-      answer: "THRIVE sources information from reputable medical databases and research publications. However, it's important to remember that THRIVE is a research tool, not a replacement for professional medical advice. Always consult with your healthcare providers before making medical decisions based on any information provided by THRIVE."
+      question: "How accurate is the information Sophera provides?",
+      answer: "Sophera sources information from reputable medical databases and research publications. However, it's important to remember that Sophera is a healing companion and research tool, not a replacement for professional medical advice. Always consult with your healthcare providers before making medical decisions based on any information provided by Sophera."
     },
     {
       question: "Is my medical information secure?",
-      answer: "Yes, security and privacy are top priorities. Your personal medical information is encrypted and stored securely. THRIVE does not share your information with third parties without your explicit consent. You can review and adjust your privacy settings at any time in the Preferences section."
+      answer: "Yes, security and privacy are top priorities. Your personal medical information is encrypted and stored securely. Sophera does not share your information with third parties without your explicit consent. You can review and adjust your privacy settings at any time in the Settings & Profile section."
     },
     {
       question: "How do I upload medical documents?",

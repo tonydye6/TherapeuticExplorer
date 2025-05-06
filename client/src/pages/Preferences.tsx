@@ -369,7 +369,7 @@ export default function Preferences() {
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>
-                  Manage how and when you receive updates from THRIVE.
+                  Manage how and when you receive updates from Sophera.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -514,7 +514,7 @@ export default function Preferences() {
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Data Export</FormLabel>
                         <FormDescription>
-                          Download all your personal data stored in THRIVE.
+                          Download all your personal data stored in Sophera.
                         </FormDescription>
                       </div>
                       <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -539,7 +539,7 @@ export default function Preferences() {
                   <div className="pt-4 border-t">
                     <h3 className="text-sm font-medium mb-2">Privacy Policy</h3>
                     <p className="text-sm text-gray-500 mb-4">
-                      THRIVE is committed to protecting your privacy and ensuring your personal information remains confidential.
+                      Sophera is committed to protecting your privacy and ensuring your personal information remains confidential.
                     </p>
                     <Button variant="link" className="p-0 h-auto text-primary-800">
                       View Full Privacy Policy
@@ -581,7 +581,7 @@ export default function Preferences() {
                         </div>
                       </div>
                       <p className="text-sm text-gray-500">
-                        THRIVE automatically selects the optimal AI model for each query, but you can set a preference here.
+                        Sophera automatically selects the optimal AI model for each query, but you can set a preference here.
                       </p>
                     </div>
                   </div>
