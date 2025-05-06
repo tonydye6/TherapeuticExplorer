@@ -61,6 +61,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Sophera custom colors
+        sophera: {
+          50: "#f0f6f5",  // Lightest - Sidebar background
+          100: "#e6f2f0", // Light - Active sidebar item background
+          200: "#dce9e7", // Light-medium - Sidebar footer background
+          300: "#c2dad6", // Medium
+          400: "#a8cbc5", // Medium-dark
+          500: "#8ebcb4", // Primary medium
+          600: "#74ad9e", // Primary base (corresponds to primary color)
+          700: "#5a8e83", // Dark
+          800: "#406f65", // Darker
+          900: "#265047", // Darkest
+        },
       },
       keyframes: {
         "accordion-down": {

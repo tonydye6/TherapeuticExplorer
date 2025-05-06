@@ -246,10 +246,10 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
                     >
                       <div
                         className={cn(
-                          "flex items-center px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
+                          "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
                           isActive
-                            ? "bg-primary-50 text-primary-700 shadow-sm border-l-2 border-primary-500"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-[#e6f2f0] text-primary-700 shadow-sm border-l-2 border-primary-500"
+                            : "text-gray-600 hover:bg-[#e6f2f0]/50 hover:text-gray-900"
                         )}
                         tabIndex={0}
                         role="link"
@@ -275,7 +275,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       </nav>
 
       {/* User profile */}
-      <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-gray-50">
+      <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-[#dce9e7]">
         {isAuthenticated && user ? (
           <div className="flex flex-col space-y-3">
             <div className="flex items-center space-x-3">
@@ -304,7 +304,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
             <div className="flex space-x-2 justify-between">
               <Link href="/settings/profile" className="flex-1">
                 <button 
-                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-[#f0f6f5] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
                   aria-label="Go to settings"
                 >
                   <Settings className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
@@ -313,7 +313,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
               </Link>
               <Link href="/logout" className="flex-1">
                 <button 
-                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-[#f0f6f5] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
                   aria-label="Log out of your account"
                 >
                   <LogOut className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
