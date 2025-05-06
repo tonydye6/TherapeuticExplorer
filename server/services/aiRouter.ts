@@ -21,6 +21,7 @@ interface UserContext {
   treatmentComparisons?: any[]; // For storing treatment comparison information
   treatmentSideEffects?: any[]; // For storing treatment side effects information
   treatmentTimelines?: any[]; // For storing treatment timeline information
+  effectiveHopeSnippets?: any[]; // Added for Backend Chunk 9 - Hope Module Integration
 }
 
 // Configuration for model routing
@@ -871,6 +872,11 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
 function formatContextForLLM(context: UserContext, queryType: QueryType): string {
   let contextStr = "";
   
+  // For hope and emotional support queries, use the hope service's specialized formatting
+  if (queryType === QueryType.HOPE || queryType === QueryType.EMOTIONAL_SUPPORT) {
+    return hopeService.formatHopeContext(context, queryType);
+  }
+  
   // Add basic user profile information
   if (context.userProfile) {
     contextStr += "User Information:\n";
@@ -1276,6 +1282,38 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
 async function processUserMessage(message: string, userId: string, providedContext?: any, preferredModel?: ModelType): Promise<AIResponse> {
   // Analyze the query type
   const queryType = await analyzeQueryType(message);
+  
+  // For hope and emotional support queries, use the specialized Hope Module
+  if (queryType === QueryType.HOPE || queryType === QueryType.EMOTIONAL_SUPPORT) {
+    try {
+      // Get user context for hope/emotional support
+      const userContext = await getUserContext(userId, queryType);
+      
+      // For hope queries, try to generate a hope message using the hope service
+      const hopeResponse = await hopeService.generateHopeMessage(userId, message, queryType);
+      
+      // Return a formatted AI response
+      return {
+        content: hopeResponse.content,
+        modelUsed: ModelType.CLAUDE, // Hope messages use Claude for empathetic responses
+        sources: hopeResponse.sourceSnippet ? [{
+          id: hopeResponse.sourceSnippet.id?.toString() || 'custom',
+          title: hopeResponse.sourceSnippet.title || 'Hope Message',
+          type: 'hope_snippet',
+          confidence: 1.0
+        }] : [],
+        timestamp: new Date(),
+        metadata: {
+          isCustomGenerated: hopeResponse.isCustomGenerated,
+          category: hopeResponse.sourceSnippet?.category || 'general',
+          queryType: queryType
+        }
+      };
+    } catch (error: any) {
+      console.error('Error processing hope/emotional support message:', error);
+      // Fall through to normal processing if hope-specific handling fails
+    }
+  }
   
   // Special handling for document questions using Vertex AI Search
   if (queryType === QueryType.DOCUMENT_QUESTION) {
