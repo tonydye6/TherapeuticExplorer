@@ -1,0 +1,34 @@
+﻿Sophera Agent Task: Visual Design Overhaul
+Objective: Implement a complete visual redesign of the Sophera application UI to create a calm, hopeful, warm, and clean aesthetic, replacing the current generic/clinical look. Refer to sophera_ux_ui_design_doc for overall guidelines.
+Target Audience: Replit Agent
+Instructions:
+1. Apply New Color Palette:
+   * Globally update the application's color scheme.
+   * Primary Backgrounds (Main Content Area): Use a very light, warm neutral (soft beige or off-white).
+   * Sidebar/Navigation Background: Use a slightly darker warm neutral or a soft, muted primary color (calm blue or green).
+   * Primary Interactive Elements (Buttons, Active States): Use the primary calm blue or green.
+   * Accent Color (Hopeful): Use the gentle yellow or soft orange sparingly for key positive actions, highlights, or subtle decorative elements.
+   * Text: Ensure high contrast. Use a dark gray or deep muted blue/green for body text, not pure black. Use primary/accent colors for links or key headings where appropriate.
+   * Review: Check all pages in all_pages.pdf and apply the new palette consistently. Remove the stark white backgrounds and default blue accents.
+2. Implement Typography:
+   * Set the primary font globally to a legible, friendly sans-serif like "Inter" or "Nunito Sans". Ensure the font is imported correctly.
+   * Establish a clear typographic hierarchy using font size and weight (e.g., larger, bolder headings; clear body text size like 16px; smaller helper text).
+   * Increase line spacing (line-height) for body text to improve readability (e.g., 1.5-1.6).
+   * Review: Check text on all pages for legibility, consistent font usage, and clear hierarchy. Replace default system fonts.
+3. Refine Layout & Spacing:
+   * Increase whitespace throughout the application. Add more padding within components (cards, buttons, list items) and margins between elements.
+   * Reduce information density on screens identified as cluttered (e.g., AI Explainer - PDF pg 7, Treatment Guides - PDF pg 8).
+   * Ensure consistent alignment and spacing rules are applied.
+   * Review: Evaluate pages like the Dashboard (PDF pg 1), My Plan (PDF pg 2), AI Explainer (PDF pg 7) and ensure they feel less cramped and more breathable.
+4. Implement Soft Edges & Updated Components:
+   * Apply consistent, subtle rounded corners (e.g., border-radius: 8px; or similar) to all buttons, cards, input fields, modals, and main containers. Remove sharp edges.
+   * Redesign standard buttons to use the primary color, have sufficient padding, clear text labels, and rounded corners. Add subtle hover/active states.
+   * Update card components (e.g., Document cards - PDF pg 13, Trial cards - PDF pg 17) to use the new theme, rounded corners, and improved internal spacing.
+5. Incorporate Subtle Visual Elements:
+   * (Optional, if feasible) Consider adding very subtle background gradients (using the primary/neutral palette) or abstract background patterns/textures in key areas (like the dashboard or section headers) to add warmth without distraction.
+   * Ensure all icons used are from a single, consistent, clean set (e.g., Material Symbols) and are sized appropriately. Review icons in the sidebar (PDF pg 1-6) and ensure consistency.
+6. Sidebar Refinement:
+   * Apply the designated sidebar background color.
+   * Ensure consistent padding and spacing for navigation items.
+   * Implement a clear but subtle active state indicator (e.g., background color change and/or left border) as defined in sophera_sidebar_design.
+   * Implement the header (Sophera logo/name) and footer (Settings, User Profile, Logout) sections as described.

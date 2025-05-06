@@ -198,9 +198,9 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
   ];
 
   return (
-    <div className="w-72 bg-white h-full border-r border-gray-100 flex-shrink-0 shadow-sm" id="mobile-sidebar">
+    <div className="w-72 bg-[#f0f6f5] h-full border-r border-gray-100 flex-shrink-0 shadow-sm" id="mobile-sidebar">
       {/* Logo & title */}
-      <div className="px-6 py-6 border-b border-gray-100">
+      <div className="px-6 py-6 border-b border-gray-100 bg-[#e6f2f0]">
         <Link href="/today">
           <div className="flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md p-1" tabIndex={0}>
             <div className="h-10 w-10 rounded-lg bg-primary-600 flex items-center justify-center shadow-sm">
@@ -208,7 +208,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
             </div>
             <div className="ml-3">
               <h2 className="text-xl font-bold text-primary-800">Sophera</h2>
-              <p className="text-xs text-gray-500 -mt-1">Your Healing Companion</p>
+              <p className="text-xs text-gray-600 -mt-1">Your Healing Companion</p>
             </div>
           </div>
         </Link>
