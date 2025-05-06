@@ -915,7 +915,8 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   // Add specific treatment side effects information for TREATMENT_SIDE_EFFECT queries
   if (queryType === QueryType.TREATMENT_SIDE_EFFECT && context.treatmentSideEffects?.length > 0) {
     contextStr += "\nTreatment Side Effects Information:\n";
-    context.treatmentSideEffects.forEach((treatmentSideEffect: any, index: number) => {
+    const sideEffects = context.treatmentSideEffects || [];
+    sideEffects.forEach((treatmentSideEffect: any, index: number) => {
       contextStr += `- ${treatmentSideEffect.treatmentName} (${treatmentSideEffect.treatmentType}):\n`;
       if (treatmentSideEffect.active === false) {
         contextStr += "  [INACTIVE/COMPLETED]\n";
@@ -962,9 +963,10 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
   }
   
   // Add specific treatment timeline information for TREATMENT_TIMELINE queries
-  if (queryType === QueryType.TREATMENT_TIMELINE && context.treatmentTimelines && context.treatmentTimelines.length > 0) {
+  if (queryType === QueryType.TREATMENT_TIMELINE && context.treatmentTimelines?.length > 0) {
     contextStr += "\nTreatment Timeline Information:\n";
-    context.treatmentTimelines.forEach((timeline: any, index: number) => {
+    const timelines = context.treatmentTimelines || [];
+    timelines.forEach((timeline: any, index: number) => {
       contextStr += `- ${timeline.treatmentName} (${timeline.treatmentType}):\n`;
       
       if (timeline.active === false) {
