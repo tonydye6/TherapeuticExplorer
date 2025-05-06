@@ -4,7 +4,11 @@ import { SemanticSearchBar } from "@/components/SemanticSearchBar";
 import { SearchResults } from "@/components/SearchResults";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function SemanticSearchPage() {
+interface SemanticSearchPageProps {
+  inTabView?: boolean;
+}
+
+export default function SemanticSearchPage({ inTabView = false }: SemanticSearchPageProps) {
   const [searchResults, setSearchResults] = useState<ResearchItem[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 

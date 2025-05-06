@@ -77,7 +77,11 @@ function SearchResults({ searchResults, searchQuery, onClearSearch }: SearchResu
   );
 }
 
-export default function DocumentsPage() {
+interface DocumentsPageProps {
+  inTabView?: boolean;
+}
+
+export default function DocumentsPage({ inTabView = false }: DocumentsPageProps) {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
@@ -145,39 +149,64 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className={inTabView ? "" : "container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"}>
       <div className="flex flex-col space-y-6">
-        {/* Header with search and upload */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center text-gray-900">
-              <FileTextIcon className="h-6 w-6 mr-2 text-primary" />
-              Documents
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Upload, store, and analyze your medical documents
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex w-full md:w-auto">
-              <Input
-                placeholder="Search documents..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:w-60 rounded-r-none"
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <Button 
-                variant="default" 
-                className="rounded-l-none"
-                onClick={handleSearch}
-                disabled={!searchQuery.trim() || isSearching}
-              >
-                <SearchIcon className="h-4 w-4" />
-              </Button>
+        {/* Header section - only show when not in tab view */}
+        {!inTabView && (
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center text-gray-900">
+                <FileTextIcon className="h-6 w-6 mr-2 text-primary" />
+                Documents
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Upload, store, and analyze your medical documents
+              </p>
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex w-full md:w-auto">
+                <Input
+                  placeholder="Search documents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full md:w-60 rounded-r-none"
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+                <Button 
+                  variant="default" 
+                  className="rounded-l-none"
+                  onClick={handleSearch}
+                  disabled={!searchQuery.trim() || isSearching}
+                >
+                  <SearchIcon className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Upload Document</DialogTitle>
+                  </DialogHeader>
+                  <DocumentUpload 
+                    onUpload={uploadDocument} 
+                    isUploading={isUploading} 
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        )}
+
+        {/* When in tab view, show compact upload button */}
+        {inTabView && (
+          <div className="flex justify-end mb-4">
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -196,9 +225,9 @@ export default function DocumentsPage() {
               </DialogContent>
             </Dialog>
           </div>
-        </div>
+        )}
 
-        {/* Show search results if there are any */}
+        {/* Search results section */}
         {searchResults !== null && (
           <SearchResults
             searchResults={searchResults}

@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Search, FileText } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export default function JournalLogsPage() {
+interface JournalLogsPageProps {
+  inTabView?: boolean;
+}
+
+export default function JournalLogsPage({ inTabView = false }: JournalLogsPageProps) {
   const { journalLogs, isLoading, createJournalLog, updateJournalLog, deleteJournalLog, isCreating, isUpdating, isDeleting } = useJournalLogs();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -65,19 +69,31 @@ export default function JournalLogsPage() {
   });
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Journal Logs</h1>
-          <p className="text-gray-500">
-            Record and track how you're feeling, your symptoms, and your daily experiences.
-          </p>
+    <div className={inTabView ? "" : "container py-6 space-y-6"}>
+      {!inTabView && (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Journal Logs</h1>
+            <p className="text-gray-500">
+              Record and track how you're feeling, your symptoms, and your daily experiences.
+            </p>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Entry
+          </Button>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Entry
-        </Button>
-      </div>
+      )}
+      
+      {/* Always show this button when in tab view */}
+      {inTabView && (
+        <div className="flex justify-end mb-4">
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Entry
+          </Button>
+        </div>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />

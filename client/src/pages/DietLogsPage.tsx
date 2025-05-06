@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Plus, Search, Utensils } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export default function DietLogsPage() {
+interface DietLogsPageProps {
+  inTabView?: boolean;
+}
+
+export default function DietLogsPage({ inTabView = false }: DietLogsPageProps) {
   const { dietLogs, isLoading, createDietLog, updateDietLog, deleteDietLog, isCreating, isUpdating, isDeleting } = useDietLogs();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -64,19 +68,30 @@ export default function DietLogsPage() {
   });
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Diet Logs</h1>
-          <p className="text-gray-500">
-            Track your meals, nutrition, and how different foods affect your health.
-          </p>
+    <div className={inTabView ? "" : "container py-6 space-y-6"}>
+      {!inTabView && (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Diet Logs</h1>
+            <p className="text-gray-500">
+              Track your meals, nutrition, and how different foods affect your health.
+            </p>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Meal
+          </Button>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Meal
-        </Button>
-      </div>
+      )}
+      
+      {inTabView && (
+        <div className="flex justify-end mb-4">
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Meal
+          </Button>
+        </div>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
