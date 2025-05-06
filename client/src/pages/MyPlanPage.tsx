@@ -32,7 +32,11 @@ const categories = [
   { value: "other", label: "Other" },
 ];
 
-export default function MyPlanPage() {
+interface MyPlanPageProps {
+  inTabView?: boolean;
+}
+
+export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   const { planItems, isLoading } = usePlanItems();
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
@@ -94,17 +98,22 @@ export default function MyPlanPage() {
   const completedItems = filteredItems.filter((item) => item.isCompleted);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Plan</h1>
-          <p className="text-gray-600 mt-1">
-            Track and manage your treatments, medications, and appointments in one place.
-          </p>
+    <div className={inTabView ? "" : "container mx-auto py-8 px-4"}>
+      {!inTabView && (
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Plan</h1>
+            <p className="text-gray-600 mt-1">
+              Track and manage your treatments, medications, and appointments in one place.
+            </p>
+          </div>
+          <div className="mt-4 lg:mt-0">
+            <AddPlanItemDialog />
+          </div>
         </div>
-        <div className="mt-4 lg:mt-0">
-          <AddPlanItemDialog />
-        </div>
+      )}
+      <div className={inTabView ? "flex justify-end mb-4" : "hidden"}>
+        <AddPlanItemDialog />
       </div>
 
       <div className="mb-6">
