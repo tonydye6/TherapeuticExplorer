@@ -15,6 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, ListFilter, Search, AlertTriangle } from "lucide-react";
+import ErrorMessage from "@/components/ErrorMessage";
 
 type FilterOptions = {
   search: string;
@@ -39,19 +40,7 @@ interface MyPlanPageProps {
 export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   const { planItems, isLoading, isError } = usePlanItems();
   
-  // Create an error message component
-  const ErrorMessage = () => (
-    <div className="p-6 rounded-lg border border-red-200 bg-red-50 text-center">
-      <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load your plan</h3>
-      <p className="text-gray-600 mb-4">
-        We're having trouble connecting to the server. Your plan items can't be loaded at this time.
-      </p>
-      <p className="text-sm text-gray-500">
-        This could be due to a temporary connection issue or a problem with the database service.
-      </p>
-    </div>
-  );
+  // Error messages are now handled by the imported ErrorMessage component
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     category: "all",
@@ -67,7 +56,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   };
 
   // Apply filters and sorting to plan items
-  const filteredItems = isError || !planItems ? [] : planItems
+  const filteredItems = isError || !planItems || !Array.isArray(planItems) ? [] : planItems
     .filter((item: any) => {
       // Filter by search term
       if (
@@ -108,8 +97,8 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
       }
     });
 
-  const activeItems = filteredItems.filter((item) => !item.isCompleted);
-  const completedItems = filteredItems.filter((item) => item.isCompleted);
+  const activeItems = filteredItems.filter((item: any) => !item.isCompleted);
+  const completedItems = filteredItems.filter((item: any) => item.isCompleted);
 
   return (
     <div className={inTabView ? "" : "container mx-auto py-8 px-4"}>
@@ -205,7 +194,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <ErrorMessage />
           ) : activeItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeItems.map((item) => (
+              {activeItems.map((item: any) => (
                 <PlanItemCard key={item.id} planItem={item} />
               ))}
             </div>
@@ -233,7 +222,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <ErrorMessage />
           ) : completedItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {completedItems.map((item) => (
+              {completedItems.map((item: any) => (
                 <PlanItemCard key={item.id} planItem={item} />
               ))}
             </div>
@@ -254,7 +243,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <ErrorMessage />
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredItems.map((item) => (
+              {filteredItems.map((item: any) => (
                 <PlanItemCard key={item.id} planItem={item} />
               ))}
             </div>
