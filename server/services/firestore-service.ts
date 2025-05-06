@@ -28,6 +28,163 @@ export const getFirestore = (): Firestore => {
 
 // User Collection Methods
 
+// Document Collection Methods
+
+/**
+ * Get all documents for a user
+ * @param userId User ID
+ * @returns Array of documents
+ */
+export const getDocuments = async (userId: string) => {
+  try {
+    const fs = getFirestore();
+    const documentsSnapshot = await fs.collection('users').doc(userId)
+      .collection('documents')
+      .orderBy('dateAdded', 'desc')
+      .get();
+    
+    if (documentsSnapshot.empty) {
+      return [];
+    }
+    
+    return documentsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      dateAdded: doc.data().dateAdded?.toDate() || new Date(),
+      sourceDate: doc.data().sourceDate?.toDate() || null
+    }));
+  } catch (error) {
+    console.error('Error fetching documents from Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get a document by ID
+ * @param userId User ID
+ * @param documentId Document ID
+ * @returns Document or null if not found
+ */
+export const getDocumentById = async (userId: string, documentId: string) => {
+  try {
+    const fs = getFirestore();
+    const docSnapshot = await fs.collection('users').doc(userId)
+      .collection('documents').doc(documentId).get();
+    
+    if (!docSnapshot.exists) {
+      return null;
+    }
+    
+    return {
+      id: docSnapshot.id,
+      ...docSnapshot.data(),
+      dateAdded: docSnapshot.data()?.dateAdded?.toDate() || new Date(),
+      sourceDate: docSnapshot.data()?.sourceDate?.toDate() || null
+    };
+  } catch (error) {
+    console.error('Error fetching document from Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new document
+ * @param userId User ID
+ * @param documentData Document data
+ * @returns Created document
+ */
+export const createDocument = async (userId: string, documentData: any) => {
+  try {
+    const fs = getFirestore();
+    
+    // Prepare document data with timestamps
+    const docData = {
+      ...documentData,
+      userId,
+      dateAdded: new Date(),
+      sourceDate: documentData.sourceDate || null,
+      // Add Vertex AI Search document ID if available
+      vertexDocumentId: documentData.vertexDocumentId || null
+    };
+    
+    // Add document to Firestore
+    const docRef = await fs.collection('users').doc(userId)
+      .collection('documents').add(docData);
+    
+    return {
+      id: docRef.id,
+      ...docData
+    };
+  } catch (error) {
+    console.error('Error creating document in Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a document's metadata or content
+ * @param userId User ID
+ * @param documentId Document ID
+ * @param updateData Updated document data
+ * @returns Updated document
+ */
+export const updateDocument = async (userId: string, documentId: string, updateData: any) => {
+  try {
+    const fs = getFirestore();
+    const docRef = fs.collection('users').doc(userId)
+      .collection('documents').doc(documentId);
+    
+    // Update the document
+    await docRef.update({
+      ...updateData,
+      lastUpdated: new Date()
+    });
+    
+    // Get the updated document
+    const updated = await docRef.get();
+    
+    return {
+      id: updated.id,
+      ...updated.data(),
+      dateAdded: updated.data()?.dateAdded?.toDate() || new Date(),
+      sourceDate: updated.data()?.sourceDate?.toDate() || null,
+      lastUpdated: updated.data()?.lastUpdated?.toDate() || new Date()
+    };
+  } catch (error) {
+    console.error('Error updating document in Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a document's parsed content
+ * @param userId User ID
+ * @param documentId Document ID
+ * @param parsedContent Parsed content object
+ * @returns Updated document
+ */
+export const updateDocumentParsedContent = async (userId: string, documentId: string, parsedContent: any) => {
+  return updateDocument(userId, documentId, { parsedContent });
+};
+
+/**
+ * Delete a document
+ * @param userId User ID
+ * @param documentId Document ID
+ */
+export const deleteDocument = async (userId: string, documentId: string) => {
+  try {
+    const fs = getFirestore();
+    await fs.collection('users').doc(userId)
+      .collection('documents').doc(documentId).delete();
+  } catch (error) {
+    console.error('Error deleting document from Firestore:', error);
+    throw error;
+  }
+};
+
+// User Collection Methods
+
 /**
  * Get user profile by ID
  * @param userId The user ID to fetch
