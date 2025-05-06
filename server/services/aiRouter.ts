@@ -38,7 +38,10 @@ const modelConfig = {
     [QueryType.TREATMENT_SIDE_EFFECT]: ModelType.GPT, // GPT is good at explaining side effects with context
     [QueryType.TREATMENT_COMPARISON]: ModelType.CLAUDE, // Claude is better at analyzing and comparing multiple options
     [QueryType.TREATMENT_TIMELINE]: ModelType.GPT, // GPT for detailed timeline explanations
-    [QueryType.TREATMENT_EXPLANATION]: ModelType.GPT // GPT for plain language treatment explanations
+    [QueryType.TREATMENT_EXPLANATION]: ModelType.GPT, // GPT for plain language treatment explanations
+    // Added for Backend Chunk 8 - Creative Exploration Sandbox
+    [QueryType.CREATIVE_EXPLORATION]: ModelType.GEMINI, // Gemini is excellent for multi-modal, creative exploration
+    [QueryType.DOCTOR_BRIEF]: ModelType.GPT // GPT for structured doctor briefs generation
   },
   
   // Fallback models if primary is unavailable
@@ -192,6 +195,35 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
     return QueryType.DOCUMENT_QUESTION;
   }
   
+  // Check for Creative Exploration Sandbox requests (Backend Chunk 8)
+  if (lowerQuery.includes('creative exploration') ||
+      lowerQuery.includes('brainstorm') ||
+      lowerQuery.includes('let\'s explore') ||
+      lowerQuery.includes('think outside the box') ||
+      lowerQuery.includes('generate ideas') ||
+      lowerQuery.includes('creative ideas') ||
+      lowerQuery.includes('creative solutions') ||
+      lowerQuery.includes('explore possibilities') ||
+      lowerQuery.includes('what if') ||
+      lowerQuery.includes('sandbox') ||
+      lowerQuery.includes('creativity session')) {
+    return QueryType.CREATIVE_EXPLORATION;
+  }
+  
+  // Check for Doctor Brief generation requests (Backend Chunk 8)
+  if (lowerQuery.includes('doctor brief') ||
+      lowerQuery.includes('medical brief') ||
+      lowerQuery.includes('medical summary') ||
+      lowerQuery.includes('doctor summary') ||
+      lowerQuery.includes('healthcare provider summary') ||
+      lowerQuery.includes('doctor report') ||
+      lowerQuery.includes('prepare for appointment') ||
+      lowerQuery.includes('appointment summary') ||
+      lowerQuery.includes('summary for my doctor') ||
+      lowerQuery.includes('medical visit preparation')) {
+    return QueryType.DOCTOR_BRIEF;
+  }
+  
   // Check for alternative treatment queries
   if (lowerQuery.includes('alternative treatment') || 
       lowerQuery.includes('holistic') || 
@@ -316,6 +348,35 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
       lowerQuery.includes('my notes') ||
       lowerQuery.includes('my documents')) {
     return QueryType.DOCUMENT_QUESTION;
+  }
+  
+  // Check for Creative Exploration Sandbox requests (Backend Chunk 8)
+  if (lowerQuery.includes('creative exploration') ||
+      lowerQuery.includes('brainstorm') ||
+      lowerQuery.includes('let\'s explore') ||
+      lowerQuery.includes('think outside the box') ||
+      lowerQuery.includes('generate ideas') ||
+      lowerQuery.includes('creative ideas') ||
+      lowerQuery.includes('creative solutions') ||
+      lowerQuery.includes('explore possibilities') ||
+      lowerQuery.includes('what if') ||
+      lowerQuery.includes('sandbox') ||
+      lowerQuery.includes('creativity session')) {
+    return QueryType.CREATIVE_EXPLORATION;
+  }
+  
+  // Check for Doctor Brief generation requests (Backend Chunk 8)
+  if (lowerQuery.includes('doctor brief') ||
+      lowerQuery.includes('medical brief') ||
+      lowerQuery.includes('medical summary') ||
+      lowerQuery.includes('doctor summary') ||
+      lowerQuery.includes('healthcare provider summary') ||
+      lowerQuery.includes('doctor report') ||
+      lowerQuery.includes('prepare for appointment') ||
+      lowerQuery.includes('appointment summary') ||
+      lowerQuery.includes('summary for my doctor') ||
+      lowerQuery.includes('medical visit preparation')) {
+    return QueryType.DOCTOR_BRIEF;
   }
   
   // Check for alternative treatment queries
@@ -445,6 +506,58 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
     
     // Fetch additional context based on query type
     switch (queryType) {
+      // Creative Exploration Sandbox and Doctor Brief (Backend Chunk 8)
+      case QueryType.CREATIVE_EXPLORATION:
+      case QueryType.DOCTOR_BRIEF:
+        try {
+          // For creative exploration, fetch comprehensive user context
+          // to enable personalized brainstorming and idea generation
+          
+          // Include all plan items for context
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems;
+          
+          // Include recent journal logs for emotional context and personal experiences
+          const threeMonthsAgo = new Date();
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          context.journalLogs = await firestoreService.getJournalLogs(userId, threeMonthsAgo);
+          
+          // Include recent diet logs for lifestyle context
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+          context.dietLogs = await firestoreService.getDietLogs(userId, oneMonthAgo);
+          
+          // Include saved research for knowledge context
+          if (storage.getResearchItems) {
+            context.savedResearch = await storage.getResearchItems(userId);
+          }
+          
+          // Include treatment information
+          if (storage.getTreatments) {
+            context.treatments = await storage.getTreatments(userId);
+          }
+          
+          // Include alternative treatments for holistic exploration
+          if (storage.getAlternativeTreatments) {
+            context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
+          }
+          
+          // For doctor brief, we need comprehensive but concise context
+          if (queryType === QueryType.DOCTOR_BRIEF) {
+            // Limit the amount of information to keep the brief focused
+            if (context.journalLogs && context.journalLogs.length > 5) {
+              context.journalLogs = context.journalLogs.slice(0, 5); // Only most recent 5 logs
+            }
+            
+            if (context.savedResearch && context.savedResearch.length > 3) {
+              context.savedResearch = context.savedResearch.slice(0, 3); // Only most relevant research
+            }
+          }
+        } catch (error: any) {
+          console.warn('Error fetching creative exploration context:', error);
+        }
+        break;
+        
       // Treatment specialized query types from Backend Chunk 7
       case QueryType.TREATMENT_SIDE_EFFECT:
       case QueryType.TREATMENT_COMPARISON:

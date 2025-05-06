@@ -416,6 +416,9 @@ export enum QueryType {
   TREATMENT_COMPARISON = "treatment_comparison",
   TREATMENT_TIMELINE = "treatment_timeline",
   TREATMENT_EXPLANATION = "treatment_explanation",
+  // Added for Backend Chunk 8 - Creative Exploration Sandbox
+  CREATIVE_EXPLORATION = "creative_exploration",
+  DOCTOR_BRIEF = "doctor_brief",
 }
 
 // Source interface for citation and attribution
