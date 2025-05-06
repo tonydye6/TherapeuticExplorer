@@ -21,6 +21,7 @@ interface ChatInterfaceProps {
   className?: string;
   inputValue?: string;
   onInputChange?: (value: string) => void;
+  onMessageSend?: (response: any) => void;
 }
 
 export default function ChatInterface({
@@ -32,7 +33,8 @@ export default function ChatInterface({
   preferredModel,
   className,
   inputValue: externalInputValue,
-  onInputChange
+  onInputChange,
+  onMessageSend
 }: ChatInterfaceProps) {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -149,21 +151,26 @@ export default function ChatInterface({
       }
 
       // Replace the loading message with the actual response
+      const processedResponse = {
+        ...tempAssistantMessage,
+        content: {
+          text: response.content,
+          treatments: response.treatments || [],
+          clinicalTrials: response.clinicalTrials || [],
+          sources: response.sources || [],
+        },
+        modelUsed: response.modelUsed || preferredModel || ModelType.GPT,
+        isLoading: false,
+      };
+      
       setMessages(prev => prev.map(msg => 
-        msg.id === tempAssistantMessage.id
-          ? {
-              ...tempAssistantMessage,
-              content: {
-                text: response.content,
-                treatments: response.treatments || [],
-                clinicalTrials: response.clinicalTrials || [],
-                sources: response.sources || [],
-              },
-              modelUsed: response.modelUsed || preferredModel || ModelType.GPT,
-              isLoading: false,
-            }
-          : msg
+        msg.id === tempAssistantMessage.id ? processedResponse : msg
       ));
+      
+      // Call onMessageSend if it exists
+      if (onMessageSend) {
+        onMessageSend(response);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
 
