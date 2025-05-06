@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const MyJourneyPage = () => {
   const [activeId, setActiveId] = useState('plan');
+  const [isPageError, setIsPageError] = useState(false);
 
   const tabs = [
     {

@@ -11,8 +11,11 @@ export function usePlanItems() {
     data: planItems = [],
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ["/api/plan-items"],
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Create plan item

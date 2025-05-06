@@ -37,7 +37,7 @@ interface MyPlanPageProps {
 }
 
 export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
-  const { planItems, isLoading } = usePlanItems();
+  const { planItems, isLoading, isError } = usePlanItems();
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     category: "all",
