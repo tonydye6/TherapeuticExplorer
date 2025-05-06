@@ -139,10 +139,9 @@ export default function DocumentsPage() {
     .sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())
     .slice(0, 5);
 
-  const getFilteredDocuments = () => {
-    if (selectedTab === "all") return filteredDocuments;
-    if (selectedTab === "recent") return recentDocuments;
-    return [];
+  const handleCloseViewer = () => {
+    setIsViewerOpen(false);
+    setSelectedDocumentId(null);
   };
 
   return (
@@ -289,6 +288,10 @@ export default function DocumentsPage() {
                         onDelete={deleteDocument}
                         onExtractText={extractText}
                         onAskQuestion={askQuestion}
+                        onView={(id) => {
+                          setSelectedDocumentId(id);
+                          setIsViewerOpen(true);
+                        }}
                         isDeleting={isDeleting}
                         isExtracting={isExtracting}
                       />
@@ -332,6 +335,10 @@ export default function DocumentsPage() {
                         onDelete={deleteDocument}
                         onExtractText={extractText}
                         onAskQuestion={askQuestion}
+                        onView={(id) => {
+                          setSelectedDocumentId(id);
+                          setIsViewerOpen(true);
+                        }}
                         isDeleting={isDeleting}
                         isExtracting={isExtracting}
                       />
@@ -343,6 +350,13 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer */}
+      <DocumentViewer
+        documentId={selectedDocumentId}
+        isOpen={isViewerOpen}
+        onClose={handleCloseViewer}
+      />
     </div>
   );
 }
