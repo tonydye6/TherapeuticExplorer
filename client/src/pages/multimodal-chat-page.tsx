@@ -22,7 +22,11 @@ interface MultimodalResponse {
   modelUsed: string;
 }
 
-export default function MultimodalChatPage() {
+interface MultimodalChatPageProps {
+  inTabView?: boolean;
+}
+
+export default function MultimodalChatPage({ inTabView = false }: MultimodalChatPageProps) {
   const [responses, setResponses] = useState<MultimodalResponse[]>([]);
 
   const handleResponseReceived = (response: MultimodalResponse) => {
