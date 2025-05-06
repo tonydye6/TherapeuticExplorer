@@ -431,6 +431,4 @@ class VertexSearchService {
 }
 
 // Export a singleton instance of the service
-
-// Export a singleton instance of the service
 export const vertexSearchService = new VertexSearchService();
