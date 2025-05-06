@@ -44,7 +44,7 @@
 
   /* Card styles */
   .card {
-    @apply bg-white rounded-lg border border-gray-100 shadow-sm p-6;
+    @apply bg-white rounded-lg border border-sophera-100 shadow-sm p-6;
   }
 
   /* Button styles */
@@ -66,7 +66,7 @@
 
   /* Input styles */
   input, textarea, select {
-    @apply rounded-md border border-gray-200 px-3 py-2;
+    @apply rounded-md border border-sophera-100 px-3 py-2 focus:border-sophera-300 focus:ring focus:ring-sophera-200 focus:ring-opacity-50;
   }
 }
 
