@@ -7,9 +7,15 @@ import { toast } from "@/hooks/use-toast";
 
 type SemanticSearchBarProps = {
   onResultsFound: (results: ResearchItem[]) => void;
+  placeholder?: string;
+  className?: string;
 };
 
-export function SemanticSearchBar({ onResultsFound }: SemanticSearchBarProps) {
+export function SemanticSearchBar({ 
+  onResultsFound, 
+  placeholder = "Search your saved research semantically...",
+  className = "" 
+}: SemanticSearchBarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
@@ -51,11 +57,11 @@ export function SemanticSearchBar({ onResultsFound }: SemanticSearchBarProps) {
   };
 
   return (
-    <div className="flex w-full max-w-3xl gap-2 mb-6">
+    <div className={`flex w-full max-w-3xl gap-2 mb-6 ${className}`}>
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search your saved research semantically..."
+          placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}

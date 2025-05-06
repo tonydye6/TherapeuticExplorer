@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabsLayout } from '@/components/ui/tabs-layout';
-import AIExplainerPage from './SemanticSearch';
+import AIExplainerPage from './AIExplainerPage';
 import TreatmentTracker from './TreatmentTracker';
 import SideEffectAnalyzer from './SideEffectAnalyzer';
 import DocumentsPage from './DocumentsPage';

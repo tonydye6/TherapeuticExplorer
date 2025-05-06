@@ -68,6 +68,15 @@ const SideEffectAnalyzer = ({ inTabView = false }: SideEffectAnalyzerProps) => {
       priorAdverseReactions: []
     }
   });
+  
+  // Helpful tips for users
+  const helpfulTips = [
+    "The more information you provide, the more accurate and personalized the side effect analysis will be.",
+    "Even if you don't know all the answers, provide as much as you feel comfortable sharing.",
+    "Your personal information is used only for this analysis and is not shared or stored.",
+    "Understanding potential side effects before starting treatment can help you prepare and feel more in control.",
+    "You can save this analysis to share with your healthcare team."
+  ];
 
   // Side effect analysis mutation
   const analyzeMutation = useMutation({
@@ -160,13 +169,44 @@ const SideEffectAnalyzer = ({ inTabView = false }: SideEffectAnalyzerProps) => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Side Effect Analyzer</h1>
+      {!inTabView && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2 flex items-center">
+            <Activity className="h-6 w-6 mr-2 text-primary" />
+            Interaction Checker
+          </h1>
+          <p className="text-muted-foreground">
+            Learn about potential side effects tailored to your specific health profile and treatment plan
+          </p>
+        </div>
+      )}
+      
+      <Card className="border-primary/20 bg-slate-50 dark:bg-slate-900 mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Understanding Your Treatment Journey</CardTitle>
+          <CardDescription>
+            Knowing what to expect helps you prepare mentally and physically for treatment.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {helpfulTips.map((tip, index) => (
+              <div key={index} className="flex items-start p-3 bg-white dark:bg-slate-800 rounded-lg border shadow-sm">
+                <div className="mr-3 mt-0.5 text-primary">
+                  <InfoIcon className="h-5 w-5" />
+                </div>
+                <p className="text-sm">{tip}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="patient-info">Treatment & Patient Information</TabsTrigger>
+          <TabsTrigger value="patient-info">Your Health Profile</TabsTrigger>
           <TabsTrigger value="results" disabled={!sideEffectProfile}>
-            Side Effect Profile
+            Personalized Insights
           </TabsTrigger>
         </TabsList>
         

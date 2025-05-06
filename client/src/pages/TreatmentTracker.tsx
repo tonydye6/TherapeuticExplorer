@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import MedicalTimeline, { MedicalEvent, MedicalEventType } from "@/components/MedicalTimeline";
 import AddTreatmentDialog from "@/components/AddTreatmentDialog";
 import TreatmentCard from "@/components/TreatmentCard";
@@ -28,7 +29,11 @@ import {
   Pill,
   Stethoscope,
   Clock,
-  History
+  History,
+  HeartPulse,
+  Award,
+  InfoIcon,
+  CalendarDays
 } from "lucide-react";
 
 import { Treatment } from "@shared/schema";
@@ -228,22 +233,31 @@ export default function TreatmentTracker({ inTabView = false }: TreatmentTracker
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Treatment Tracker</h1>
-          <div className="flex space-x-2">
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter Events
-            </Button>
-            <Button 
-              className="bg-primary-800 hover:bg-primary-900"
-              onClick={openAddTreatmentDialog}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Treatment
-            </Button>
+        {!inTabView && (
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center">
+                <Stethoscope className="h-6 w-6 mr-2 text-primary" />
+                Treatment Guides
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Track your treatments and see how they're working for you
+              </p>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline">
+                <CalendarDays className="h-4 w-4 mr-2" />
+                View Calendar
+              </Button>
+              <Button 
+                onClick={openAddTreatmentDialog}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Treatment
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Treatments Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -338,9 +352,48 @@ export default function TreatmentTracker({ inTabView = false }: TreatmentTracker
           </TabsContent>
         </Tabs>
 
-        <Separator className="my-2" />
+        <Separator className="my-4" />
+        
+        {/* Treatment Journey Overview */}
+        <Card className="border-primary/20 shadow-sm bg-slate-50 dark:bg-slate-900 mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <HeartPulse className="h-5 w-5 mr-2 text-primary" />
+              Your Treatment Journey
+            </CardTitle>
+            <CardDescription>
+              Everyone's treatment journey is unique. This overview helps you and your care team track progress and stay informed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 border rounded-lg bg-white dark:bg-slate-800">
+                <Award className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-base mb-1">Current Progress</h3>
+                <p className="text-sm text-muted-foreground">
+                  Stay motivated by tracking how far you've come - both physically and emotionally.
+                </p>
+              </div>
+              <div className="text-center p-4 border rounded-lg bg-white dark:bg-slate-800">
+                <Stethoscope className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-base mb-1">Expert Interpretation</h3>
+                <p className="text-sm text-muted-foreground">
+                  Medical data is shown in ways that help you understand what's happening with your treatment.
+                </p>
+              </div>
+              <div className="text-center p-4 border rounded-lg bg-white dark:bg-slate-800">
+                <InfoIcon className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold text-base mb-1">Share with Your Team</h3>
+                <p className="text-sm text-muted-foreground">
+                  All charts and timelines can be shared with your healthcare team for better informed discussions.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Charts and Metrics */}
+        <Separator className="my-4" />
+        
         {/* Medical Timeline */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
