@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, ListFilter, Search } from "lucide-react";
+import { CalendarIcon, ListFilter, Search, AlertTriangle } from "lucide-react";
 
 type FilterOptions = {
   search: string;
@@ -38,6 +38,20 @@ interface MyPlanPageProps {
 
 export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   const { planItems, isLoading, isError } = usePlanItems();
+  
+  // Create an error message component
+  const ErrorMessage = () => (
+    <div className="p-6 rounded-lg border border-red-200 bg-red-50 text-center">
+      <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load your plan</h3>
+      <p className="text-gray-600 mb-4">
+        We're having trouble connecting to the server. Your plan items can't be loaded at this time.
+      </p>
+      <p className="text-sm text-gray-500">
+        This could be due to a temporary connection issue or a problem with the database service.
+      </p>
+    </div>
+  );
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     category: "all",
@@ -53,8 +67,8 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   };
 
   // Apply filters and sorting to plan items
-  const filteredItems = planItems
-    .filter((item) => {
+  const filteredItems = isError || !planItems ? [] : planItems
+    .filter((item: any) => {
       // Filter by search term
       if (
         filters.search &&
@@ -79,7 +93,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
 
       return true;
     })
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       // Sort by selected sort method
       if (filters.sortBy === "date") {
         return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
@@ -187,6 +201,8 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
+          ) : isError ? (
+            <ErrorMessage />
           ) : activeItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {activeItems.map((item) => (
@@ -213,6 +229,8 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
+          ) : isError ? (
+            <ErrorMessage />
           ) : completedItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {completedItems.map((item) => (
@@ -232,6 +250,8 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
+          ) : isError ? (
+            <ErrorMessage />
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredItems.map((item) => (
