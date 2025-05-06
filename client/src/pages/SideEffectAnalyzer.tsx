@@ -35,7 +35,11 @@ const patientSideEffectSchema = z.object({
 
 type PatientSideEffectFormData = z.infer<typeof patientSideEffectSchema>;
 
-const SideEffectAnalyzer = () => {
+interface SideEffectAnalyzerProps {
+  inTabView?: boolean;
+}
+
+const SideEffectAnalyzer = ({ inTabView = false }: SideEffectAnalyzerProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('patient-info');
   const [sideEffectProfile, setSideEffectProfile] = useState<SideEffectProfileType | null>(null);

@@ -57,7 +57,11 @@ const sampleSideEffectData = [
   { date: '2024-02-01', nausea: 0, fatigue: 1, pain: 0 },
 ];
 
-export default function TreatmentTracker() {
+interface TreatmentTrackerProps {
+  inTabView?: boolean;
+}
+
+export default function TreatmentTracker({ inTabView = false }: TreatmentTrackerProps) {
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
