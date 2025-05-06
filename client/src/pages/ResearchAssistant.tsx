@@ -39,7 +39,11 @@ const suggestedPrompts = [
   }
 ];
 
-export default function ResearchAssistant() {
+interface ResearchAssistantProps {
+  inTabView?: boolean;
+}
+
+export default function ResearchAssistant({ inTabView = false }: ResearchAssistantProps) {
   const { toast } = useToast();
   const [inputValue, setInputValue] = useState("");
   const [openCategory, setOpenCategory] = useState<string | null>(null);

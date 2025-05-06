@@ -79,7 +79,11 @@ const sampleTrials = [
   }
 ];
 
-export default function ClinicalTrials() {
+interface ClinicalTrialsProps {
+  inTabView?: boolean;
+}
+
+export default function ClinicalTrials({ inTabView = false }: ClinicalTrialsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [distanceFilter, setDistanceFilter] = useState([200]);
   const [phaseFilter, setPhaseFilter] = useState("all");
