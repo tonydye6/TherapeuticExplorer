@@ -191,89 +191,92 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                 </div>
               </CardHeader>
               <CardContent className="p-0 h-[calc(100%-85px)]">
-                <TabsContent value="chat" className="m-0 h-full">
-                  <div className="h-full">
-                    <Alert className="mb-4 mx-4 mt-2">
-                      <Info className="h-4 w-4" />
-                      <AlertTitle>Human-Friendly Explanations</AlertTitle>
-                      <AlertDescription>
-                        We explain medical information in clear, everyday language to help you understand your options.
-                      </AlertDescription>
-                    </Alert>
-                    <ChatInterface 
-                      title="" 
-                      description=""
-                      inputValue={inputValue}
-                      onInputChange={setInputValue}
-                      preferredModel={ModelType.CLAUDE}
-                      className="h-[calc(100%-70px)]"
-                      onMessageSend={handleSaveResearch}
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="saved" className="m-0 h-full">
-                  <div className="h-full p-4 flex flex-col">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Input 
-                        placeholder="Search saved research..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="max-w-md"
+                {/* Wrap TabsContent inside the same Tabs component */}
+                <Tabs value={activeTab} className="h-full">
+                  <TabsContent value="chat" className="m-0 h-full">
+                    <div className="h-full">
+                      <Alert className="mb-4 mx-4 mt-2">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Human-Friendly Explanations</AlertTitle>
+                        <AlertDescription>
+                          We explain medical information in clear, everyday language to help you understand your options.
+                        </AlertDescription>
+                      </Alert>
+                      <ChatInterface 
+                        title="" 
+                        description=""
+                        inputValue={inputValue}
+                        onInputChange={setInputValue}
+                        preferredModel={ModelType.CLAUDE}
+                        className="h-[calc(100%-70px)]"
+                        onMessageSend={handleSaveResearch}
                       />
                     </div>
-                    
-                    <ScrollArea className="flex-1">
-                      {isLoading ? (
-                        <div className="flex justify-center items-center h-40">
-                          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                        </div>
-                      ) : researchItems && researchItems.length > 0 ? (
-                        <div className="space-y-4">
-                          {researchItems.map((item: any) => (
-                            <Card key={item.id} className="overflow-hidden">
-                              <CardHeader className="p-4 pb-2">
-                                <CardTitle className="text-lg flex justify-between items-start">
-                                  <span className="line-clamp-1">{item.title}</span>
-                                  <Badge variant="outline" className="ml-2 whitespace-nowrap">
-                                    {item.sourceType || 'Research'}
-                                  </Badge>
-                                </CardTitle>
-                                <CardDescription className="line-clamp-2">
-                                  {new Date(item.dateCreated).toLocaleDateString()}
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent className="p-4 pt-0">
-                                <p className="text-sm text-muted-foreground line-clamp-3">{item.content}</p>
-                              </CardContent>
-                              <CardFooter className="p-4 pt-0 flex justify-between">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="text-xs"
-                                  onClick={() => setInputValue(`Tell me more about ${item.title}`)}
-                                >
-                                  <BookOpen className="h-3 w-3 mr-1" />
-                                  Continue Research
-                                </Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center p-8 border rounded-lg bg-muted/30">
-                          <BookmarkPlus className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                          <h3 className="font-medium text-lg mb-1">No Saved Research Yet</h3>
-                          <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
-                            Your research findings will be saved here. Ask questions in the Ask Questions tab to get started.
-                          </p>
-                          <Button onClick={() => setActiveTab("chat")}>
-                            Start Researching
-                          </Button>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </div>
-                </TabsContent>
+                  </TabsContent>
+                  <TabsContent value="saved" className="m-0 h-full">
+                    <div className="h-full p-4 flex flex-col">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Input 
+                          placeholder="Search saved research..." 
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="max-w-md"
+                        />
+                      </div>
+                      
+                      <ScrollArea className="flex-1">
+                        {isLoading ? (
+                          <div className="flex justify-center items-center h-40">
+                            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                          </div>
+                        ) : researchItems && researchItems.length > 0 ? (
+                          <div className="space-y-4">
+                            {researchItems.map((item: any) => (
+                              <Card key={item.id} className="overflow-hidden">
+                                <CardHeader className="p-4 pb-2">
+                                  <CardTitle className="text-lg flex justify-between items-start">
+                                    <span className="line-clamp-1">{item.title}</span>
+                                    <Badge variant="outline" className="ml-2 whitespace-nowrap">
+                                      {item.sourceType || 'Research'}
+                                    </Badge>
+                                  </CardTitle>
+                                  <CardDescription className="line-clamp-2">
+                                    {new Date(item.dateCreated).toLocaleDateString()}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0">
+                                  <p className="text-sm text-muted-foreground line-clamp-3">{item.content}</p>
+                                </CardContent>
+                                <CardFooter className="p-4 pt-0 flex justify-between">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-xs"
+                                    onClick={() => setInputValue(`Tell me more about ${item.title}`)}
+                                  >
+                                    <BookOpen className="h-3 w-3 mr-1" />
+                                    Continue Research
+                                  </Button>
+                                </CardFooter>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center p-8 border rounded-lg bg-muted/30">
+                            <BookmarkPlus className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                            <h3 className="font-medium text-lg mb-1">No Saved Research Yet</h3>
+                            <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
+                              Your research findings will be saved here. Ask questions in the Ask Questions tab to get started.
+                            </p>
+                            <Button onClick={() => setActiveTab("chat")}>
+                              Start Researching
+                            </Button>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>

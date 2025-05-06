@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { MultimodalChat } from '@/components/MultimodalChat';
 import { ModelType } from '@shared/schema';
-import { MessageCircle, Image as ImageIcon, Info, Lightbulb, AlertCircle, FileDown, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, Image as ImageIcon, Info, Lightbulb, AlertCircle, FileDown, CheckCircle2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ModelBadge from '@/components/ModelBadge';
