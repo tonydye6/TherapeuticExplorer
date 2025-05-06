@@ -32,7 +32,7 @@ type AddPlanItemDialogProps = {
 
 export function AddPlanItemDialog({ trigger }: AddPlanItemDialogProps) {
   const [open, setOpen] = useState(false);
-  const { createPlanItem, isPending } = usePlanItems();
+  const { createPlanItem, isCreating } = usePlanItems();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -283,8 +283,8 @@ export function AddPlanItemDialog({ trigger }: AddPlanItemDialogProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isPending.create}>
-              {isPending.create ? "Adding..." : "Add to Plan"}
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? "Adding..." : "Add to Plan"}
             </Button>
           </DialogFooter>
         </form>
