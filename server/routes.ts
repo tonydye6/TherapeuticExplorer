@@ -18,6 +18,7 @@ import { nutritionService } from "./services/nutrition-service";
 import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { caregiverAccessService } from "./services/caregiver-access-service";
 import { documentAnalysisService } from "./services/document-analysis-service";
+import * as hopeService from "./services/hope-service";
 import { multimodalService } from "./services/multimodal-service";
 import * as firestoreService from "./services/firestore-service";
 import { vertexSearchService } from "./services/vertex-search-service";
@@ -2553,6 +2554,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(500).json({ message: "Failed to delete hope snippet" });
+    }
+  });
+
+  // Hope Module - Generate hope message endpoint (Backend Chunk 9)
+  app.post("/api/hope/generate", async (req, res) => {
+    try {
+      const { query, queryType, userId = "1" } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Query text is required" });
+      }
+      
+      // If queryType is not provided, analyze the query to determine the type
+      const detectedQueryType = queryType || hopeService.analyzeHopeQuery(query);
+      
+      if (!detectedQueryType) {
+        return res.status(400).json({ message: "Could not determine query type. Please specify 'HOPE' or 'EMOTIONAL_SUPPORT'" });
+      }
+      
+      // Generate the hope message using the Hope Module service
+      const hopeResponse = await hopeService.generateHopeMessage(userId, query, detectedQueryType);
+      
+      res.json({
+        message: hopeResponse.content,
+        isCustomGenerated: hopeResponse.isCustomGenerated,
+        source: hopeResponse.sourceSnippet ? {
+          id: hopeResponse.sourceSnippet.id,
+          title: hopeResponse.sourceSnippet.title,
+          category: hopeResponse.sourceSnippet.category,
+          author: hopeResponse.sourceSnippet.author
+        } : undefined
+      });
+    } catch (error) {
+      console.error("Error generating hope message:", error);
+      res.status(500).json({ message: "Failed to generate hope message" });
     }
   });
 
