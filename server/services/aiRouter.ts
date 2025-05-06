@@ -481,7 +481,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
     }
     
     return context;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getUserContext:', error);
     // Return minimal context to avoid breaking the entire request
     return { userProfile: { id: userId } };

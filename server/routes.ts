@@ -247,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Process message with AI router, using preferred model if specified
-      const aiResponse = await aiRouter.processQuery(content, preferredModel);
+      const aiResponse = await aiRouter.processQuery(content, preferredModel, DEFAULT_USER_ID);
       
       // Save AI response
       const assistantMessage = await storage.createMessage({
@@ -282,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userMessage = await storage.createMessage(messageData);
       
       // Process message with AI router
-      const aiResponse = await aiRouter.processQuery(req.body.content);
+      const aiResponse = await aiRouter.processQuery(req.body.content, undefined, DEFAULT_USER_ID);
       
       // Save AI response
       const assistantMessage = await storage.createMessage({
