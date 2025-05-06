@@ -41,6 +41,14 @@ const FormField = <
   )
 }
 
+// Create a fallback for when the hook is used outside of a form
+const createFieldState = () => ({
+  invalid: false,
+  isDirty: false,
+  isTouched: false,
+  error: undefined,
+})
+
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
@@ -53,14 +61,14 @@ const useFormField = () => {
     throw new Error("useFormField should be used within <FormItem>")
   }
   
-  let formContext, getFieldState, formState, fieldState;
+  let fieldState;
   try {
-    formContext = useFormContext()
-    getFieldState = formContext.getFieldState
-    formState = formContext.formState
+    const formContext = useFormContext()
+    const { getFieldState, formState } = formContext
     fieldState = getFieldState(fieldContext.name, formState)
   } catch (error) {
-    throw new Error("useFormField should be used within <Form>")
+    // Provide a fallback field state when outside of a form
+    fieldState = createFieldState()
   }
 
   const { id } = itemContext
