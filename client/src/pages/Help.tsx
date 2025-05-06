@@ -26,19 +26,19 @@ export default function Help() {
     },
     {
       question: "How do I upload medical documents?",
-      answer: "Navigate to the 'My Documents' section and click the 'Upload' button. You can upload various document types including lab reports, imaging results, and clinical notes. THRIVE can analyze these documents to extract key information, but this is optional and you can choose to simply store them for reference."
+      answer: "Navigate to the 'My Documents' section and click the 'Upload' button. You can upload various document types including lab reports, imaging results, and clinical notes. Sophera can analyze these documents to extract key information, but this is optional and you can choose to simply store them for reference."
     },
     {
       question: "How does clinical trial matching work?",
-      answer: "THRIVE compares your profile information (diagnosis, stage, treatment history, etc.) with eligibility criteria from thousands of active clinical trials. The system calculates a match score based on how well you meet the trial's requirements. You can explore matches in the Clinical Trials section and adjust filters to find trials that might be right for you."
+      answer: "Sophera compares your profile information (diagnosis, stage, treatment history, etc.) with eligibility criteria from thousands of active clinical trials. The system calculates a match score based on how well you meet the trial's requirements. You can explore matches in the Clinical Trials section and adjust filters to find trials that might be right for you."
     },
     {
       question: "Can I save and organize research information?",
       answer: "Yes, you can save any research information, treatments, or clinical trials you find interesting. Access your saved items in the 'Saved Research' section where you can organize them into collections, add notes, and export information to share with your healthcare team."
     },
     {
-      question: "What AI models power THRIVE?",
-      answer: "THRIVE utilizes multiple AI models including Claude, GPT-4, and Gemini, selecting the optimal model based on your specific query type. For example, Claude excels at medical literature analysis, while GPT-4 is used for structured data like clinical trial matching. This multi-model approach ensures you get the best possible answers."
+      question: "What AI models power Sophera?",
+      answer: "Sophera utilizes multiple AI models including Claude, GPT-4o, and Gemini, selecting the optimal model based on your specific query type. For example, Claude excels at medical literature analysis and emotional support, while GPT-4o is used for structured data like clinical trial matching. This multi-model approach ensures you get the best possible answers with a human-centric approach."
     }
   ];
   
@@ -55,7 +55,7 @@ export default function Help() {
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Help & Support</h1>
-          <p className="text-gray-500 mt-1">Find answers and learn how to make the most of THRIVE</p>
+          <p className="text-gray-500 mt-1">Find answers and learn how to make the most of Sophera</p>
         </div>
         
         {/* Search */}
@@ -93,7 +93,7 @@ export default function Help() {
                   Frequently Asked Questions
                 </CardTitle>
                 <CardDescription>
-                  Find answers to common questions about using THRIVE
+                  Find answers to common questions about using Sophera
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -137,7 +137,7 @@ export default function Help() {
                   User Guide
                 </CardTitle>
                 <CardDescription>
-                  Comprehensive documentation on all THRIVE features
+                  Comprehensive documentation on all Sophera features
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -258,7 +258,7 @@ export default function Help() {
                         <div className="flex justify-between items-center">
                           <div>
                             <h4 className="font-medium">Complete User Manual</h4>
-                            <p className="text-sm text-gray-500">Comprehensive documentation of all THRIVE features</p>
+                            <p className="text-sm text-gray-500">Comprehensive documentation of all Sophera features</p>
                           </div>
                           <Button className="bg-primary-800 hover:bg-primary-900">
                             <BookOpen className="h-4 w-4 mr-2" />
@@ -309,7 +309,7 @@ export default function Help() {
                         <div>
                           <h4 className="font-medium text-blue-800">Important Reminder</h4>
                           <p className="text-sm text-blue-700 mt-1">
-                            For medical emergencies, please contact your healthcare provider or dial emergency services immediately. THRIVE is a research tool and not a substitute for professional medical advice.
+                            For medical emergencies, please contact your healthcare provider or dial emergency services immediately. Sophera is a healing companion and research tool, not a substitute for professional medical advice.
                           </p>
                         </div>
                       </div>
