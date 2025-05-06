@@ -409,6 +409,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Vertex AI Search endpoint for grounded document search
+  app.post("/api/documents/search", async (req, res) => {
+    try {
+      const { query, userId = DEFAULT_USER_ID } = req.body; 
+      
+      if (!query || typeof query !== "string") {
+        return res.status(400).json({ message: "Query parameter is required" });
+      }
+      
+      // Use Vertex AI Search to get grounded answers from documents
+      try {
+        const searchResult = await vertexSearchService.searchGroundedAnswer(
+          userId as string,
+          query
+        );
+        
+        res.json(searchResult);
+      } catch (vertexError) {
+        console.error("Error using Vertex AI Search:", vertexError);
+        
+        // Fall back to regular document search if Vertex AI Search fails
+        const documents = await storage.getDocuments(userId as string);
+        
+        // Very simple keyword matching as fallback
+        const matchingDocs = documents.filter(doc => 
+          doc.content && doc.content.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 5);
+        
+        res.json({
+          summary: "We found these relevant documents that might help answer your question:",
+          sources: matchingDocs.map(doc => ({
+            id: doc.id.toString(),
+            title: doc.title,
+            content: doc.content || "",
+            score: 0.7, // Arbitrary fallback score
+            link: null
+          })),
+          metadata: {
+            usedFallback: true,
+            query: query
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error performing document search:", error);
+      res.status(500).json({ 
+        message: "Failed to search documents", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
   // Treatment Routes
   app.get("/api/treatments", async (req, res) => {
     try {
@@ -535,6 +587,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+  
+  // Get document from Vertex AI Search by ID
+  app.get("/api/documents/vertex/:id", async (req, res) => {
+    try {
+      const vertexDocId = req.params.id;
+      if (!vertexDocId) {
+        return res.status(400).json({ message: "Invalid Vertex document ID" });
+      }
+      
+      try {
+        // Attempt to get the document from Vertex AI Search
+        const document = await vertexSearchService.getDocumentById(vertexDocId);
+        
+        if (!document) {
+          return res.status(404).json({ message: "Document not found in Vertex AI Search" });
+        }
+        
+        res.json(document);
+      } catch (vertexError) {
+        console.error("Error fetching document from Vertex AI Search:", vertexError);
+        res.status(502).json({ 
+          message: "Failed to fetch document from Vertex AI Search",
+          error: vertexError instanceof Error ? vertexError.message : String(vertexError)
+        });
+      }
+    } catch (error) {
+      console.error("Error in vertex document route:", error);
+      res.status(500).json({ 
+        message: "Server error processing vertex document request",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   

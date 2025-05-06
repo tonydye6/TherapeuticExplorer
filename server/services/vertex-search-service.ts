@@ -265,6 +265,65 @@ class VertexSearchService {
       throw new Error(`Document upload failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  
+  /**
+   * Get a document by ID from Vertex AI Search
+   * @param documentId The Vertex AI document ID
+   * @returns Document data or null if not found
+   */
+  async getDocumentById(documentId: string): Promise<any | null> {
+    // Check if the service is properly initialized
+    if (!this.initialized || !this.client) {
+      throw new Error('Vertex AI Search service not properly initialized');
+    }
+    
+    try {
+      // Construct the location path
+      const locationPath = this.client.projectLocationPath(
+        this.projectId, 
+        this.locationId
+      );
+      
+      const dataStorePath = `${locationPath}/dataStores/${this.dataStoreId}`;
+      const documentPath = `${dataStorePath}/documents/${documentId}`;
+      
+      // Build the get document request
+      const getRequest = {
+        name: documentPath
+      };
+      
+      // Get the document from Vertex AI Search
+      const [document] = await this.client.getDocument(getRequest);
+      
+      if (!document || !document.structData) {
+        return null;
+      }
+      
+      // Parse the structured data
+      try {
+        const structData = JSON.parse(document.structData);
+        return {
+          id: documentId,
+          title: structData.title || "Unnamed Document",
+          content: structData.content || "",
+          type: structData.type || "unknown",
+          metadata: {
+            dateAdded: structData.dateAdded || null,
+            sourceDate: structData.sourceDate || null,
+            fileType: structData.fileType || "unknown",
+            documentTypeInfo: structData.documentTypeInfo || {}
+          },
+          userId: structData.userId || ""
+        };
+      } catch (parseError) {
+        console.error("Error parsing document structured data:", parseError);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting document from Vertex AI Search:', error);
+      throw new Error(`Failed to get document: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }
 
 // Export a singleton instance of the service
