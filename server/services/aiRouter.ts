@@ -5,6 +5,7 @@ import * as geminiService from './gemini-service';
 import { vertexSearchService } from './vertex-search-service';
 import { storage } from '../storage';
 import * as firestoreService from './firestore-service';
+import * as hopeService from './hope-service'; // Added for Backend Chunk 9 - Hope Module
 
 // Types for context data
 interface UserContext {
@@ -201,6 +202,12 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
   // Simple rule-based approach, same logic as async version
   const lowerQuery = queryText.toLowerCase();
   
+  // Check for hope-related queries using the Hope Module service (Backend Chunk 9)
+  const hopeQueryType = hopeService.analyzeHopeQuery(queryText);
+  if (hopeQueryType) {
+    return hopeQueryType;
+  }
+  
   // Check for document-specific queries first
   if (lowerQuery.includes('document') || 
       lowerQuery.includes('in my files') || 
@@ -353,6 +360,12 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
 export async function analyzeQueryType(queryText: string): Promise<QueryType> {
   // For now, use a simple rule-based approach
   // In a more advanced implementation, this would use embeddings or a classifier
+  
+  // Check for hope-related queries using the Hope Module service (Backend Chunk 9)
+  const hopeQueryType = hopeService.analyzeHopeQuery(queryText);
+  if (hopeQueryType) {
+    return hopeQueryType;
+  }
   
   const lowerQuery = queryText.toLowerCase();
   
@@ -523,6 +536,50 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
     
     // Fetch additional context based on query type
     switch (queryType) {
+      // Hope Module and Emotional Support (Backend Chunk 9)
+      case QueryType.HOPE:
+      case QueryType.EMOTIONAL_SUPPORT:
+        try {
+          // For hope and emotional support, include journal entries and user profile
+          // to understand emotional state and personalize supportive messages
+          
+          // Include recent journal logs for emotional context
+          const twoMonthsAgo = new Date();
+          twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+          context.journalLogs = await firestoreService.getJournalLogs(userId, twoMonthsAgo);
+          
+          // Get previously effective hope snippets for this user if available
+          try {
+            const allHopeSnippets = await storage.getHopeSnippets();
+            // Filter to find snippets that have been marked as effective for this user
+            // This would require the snippets to have an 'effectiveFor' array property
+            context.effectiveHopeSnippets = allHopeSnippets.filter((snippet: any) => 
+              snippet.effectiveFor && 
+              Array.isArray(snippet.effectiveFor) && 
+              snippet.effectiveFor.includes(userId)
+            );
+          } catch (error: any) {
+            console.warn('Error fetching effective hope snippets:', error);
+            context.effectiveHopeSnippets = [];
+          }
+          
+          // For emotional support specifically, include more comprehensive health context
+          if (queryType === QueryType.EMOTIONAL_SUPPORT) {
+            // Include treatment information for context-aware support
+            if (storage.getTreatments) {
+              context.treatments = await storage.getTreatments(userId);
+            }
+            
+            // Include diet logs for physical wellbeing context
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            context.dietLogs = await firestoreService.getDietLogs(userId, oneMonthAgo);
+          }
+        } catch (error: any) {
+          console.warn('Error fetching hope/support context:', error);
+        }
+        break;
+        
       // Creative Exploration Sandbox and Doctor Brief (Backend Chunk 8)
       case QueryType.CREATIVE_EXPLORATION:
       case QueryType.DOCTOR_BRIEF:
