@@ -1,11 +1,11 @@
 import React from 'react';
 import { TabsLayout } from '@/components/ui/tabs-layout';
-import SemanticSearch from './SemanticSearch';
+import AIExplainerPage from './SemanticSearch';
 import TreatmentTracker from './TreatmentTracker';
 import SideEffectAnalyzer from './SideEffectAnalyzer';
 import DocumentsPage from './DocumentsPage';
 import { 
-  Brain,
+  BrainCircuit,
   Stethoscope,
   Activity,
   FileText
@@ -15,9 +15,9 @@ const UnderstandPage = () => {
   const tabs = [
     {
       id: 'explainer',
-      label: 'AI Explainer',
-      icon: <Brain className="h-4 w-4" />,
-      content: <SemanticSearch inTabView />
+      label: 'AI Medical Explainer',
+      icon: <BrainCircuit className="h-4 w-4" />,
+      content: <AIExplainerPage inTabView />
     },
     {
       id: 'treatments',
@@ -42,7 +42,7 @@ const UnderstandPage = () => {
   return (
     <TabsLayout 
       title="Understand" 
-      description="Simplify complex medical information and make sense of your documents"
+      description="Simplify complex medical information and get clear explanations of your treatments, medications, and documents"
       tabs={tabs}
     />
   );
