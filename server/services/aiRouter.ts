@@ -77,7 +77,7 @@ async function routeQuery(query: AIQuery): Promise<AIResponse> {
     // Route to the appropriate model service
     const response = await callModel(modelToUse, query);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error with ${modelToUse}:`, error);
     
     // Try fallback model if available
@@ -87,7 +87,7 @@ async function routeQuery(query: AIQuery): Promise<AIResponse> {
       try {
         const fallbackResponse = await callModel(fallbackModel, query);
         return fallbackResponse;
-      } catch (fallbackError) {
+      } catch (fallbackError: any) {
         console.error(`Error with fallback ${fallbackModel}:`, fallbackError);
         throw new Error(`Both primary and fallback models failed: ${error.message}; ${fallbackError.message}`);
       }
@@ -366,7 +366,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           if (storage.getTreatments) {
             context.treatments = await storage.getTreatments(userId);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching treatment context:', error);
         }
         break;
@@ -377,7 +377,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           if (storage.getResearchItems) {
             context.savedResearch = await storage.getResearchItems(userId);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching research items:', error);
         }
         break;
@@ -388,7 +388,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           if (storage.getDocuments) {
             context.documents = await storage.getDocuments(userId);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching documents for document question:', error);
         }
         break;
@@ -411,7 +411,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           if (storage.getTreatments) {
             context.treatments = await storage.getTreatments(userId);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching alternative treatments:', error);
         }
         break;
@@ -447,7 +447,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           if (storage.getAlternativeTreatments) {
             context.alternativeTreatments = await storage.getAlternativeTreatments(userId);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching interaction analysis context:', error);
         }
         break;
@@ -472,7 +472,7 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
           context.planItems = planItems.filter((item: any) => 
             !item.completed && 
             (!item.dueDate || new Date(item.dueDate) >= new Date()));
-        } catch (error) {
+        } catch (error: any) {
           console.warn('Error fetching general context:', error);
         }
         break;
@@ -722,7 +722,7 @@ async function processUserMessage(message: string, userId: string, providedConte
         timestamp: new Date(),
         metadata: searchResult.metadata
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error using Vertex AI Search:', error);
       console.log('Falling back to standard AI processing for document question');
       // Fall through to standard processing if Vertex Search fails
@@ -738,7 +738,7 @@ async function processUserMessage(message: string, userId: string, providedConte
         userInfo: formatContextForLLM(userContext, queryType)
       };
       console.log('Generated context:', context);
-    } catch (error) {
+    } catch (error: any) {
       console.warn('Error fetching user context:', error);
       // Continue without context rather than failing the request
       context = {};
@@ -818,7 +818,7 @@ export const aiRouter = {
         modelUsed: response.modelUsed,
         structuredOutput
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing text query:', error);
       throw error;
     }
