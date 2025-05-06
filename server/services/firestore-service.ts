@@ -177,3 +177,125 @@ export const updateUserPreferences = async (userId: string, preferences: any): P
     throw error;
   }
 };
+
+// Plan Items Collection Methods
+
+/**
+ * Add a new plan item
+ * @param userId User ID the plan item belongs to
+ * @param planItem Plan item data to save
+ * @returns The created plan item with ID
+ */
+export const addPlanItem = async (userId: string, planItem: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const planItemsRef = db.collection('users').doc(userId).collection('planItems');
+    
+    const timestamp = new Date();
+    const planItemToSave = {
+      ...planItem,
+      userId,
+      isCompleted: planItem.isCompleted || false,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    
+    const docRef = await planItemsRef.add(planItemToSave);
+    
+    return {
+      id: docRef.id,
+      ...planItemToSave,
+    };
+  } catch (error) {
+    console.error('Error adding plan item:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get plan items for a user
+ * @param userId User ID to fetch plan items for
+ * @returns Array of plan items
+ */
+export const getPlanItems = async (userId: string): Promise<any[]> => {
+  try {
+    const db = getFirestore();
+    const planItemsSnapshot = await db
+      .collection('users')
+      .doc(userId)
+      .collection('planItems')
+      .orderBy('dueDate', 'asc')
+      .get();
+    
+    if (planItemsSnapshot.empty) {
+      return [];
+    }
+    
+    return planItemsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      dueDate: doc.data().dueDate?.toDate(),
+      createdAt: doc.data().createdAt?.toDate(),
+      updatedAt: doc.data().updatedAt?.toDate(),
+    }));
+  } catch (error) {
+    console.error('Error fetching plan items:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a plan item
+ * @param userId User ID the plan item belongs to
+ * @param planItemId Plan item ID to update
+ * @param planItemData Updated plan item data
+ * @returns The updated plan item
+ */
+export const updatePlanItem = async (userId: string, planItemId: string, planItemData: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const planItemRef = db.collection('users').doc(userId).collection('planItems').doc(planItemId);
+    
+    // Update only the provided fields
+    const updateData = {
+      ...planItemData,
+      updatedAt: new Date(),
+    };
+    
+    await planItemRef.update(updateData);
+    
+    // Fetch the updated plan item
+    const updatedDoc = await planItemRef.get();
+    if (!updatedDoc.exists) {
+      throw new Error(`Plan item with ID ${planItemId} not found after update`);
+    }
+    
+    return {
+      id: updatedDoc.id,
+      ...updatedDoc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      dueDate: updatedDoc.data()?.dueDate?.toDate(),
+      createdAt: updatedDoc.data()?.createdAt?.toDate(),
+      updatedAt: updatedDoc.data()?.updatedAt?.toDate(),
+    };
+  } catch (error) {
+    console.error('Error updating plan item:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a plan item
+ * @param userId User ID the plan item belongs to
+ * @param planItemId Plan item ID to delete
+ */
+export const deletePlanItem = async (userId: string, planItemId: string): Promise<void> => {
+  try {
+    const db = getFirestore();
+    await db.collection('users').doc(userId).collection('planItems').doc(planItemId).delete();
+  } catch (error) {
+    console.error('Error deleting plan item:', error);
+    throw error;
+  }
+};
