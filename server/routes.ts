@@ -20,6 +20,8 @@ import { caregiverAccessService } from "./services/caregiver-access-service";
 import { documentAnalysisService } from "./services/document-analysis-service";
 import { multimodalService } from "./services/multimodal-service";
 import * as firestoreService from "./services/firestore-service";
+import { vertexSearchService } from "./services/vertex-search-service";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, insertJournalLogSchema, insertDietLogSchema, insertHopeSnippetSchema, QueryType } from "@shared/schema";
@@ -719,6 +721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { title, type = "medical_record" } = req.body;
       const fileBuffer = req.file.buffer;
       const fileName = req.file.originalname;
+      const fileSize = req.file.size;
       const mimeType = req.file.mimetype;
       
       if (!title) {
@@ -768,16 +771,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Save the document in the database
+      // Get the userId from the request or use the default
+      const userId = req.body.userId || req.query.userId as string || DEFAULT_USER_ID;
+      
+      // Upload the document to Vertex AI Search if available
+      let vertexDocumentId = null;
+      try {
+        // Only attempt Vertex upload if we have extracted text content
+        if (result.extractedText) {
+          const metadata = {
+            title,
+            type,
+            fileName,
+            fileSize,
+            mimeType,
+            dateAdded: new Date(),
+            documentTypeInfo: result.structuredData || {},
+            fileType: fileName.split('.').pop()?.toLowerCase() || 'unknown'
+          };
+          
+          // Upload to Vertex AI Search
+          vertexDocumentId = await vertexSearchService.uploadDocument(
+            userId,
+            result.extractedText,
+            metadata
+          );
+          
+          console.log(`Document uploaded to Vertex AI Search with ID: ${vertexDocumentId}`);
+        }
+      } catch (vertexError) {
+        // Don't fail the request if Vertex upload fails
+        console.error("Error uploading to Vertex AI Search:", vertexError);
+      }
+      
+      // Save the document in the database - including Vertex ID if available
       const document = await storage.createDocument({
-        userId: DEFAULT_USER_ID, 
+        userId: userId, 
         title: title,
         type: type,
         content: result.extractedText,
         parsedContent: {
           analysis: result.analysis,
           structuredData: result.structuredData,
-          confidence: result.confidence
+          confidence: result.confidence,
+          vertexDocumentId // Store the Vertex document ID for reference
         },
         dateAdded: new Date()
       });
@@ -804,6 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json({
         document,
+        vertexDocumentId,  // Include Vertex document ID in response
         processingResults: {
           confidence: result.confidence,
           documentType: result.structuredData?.documentType || "Unknown",
