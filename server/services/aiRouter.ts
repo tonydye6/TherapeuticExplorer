@@ -131,8 +131,7 @@ async function callModel(modelType: ModelType, query: AIQuery): Promise<AIRespon
       const openaiResponse = await openaiService.generateResponse(
         query.content, 
         query.context, 
-        query.userId,
-        query.type // Pass query type to service
+        query.userId
       );
       return {
         content: openaiResponse.text,
@@ -143,11 +142,11 @@ async function callModel(modelType: ModelType, query: AIQuery): Promise<AIRespon
       };
       
     case ModelType.CLAUDE:
-      const claudeResponse = await claudeService.generateResponse(
+      // We don't have Claude service implemented yet, so fallback to GPT
+      const claudeResponse = await openaiService.generateResponse(
         query.content, 
         query.context, 
-        query.userId,
-        query.type // Pass query type to service
+        query.userId
       );
       return {
         content: claudeResponse.text,
@@ -162,7 +161,7 @@ async function callModel(modelType: ModelType, query: AIQuery): Promise<AIRespon
         query.content, 
         query.context, 
         query.userId,
-        query.type // Pass query type to service
+        query.type // Pass query type to service as it's expected by the Gemini service
       );
       return {
         content: geminiResponse.text,
@@ -831,8 +830,90 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
     }
   }
   
+  // Special formatting for Creative Exploration Sandbox (Backend Chunk 8)
+  if (queryType === QueryType.CREATIVE_EXPLORATION) {
+    // Personal experiences from journal logs
+    if (context.journalLogs && context.journalLogs.length > 0) {
+      contextStr += "\nRECENT EXPERIENCES AND FEELINGS (from journal):\n";
+      const recentLogs = context.journalLogs.slice(0, 3); // Only use the most recent 3 logs
+      recentLogs.forEach((log: any, index: number) => {
+        const date = new Date(log.entryDate);
+        contextStr += `Entry ${index + 1} (${date.toLocaleDateString()}):\n`;
+        contextStr += `${log.content}\n`;
+        if (log.mood) contextStr += `Mood: ${log.mood}\n`;
+        if (log.symptoms && log.symptoms.length > 0) contextStr += `Symptoms: ${log.symptoms.join(', ')}\n`;
+      });
+    }
+    
+    // Include interests and preferences for more personalized creative exploration
+    if (context.userProfile && context.userProfile.preferences) {
+      contextStr += "\nPERSONAL INTERESTS AND PREFERENCES:\n";
+      if (context.userProfile.preferences.hobbies && context.userProfile.preferences.hobbies.length > 0) {
+        contextStr += `Hobbies: ${context.userProfile.preferences.hobbies.join(', ')}\n`;
+      }
+      if (context.userProfile.preferences.copingStrategies && context.userProfile.preferences.copingStrategies.length > 0) {
+        contextStr += `Preferred coping strategies: ${context.userProfile.preferences.copingStrategies.join(', ')}\n`;
+      }
+    }
+  }
+  
+  // Special formatting for Doctor Brief (Backend Chunk 8)
+  if (queryType === QueryType.DOCTOR_BRIEF) {
+    // Include more comprehensive medical information
+    
+    // Current treatments and medications
+    if (context.treatments && context.treatments.length > 0) {
+      contextStr += "\nCURRENT TREATMENTS AND MEDICATIONS:\n";
+      context.treatments.forEach((treatment: any) => {
+        if (treatment.active) {
+          contextStr += `- ${treatment.name} (${treatment.type})\n`;
+          if (treatment.dosage) contextStr += `  Dosage: ${treatment.dosage}\n`;
+          if (treatment.frequency) contextStr += `  Frequency: ${treatment.frequency}\n`;
+          if (treatment.startDate) {
+            const startDate = new Date(treatment.startDate);
+            contextStr += `  Started: ${startDate.toLocaleDateString()}\n`;
+          }
+        }
+      });
+    }
+    
+    // Recent symptoms and side effects from journal logs
+    if (context.journalLogs && context.journalLogs.length > 0) {
+      contextStr += "\nRECENT SYMPTOMS AND SIDE EFFECTS:\n";
+      const relevantLogs = context.journalLogs.filter((log: any) => 
+        (log.painLevel && log.painLevel > 3) || 
+        (log.symptoms && log.symptoms.length > 0) ||
+        (log.content && (
+          log.content.toLowerCase().includes('pain') ||
+          log.content.toLowerCase().includes('symptom') ||
+          log.content.toLowerCase().includes('side effect') ||
+          log.content.toLowerCase().includes('discomfort')
+        ))
+      ).slice(0, 5); // Limit to 5 most relevant logs
+      
+      relevantLogs.forEach((log: any) => {
+        const date = new Date(log.entryDate);
+        contextStr += `- ${date.toLocaleDateString()}:\n`;
+        if (log.symptoms && log.symptoms.length > 0) {
+          contextStr += `  Symptoms: ${log.symptoms.join(', ')}\n`;
+        }
+        if (log.painLevel) contextStr += `  Pain Level: ${log.painLevel}/10\n`;
+        if (log.content) {
+          const condensedContent = log.content.length > 200 ? 
+            log.content.substring(0, 200) + '...' : log.content;
+          contextStr += `  Notes: ${condensedContent}\n`;
+        }
+      });
+      
+      // If no relevant logs were found, note that
+      if (relevantLogs.length === 0) {
+        contextStr += `No significant symptoms or side effects reported recently.\n`;
+      }
+    }
+  }
+  
   // Add specific treatment side effects information for TREATMENT_SIDE_EFFECT queries
-  if (queryType === QueryType.TREATMENT_SIDE_EFFECT && context.treatmentSideEffects && context.treatmentSideEffects.length > 0) {
+  if (queryType === QueryType.TREATMENT_SIDE_EFFECT && context.treatmentSideEffects?.length > 0) {
     contextStr += "\nTreatment Side Effects Information:\n";
     context.treatmentSideEffects.forEach((treatmentSideEffect: any, index: number) => {
       contextStr += `- ${treatmentSideEffect.treatmentName} (${treatmentSideEffect.treatmentType}):\n`;
