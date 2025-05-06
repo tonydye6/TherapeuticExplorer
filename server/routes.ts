@@ -19,6 +19,7 @@ import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { caregiverAccessService } from "./services/caregiver-access-service";
 import { documentAnalysisService } from "./services/document-analysis-service";
 import { multimodalService } from "./services/multimodal-service";
+import * as firestoreService from "./services/firestore-service";
 import { z } from "zod";
 import multer from "multer";
 import { insertAlternativeTreatmentSchema, insertMessageSchema, insertResearchItemSchema, insertTreatmentSchema, insertSavedTrialSchema, insertDocumentSchema, insertPlanItemSchema, insertJournalLogSchema, insertDietLogSchema, insertHopeSnippetSchema, QueryType } from "@shared/schema";
@@ -31,11 +32,12 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API Routes for Plan Items
+  // API Routes for Plan Items - Using Firestore
   app.get("/api/plan-items", async (req, res) => {
     try {
       const DEFAULT_USER_ID = "1";
-      const planItems = await storage.getPlanItems(DEFAULT_USER_ID);
+      // Use Firestore implementation
+      const planItems = await firestoreService.getPlanItems(DEFAULT_USER_ID);
       res.json(planItems);
     } catch (error) {
       console.error("Error fetching plan items:", error);
@@ -83,12 +85,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.reminderTime = new Date(requestData.reminderTime);
       }
       
-      const planItemData = insertPlanItemSchema.parse({
-        ...requestData,
-        userId: DEFAULT_USER_ID
-      });
+      if (requestData.dueDate && typeof requestData.dueDate === 'string') {
+        requestData.dueDate = new Date(requestData.dueDate);
+      }
       
-      const planItem = await storage.createPlanItem(planItemData);
+      // Using Firestore instead of storage
+      const planItem = await firestoreService.addPlanItem(DEFAULT_USER_ID, requestData);
       res.status(201).json(planItem);
     } catch (error) {
       console.error("Error creating plan item:", error);
@@ -106,16 +108,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.put("/api/plan-items/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const planItemId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!planItemId) {
         return res.status(400).json({ message: "Invalid plan item ID" });
       }
       
       // Pre-process request body to handle date formats
       const requestData = { ...req.body };
       
-      // Handle date conversion for startDate and endDate if they exist as strings
+      // Handle date conversion for dates if they exist as strings
       if (requestData.startDate && typeof requestData.startDate === 'string') {
         requestData.startDate = new Date(requestData.startDate);
       }
@@ -128,7 +131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.reminderTime = new Date(requestData.reminderTime);
       }
       
-      const planItem = await storage.updatePlanItem(id, requestData);
+      if (requestData.dueDate && typeof requestData.dueDate === 'string') {
+        requestData.dueDate = new Date(requestData.dueDate);
+      }
+      
+      // Use Firestore implementation
+      const planItem = await firestoreService.updatePlanItem(DEFAULT_USER_ID, planItemId, requestData);
       res.json(planItem);
     } catch (error) {
       console.error("Error updating plan item:", error);
@@ -140,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -150,18 +158,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.delete("/api/plan-items/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const planItemId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!planItemId) {
         return res.status(400).json({ message: "Invalid plan item ID" });
       }
       
-      await storage.deletePlanItem(id);
+      // Use Firestore implementation
+      await firestoreService.deletePlanItem(DEFAULT_USER_ID, planItemId);
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting plan item:", error);
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -171,20 +181,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/plan-items/:id/complete", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const planItemId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!planItemId) {
         return res.status(400).json({ message: "Invalid plan item ID" });
       }
       
       const { isCompleted = true } = req.body;
       
-      const planItem = await storage.completePlanItem(id, isCompleted);
+      // Update the plan item with the isCompleted field using Firestore
+      const planItem = await firestoreService.updatePlanItem(DEFAULT_USER_ID, planItemId, { isCompleted });
       res.json(planItem);
     } catch (error) {
       console.error("Error completing plan item:", error);
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -1775,7 +1787,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Journal Log Routes
   app.get("/api/journal-logs", async (req, res) => {
     try {
-      const journalLogs = await storage.getJournalLogs(DEFAULT_USER_ID);
+      const DEFAULT_USER_ID = "1";
+      // Use Firestore implementation
+      const journalLogs = await firestoreService.getJournalLogs(DEFAULT_USER_ID);
       res.json(journalLogs);
     } catch (error) {
       console.error("Error fetching journal logs:", error);

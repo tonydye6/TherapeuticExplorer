@@ -299,3 +299,253 @@ export const deletePlanItem = async (userId: string, planItemId: string): Promis
     throw error;
   }
 };
+
+// Journal Logs Collection Methods
+
+/**
+ * Add a new journal log
+ * @param userId User ID the journal log belongs to
+ * @param journalLog Journal log data to save
+ * @returns The created journal log with ID
+ */
+export const addJournalLog = async (userId: string, journalLog: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const journalLogsRef = db.collection('users').doc(userId).collection('journalLogs');
+    
+    const timestamp = new Date();
+    const journalLogToSave = {
+      ...journalLog,
+      userId,
+      dateCreated: timestamp,
+      entryDate: journalLog.entryDate || timestamp,
+    };
+    
+    const docRef = await journalLogsRef.add(journalLogToSave);
+    
+    return {
+      id: docRef.id,
+      ...journalLogToSave,
+    };
+  } catch (error) {
+    console.error('Error adding journal log:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get journal logs for a user
+ * @param userId User ID to fetch journal logs for
+ * @param dateFrom Optional start date to filter logs
+ * @param dateTo Optional end date to filter logs
+ * @returns Array of journal logs
+ */
+export const getJournalLogs = async (userId: string, dateFrom?: Date, dateTo?: Date): Promise<any[]> => {
+  try {
+    const db = getFirestore();
+    let query = db
+      .collection('users')
+      .doc(userId)
+      .collection('journalLogs')
+      .orderBy('entryDate', 'desc');
+    
+    // Add date filtering if provided
+    if (dateFrom) {
+      query = query.where('entryDate', '>=', dateFrom);
+    }
+    
+    if (dateTo) {
+      query = query.where('entryDate', '<=', dateTo);
+    }
+    
+    const journalLogsSnapshot = await query.get();
+    
+    if (journalLogsSnapshot.empty) {
+      return [];
+    }
+    
+    return journalLogsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      entryDate: doc.data().entryDate?.toDate(),
+      dateCreated: doc.data().dateCreated?.toDate(),
+    }));
+  } catch (error) {
+    console.error('Error fetching journal logs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a journal log
+ * @param userId User ID the journal log belongs to
+ * @param journalLogId Journal log ID to update
+ * @param journalLogData Updated journal log data
+ * @returns The updated journal log
+ */
+export const updateJournalLog = async (userId: string, journalLogId: string, journalLogData: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const journalLogRef = db.collection('users').doc(userId).collection('journalLogs').doc(journalLogId);
+    
+    await journalLogRef.update(journalLogData);
+    
+    // Fetch the updated journal log
+    const updatedDoc = await journalLogRef.get();
+    if (!updatedDoc.exists) {
+      throw new Error(`Journal log with ID ${journalLogId} not found after update`);
+    }
+    
+    return {
+      id: updatedDoc.id,
+      ...updatedDoc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      entryDate: updatedDoc.data()?.entryDate?.toDate(),
+      dateCreated: updatedDoc.data()?.dateCreated?.toDate(),
+    };
+  } catch (error) {
+    console.error('Error updating journal log:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a journal log
+ * @param userId User ID the journal log belongs to
+ * @param journalLogId Journal log ID to delete
+ */
+export const deleteJournalLog = async (userId: string, journalLogId: string): Promise<void> => {
+  try {
+    const db = getFirestore();
+    await db.collection('users').doc(userId).collection('journalLogs').doc(journalLogId).delete();
+  } catch (error) {
+    console.error('Error deleting journal log:', error);
+    throw error;
+  }
+};
+
+// Diet Logs Collection Methods
+
+/**
+ * Add a new diet log
+ * @param userId User ID the diet log belongs to
+ * @param dietLog Diet log data to save
+ * @returns The created diet log with ID
+ */
+export const addDietLog = async (userId: string, dietLog: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const dietLogsRef = db.collection('users').doc(userId).collection('dietLogs');
+    
+    const timestamp = new Date();
+    const dietLogToSave = {
+      ...dietLog,
+      userId,
+      dateCreated: timestamp,
+      mealDate: dietLog.mealDate || timestamp,
+    };
+    
+    const docRef = await dietLogsRef.add(dietLogToSave);
+    
+    return {
+      id: docRef.id,
+      ...dietLogToSave,
+    };
+  } catch (error) {
+    console.error('Error adding diet log:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get diet logs for a user
+ * @param userId User ID to fetch diet logs for
+ * @param dateFrom Optional start date to filter logs
+ * @param dateTo Optional end date to filter logs
+ * @returns Array of diet logs
+ */
+export const getDietLogs = async (userId: string, dateFrom?: Date, dateTo?: Date): Promise<any[]> => {
+  try {
+    const db = getFirestore();
+    let query = db
+      .collection('users')
+      .doc(userId)
+      .collection('dietLogs')
+      .orderBy('mealDate', 'desc');
+    
+    // Add date filtering if provided
+    if (dateFrom) {
+      query = query.where('mealDate', '>=', dateFrom);
+    }
+    
+    if (dateTo) {
+      query = query.where('mealDate', '<=', dateTo);
+    }
+    
+    const dietLogsSnapshot = await query.get();
+    
+    if (dietLogsSnapshot.empty) {
+      return [];
+    }
+    
+    return dietLogsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      mealDate: doc.data().mealDate?.toDate(),
+      dateCreated: doc.data().dateCreated?.toDate(),
+    }));
+  } catch (error) {
+    console.error('Error fetching diet logs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a diet log
+ * @param userId User ID the diet log belongs to
+ * @param dietLogId Diet log ID to update
+ * @param dietLogData Updated diet log data
+ * @returns The updated diet log
+ */
+export const updateDietLog = async (userId: string, dietLogId: string, dietLogData: any): Promise<any> => {
+  try {
+    const db = getFirestore();
+    const dietLogRef = db.collection('users').doc(userId).collection('dietLogs').doc(dietLogId);
+    
+    await dietLogRef.update(dietLogData);
+    
+    // Fetch the updated diet log
+    const updatedDoc = await dietLogRef.get();
+    if (!updatedDoc.exists) {
+      throw new Error(`Diet log with ID ${dietLogId} not found after update`);
+    }
+    
+    return {
+      id: updatedDoc.id,
+      ...updatedDoc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      mealDate: updatedDoc.data()?.mealDate?.toDate(),
+      dateCreated: updatedDoc.data()?.dateCreated?.toDate(),
+    };
+  } catch (error) {
+    console.error('Error updating diet log:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a diet log
+ * @param userId User ID the diet log belongs to
+ * @param dietLogId Diet log ID to delete
+ */
+export const deleteDietLog = async (userId: string, dietLogId: string): Promise<void> => {
+  try {
+    const db = getFirestore();
+    await db.collection('users').doc(userId).collection('dietLogs').doc(dietLogId).delete();
+  } catch (error) {
+    console.error('Error deleting diet log:', error);
+    throw error;
+  }
+};
