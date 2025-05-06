@@ -16,6 +16,10 @@ interface UserContext {
   savedResearch?: any[];
   documents?: any[];
   alternativeTreatments?: any[];
+  treatmentDetails?: any[]; // Added for treatment context integration
+  treatmentComparisons?: any[]; // For storing treatment comparison information
+  treatmentSideEffects?: any[]; // For storing treatment side effects information
+  treatmentTimelines?: any[]; // For storing treatment timeline information
 }
 
 // Configuration for model routing
@@ -29,7 +33,12 @@ const modelConfig = {
     [QueryType.GENERAL]: ModelType.GEMINI,
     [QueryType.DOCUMENT_QUESTION]: ModelType.GPT, // Use GPT for document-specific questions
     [QueryType.ALTERNATIVE_TREATMENT]: ModelType.CLAUDE, // Use Claude for alternative treatment questions
-    [QueryType.INTERACTION]: ModelType.CLAUDE // Use Claude for interaction analysis due to its medical reasoning
+    [QueryType.INTERACTION]: ModelType.CLAUDE, // Use Claude for interaction analysis due to its medical reasoning
+    // Added for Backend Chunk 7 - Treatment Context Integration
+    [QueryType.TREATMENT_SIDE_EFFECT]: ModelType.GPT, // GPT is good at explaining side effects with context
+    [QueryType.TREATMENT_COMPARISON]: ModelType.CLAUDE, // Claude is better at analyzing and comparing multiple options
+    [QueryType.TREATMENT_TIMELINE]: ModelType.GPT, // GPT for detailed timeline explanations
+    [QueryType.TREATMENT_EXPLANATION]: ModelType.GPT // GPT for plain language treatment explanations
   },
   
   // Fallback models if primary is unavailable
@@ -199,9 +208,52 @@ function analyzeQueryTypeSync(queryText: string): QueryType {
     return QueryType.ALTERNATIVE_TREATMENT;
   }
   
+  // Check for specialized treatment-related queries (Backend Chunk 7)
+  
+  // Check for treatment side effect queries
+  if (lowerQuery.includes('side effect') ||
+      lowerQuery.includes('adverse effect') ||
+      lowerQuery.includes('negative effect') ||
+      lowerQuery.includes('reaction to treatment') ||
+      lowerQuery.includes('medication reaction') ||
+      lowerQuery.includes('experiencing') ||
+      lowerQuery.includes('symptoms from')) {
+    return QueryType.TREATMENT_SIDE_EFFECT;
+  }
+  
+  // Check for treatment comparison queries
+  if ((lowerQuery.includes('compare') || lowerQuery.includes('comparison') || 
+       lowerQuery.includes('versus') || lowerQuery.includes('vs') || 
+       lowerQuery.includes('difference between') || lowerQuery.includes('better option')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('medication') ||
+       lowerQuery.includes('therapy') || lowerQuery.includes('drug') ||
+       lowerQuery.includes('medicine'))) {
+    return QueryType.TREATMENT_COMPARISON;
+  }
+  
+  // Check for treatment timeline queries
+  if ((lowerQuery.includes('timeline') || lowerQuery.includes('schedule') || 
+       lowerQuery.includes('how long') || lowerQuery.includes('duration') ||
+       lowerQuery.includes('what to expect') || lowerQuery.includes('stages') ||
+       lowerQuery.includes('process') || lowerQuery.includes('steps') ||
+       lowerQuery.includes('phase')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('therapy') ||
+       lowerQuery.includes('medication') || lowerQuery.includes('drug'))) {
+    return QueryType.TREATMENT_TIMELINE;
+  }
+  
+  // Check for treatment explanation queries
+  if ((lowerQuery.includes('explain') || lowerQuery.includes('how does') ||
+       lowerQuery.includes('tell me about') || lowerQuery.includes('what is') ||
+       lowerQuery.includes('describe') || lowerQuery.includes('details about') ||
+       lowerQuery.includes('information on')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('therapy') ||
+       lowerQuery.includes('medication') || lowerQuery.includes('drug'))) {
+    return QueryType.TREATMENT_EXPLANATION;
+  }
+  
   // Check for interaction queries
   if (lowerQuery.includes('interaction') ||
-      lowerQuery.includes('side effect') ||
       lowerQuery.includes('drug interaction') ||
       lowerQuery.includes('contraindication') ||
       lowerQuery.includes('conflict') ||
@@ -282,9 +334,52 @@ export async function analyzeQueryType(queryText: string): Promise<QueryType> {
     return QueryType.ALTERNATIVE_TREATMENT;
   }
   
+  // Check for specialized treatment-related queries (Backend Chunk 7)
+  
+  // Check for treatment side effect queries
+  if (lowerQuery.includes('side effect') ||
+      lowerQuery.includes('adverse effect') ||
+      lowerQuery.includes('negative effect') ||
+      lowerQuery.includes('reaction to treatment') ||
+      lowerQuery.includes('medication reaction') ||
+      lowerQuery.includes('experiencing') ||
+      lowerQuery.includes('symptoms from')) {
+    return QueryType.TREATMENT_SIDE_EFFECT;
+  }
+  
+  // Check for treatment comparison queries
+  if ((lowerQuery.includes('compare') || lowerQuery.includes('comparison') || 
+       lowerQuery.includes('versus') || lowerQuery.includes('vs') || 
+       lowerQuery.includes('difference between') || lowerQuery.includes('better option')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('medication') ||
+       lowerQuery.includes('therapy') || lowerQuery.includes('drug') ||
+       lowerQuery.includes('medicine'))) {
+    return QueryType.TREATMENT_COMPARISON;
+  }
+  
+  // Check for treatment timeline queries
+  if ((lowerQuery.includes('timeline') || lowerQuery.includes('schedule') || 
+       lowerQuery.includes('how long') || lowerQuery.includes('duration') ||
+       lowerQuery.includes('what to expect') || lowerQuery.includes('stages') ||
+       lowerQuery.includes('process') || lowerQuery.includes('steps') ||
+       lowerQuery.includes('phase')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('therapy') ||
+       lowerQuery.includes('medication') || lowerQuery.includes('drug'))) {
+    return QueryType.TREATMENT_TIMELINE;
+  }
+  
+  // Check for treatment explanation queries
+  if ((lowerQuery.includes('explain') || lowerQuery.includes('how does') ||
+       lowerQuery.includes('tell me about') || lowerQuery.includes('what is') ||
+       lowerQuery.includes('describe') || lowerQuery.includes('details about') ||
+       lowerQuery.includes('information on')) &&
+      (lowerQuery.includes('treatment') || lowerQuery.includes('therapy') ||
+       lowerQuery.includes('medication') || lowerQuery.includes('drug'))) {
+    return QueryType.TREATMENT_EXPLANATION;
+  }
+  
   // Check for interaction queries
   if (lowerQuery.includes('interaction') ||
-      lowerQuery.includes('side effect') ||
       lowerQuery.includes('drug interaction') ||
       lowerQuery.includes('contraindication') ||
       lowerQuery.includes('conflict') ||
@@ -350,6 +445,101 @@ async function getUserContext(userId: string, queryType: QueryType): Promise<Use
     
     // Fetch additional context based on query type
     switch (queryType) {
+      // Treatment specialized query types from Backend Chunk 7
+      case QueryType.TREATMENT_SIDE_EFFECT:
+      case QueryType.TREATMENT_COMPARISON:
+      case QueryType.TREATMENT_TIMELINE:
+      case QueryType.TREATMENT_EXPLANATION:
+        // For specialized treatment queries, provide comprehensive treatment context
+        try {
+          // Fetch all treatment-related data for context-aware responses
+          const planItems = await firestoreService.getPlanItems(userId);
+          context.planItems = planItems.filter((item: any) => 
+            item.type === 'medication' || 
+            item.type === 'treatment' || 
+            item.type === 'procedure' ||
+            item.type === 'appointment');
+          
+          // Get treatment details for comprehensive context
+          if (storage.getTreatments) {
+            context.treatments = await storage.getTreatments(userId);
+          }
+          
+          // Get journal logs that mention treatments or side effects
+          const twoMonthsAgo = new Date();
+          twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+          const journalLogs = await firestoreService.getJournalLogs(userId, twoMonthsAgo);
+          
+          // Filter logs to include only those relevant to treatments
+          context.journalLogs = journalLogs.filter((log: any) => {
+            if (!log.content) return false;
+            const content = log.content.toLowerCase();
+            return content.includes('treatment') || 
+                  content.includes('medication') || 
+                  content.includes('side effect') || 
+                  content.includes('reaction') || 
+                  content.includes('therapy') || 
+                  content.includes('drug');
+          });
+          
+          // For treatment comparison, include research with comparisons
+          if (queryType === QueryType.TREATMENT_COMPARISON && storage.getResearchItems) {
+            const allResearch = await storage.getResearchItems(userId);
+            context.savedResearch = allResearch.filter((item: any) => {
+              if (!item.content) return false;
+              const content = item.content.toLowerCase();
+              return content.includes('compared') || 
+                    content.includes('versus') || 
+                    content.includes('comparison') || 
+                    content.includes('better than') ||
+                    content.includes('more effective');
+            });
+          }
+          
+          // For side effects, include specific side effect documents
+          if (queryType === QueryType.TREATMENT_SIDE_EFFECT) {
+            // Build a specialized treatment side effects data structure
+            context.treatmentSideEffects = [];
+            
+            // Process the treatments and collect side effects
+            if (context.treatments) {
+              context.treatments.forEach((treatment: any) => {
+                if (treatment.sideEffects) {
+                  context.treatmentSideEffects.push({
+                    treatmentName: treatment.name,
+                    sideEffects: treatment.sideEffects,
+                    treatmentType: treatment.type,
+                    active: treatment.active
+                  });
+                }
+              });
+            }
+          }
+          
+          // For timeline information, include specific timeline data
+          if (queryType === QueryType.TREATMENT_TIMELINE) {
+            // Build a specialized treatment timelines data structure
+            context.treatmentTimelines = [];
+            
+            // Process treatments to extract timeline information
+            if (context.treatments) {
+              context.treatments.forEach((treatment: any) => {
+                context.treatmentTimelines.push({
+                  treatmentName: treatment.name,
+                  startDate: treatment.startDate,
+                  endDate: treatment.endDate,
+                  treatmentType: treatment.type,
+                  notes: treatment.notes,
+                  active: treatment.active
+                });
+              });
+            }
+          }
+        } catch (error: any) {
+          console.warn('Error fetching specialized treatment context:', error);
+        }
+        break;
+        
       case QueryType.TREATMENT:
       case QueryType.CLINICAL_TRIAL:
         // For treatment/trial queries, include plan items, treatments from plan
@@ -511,6 +701,113 @@ function formatContextForLLM(context: UserContext, queryType: QueryType): string
       const date = new Date(context.userProfile.diagnosisDate);
       contextStr += `- Diagnosis Date: ${date.toLocaleDateString()}\n`;
     }
+  }
+  
+  // Add specific treatment side effects information for TREATMENT_SIDE_EFFECT queries
+  if (queryType === QueryType.TREATMENT_SIDE_EFFECT && context.treatmentSideEffects && context.treatmentSideEffects.length > 0) {
+    contextStr += "\nTreatment Side Effects Information:\n";
+    context.treatmentSideEffects.forEach((treatmentSideEffect: any, index: number) => {
+      contextStr += `- ${treatmentSideEffect.treatmentName} (${treatmentSideEffect.treatmentType}):\n`;
+      if (treatmentSideEffect.active === false) {
+        contextStr += "  [INACTIVE/COMPLETED]\n";
+      }
+      
+      if (typeof treatmentSideEffect.sideEffects === 'object') {
+        // Handle structured side effects data
+        if (Array.isArray(treatmentSideEffect.sideEffects)) {
+          treatmentSideEffect.sideEffects.forEach((effect: any) => {
+            if (typeof effect === 'string') {
+              contextStr += `  • ${effect}\n`;
+            } else if (typeof effect === 'object') {
+              contextStr += `  • ${effect.name || 'Unnamed effect'}\n`;
+              if (effect.severity) {
+                contextStr += `    Severity: ${effect.severity}\n`;
+              }
+              if (effect.onset) {
+                contextStr += `    Onset: ${effect.onset}\n`;
+              }
+              if (effect.duration) {
+                contextStr += `    Duration: ${effect.duration}\n`;
+              }
+              if (effect.management) {
+                contextStr += `    Management: ${effect.management}\n`;
+              }
+            }
+          });
+        } else {
+          // Handle object with properties as side effects
+          Object.keys(treatmentSideEffect.sideEffects).forEach(key => {
+            const value = treatmentSideEffect.sideEffects[key];
+            if (typeof value === 'string') {
+              contextStr += `  • ${key}: ${value}\n`;
+            } else if (typeof value === 'boolean' && value) {
+              contextStr += `  • ${key}\n`;
+            }
+          });
+        }
+      } else if (typeof treatmentSideEffect.sideEffects === 'string') {
+        // Handle string side effects data
+        contextStr += `  • ${treatmentSideEffect.sideEffects}\n`;
+      }
+    });
+  }
+  
+  // Add specific treatment timeline information for TREATMENT_TIMELINE queries
+  if (queryType === QueryType.TREATMENT_TIMELINE && context.treatmentTimelines && context.treatmentTimelines.length > 0) {
+    contextStr += "\nTreatment Timeline Information:\n";
+    context.treatmentTimelines.forEach((timeline: any, index: number) => {
+      contextStr += `- ${timeline.treatmentName} (${timeline.treatmentType}):\n`;
+      
+      if (timeline.active === false) {
+        contextStr += "  [INACTIVE/COMPLETED]\n";
+      }
+      
+      if (timeline.startDate) {
+        const startDate = new Date(timeline.startDate);
+        contextStr += `  Start Date: ${startDate.toLocaleDateString()}\n`;
+      }
+      
+      if (timeline.endDate) {
+        const endDate = new Date(timeline.endDate);
+        contextStr += `  End Date: ${endDate.toLocaleDateString()}\n`;
+      } else if (timeline.active !== false) {
+        contextStr += `  End Date: Ongoing\n`;
+      }
+      
+      if (timeline.notes) {
+        contextStr += `  Notes: ${timeline.notes}\n`;
+      }
+    });
+  }
+  
+  // Add specific research data for treatment comparisons
+  if (queryType === QueryType.TREATMENT_COMPARISON && context.savedResearch && context.savedResearch.length > 0) {
+    contextStr += "\nRelevant Treatment Comparison Research:\n";
+    // Only include the first 3 research items to avoid context overflow
+    const limitedResearch = context.savedResearch.slice(0, 3);
+    limitedResearch.forEach((research: any, index: number) => {
+      contextStr += `- ${research.title}\n`;
+      if (research.sourceName) {
+        contextStr += `  Source: ${research.sourceName}\n`;
+      }
+      if (research.evidenceLevel) {
+        contextStr += `  Evidence Level: ${research.evidenceLevel}\n`;
+      }
+    });
+  }
+  
+  // For treatment explanation queries, add journal logs mentioning treatments
+  if (queryType === QueryType.TREATMENT_EXPLANATION && context.journalLogs && context.journalLogs.length > 0) {
+    contextStr += "\nRelevant Journal Entries About Treatments:\n";
+    // Only include up to 3 journal entries to avoid context overflow
+    const limitedLogs = context.journalLogs.slice(0, 3);
+    limitedLogs.forEach((log: any) => {
+      const date = new Date(log.entryDate);
+      contextStr += `- Journal Entry (${date.toLocaleDateString()}):\n`;
+      // Truncate content if too long
+      const content = log.content.length > 200 ? log.content.substring(0, 200) + '...' : log.content;
+      contextStr += `  ${content}\n`;
+    });
   }
   
   // Add plan items if available and relevant

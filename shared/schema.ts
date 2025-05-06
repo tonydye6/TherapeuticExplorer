@@ -411,6 +411,11 @@ export enum QueryType {
   DOCUMENT_QUESTION = "document_question",
   ALTERNATIVE_TREATMENT = "alternative_treatment",
   INTERACTION = "interaction",
+  // Added specialized treatment query types for Backend Chunk 7
+  TREATMENT_SIDE_EFFECT = "treatment_side_effect",
+  TREATMENT_COMPARISON = "treatment_comparison",
+  TREATMENT_TIMELINE = "treatment_timeline",
+  TREATMENT_EXPLANATION = "treatment_explanation",
 }
 
 // Source interface for citation and attribution
