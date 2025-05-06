@@ -378,6 +378,38 @@ export const getJournalLogs = async (userId: string, dateFrom?: Date, dateTo?: D
 };
 
 /**
+ * Get a single journal log by ID
+ * @param userId User ID the journal log belongs to
+ * @param journalLogId Journal log ID to fetch
+ * @returns The journal log or undefined if not found
+ */
+export const getJournalLogById = async (userId: string, journalLogId: string): Promise<any | undefined> => {
+  try {
+    const db = getFirestore();
+    const journalLogDoc = await db.collection('users')
+      .doc(userId)
+      .collection('journalLogs')
+      .doc(journalLogId)
+      .get();
+    
+    if (!journalLogDoc.exists) {
+      return undefined;
+    }
+    
+    return {
+      id: journalLogDoc.id,
+      ...journalLogDoc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      entryDate: journalLogDoc.data()?.entryDate?.toDate(),
+      dateCreated: journalLogDoc.data()?.dateCreated?.toDate(),
+    };
+  } catch (error) {
+    console.error(`Error fetching journal log ${journalLogId}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Update a journal log
  * @param userId User ID the journal log belongs to
  * @param journalLogId Journal log ID to update
@@ -498,6 +530,38 @@ export const getDietLogs = async (userId: string, dateFrom?: Date, dateTo?: Date
     }));
   } catch (error) {
     console.error('Error fetching diet logs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get a single diet log by ID
+ * @param userId User ID the diet log belongs to
+ * @param dietLogId Diet log ID to fetch
+ * @returns The diet log or undefined if not found
+ */
+export const getDietLogById = async (userId: string, dietLogId: string): Promise<any | undefined> => {
+  try {
+    const db = getFirestore();
+    const dietLogDoc = await db.collection('users')
+      .doc(userId)
+      .collection('dietLogs')
+      .doc(dietLogId)
+      .get();
+    
+    if (!dietLogDoc.exists) {
+      return undefined;
+    }
+    
+    return {
+      id: dietLogDoc.id,
+      ...dietLogDoc.data(),
+      // Convert Firestore Timestamps to JavaScript Date objects
+      mealDate: dietLogDoc.data()?.mealDate?.toDate(),
+      dateCreated: dietLogDoc.data()?.dateCreated?.toDate(),
+    };
+  } catch (error) {
+    console.error(`Error fetching diet log ${dietLogId}:`, error);
     throw error;
   }
 };
