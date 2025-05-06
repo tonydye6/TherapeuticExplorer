@@ -317,6 +317,167 @@ Ensure your predictions are evidence-based and reflect the latest clinical resea
   }
 
   /**
+   * Compare multiple treatments side-by-side for a single patient
+   */
+  async compareTreatmentsSideBySide(
+    patientData: PatientData,
+    treatmentOptions: string[],
+    aspectsToCompare: string[] = []
+  ): Promise<{
+    treatments: TreatmentPrediction[];
+    comparisonTable: Record<string, Record<string, string>>;
+    plainLanguageSummary: string;
+  }> {
+    try {
+      // Validate inputs
+      if (!patientData.diagnosis) {
+        throw new Error('Patient diagnosis is required for treatment comparison');
+      }
+      
+      if (!treatmentOptions || treatmentOptions.length < 2) {
+        throw new Error('At least two treatment options are required for comparison');
+      }
+      
+      // Default aspects to compare if none specified
+      const aspects = aspectsToCompare.length > 0 ? aspectsToCompare : [
+        'Effectiveness',
+        'Side Effects',
+        'Time Commitment',
+        'Recovery Period',
+        'Impact on Quality of Life',
+        'Cost Considerations',
+        'Evidence Strength'
+      ];
+      
+      // Get detailed predictions for all treatments
+      const predictions = await this.predictTreatmentEffectiveness(patientData, treatmentOptions);
+      
+      // Generate a comparison table using AI
+      const comparisonTable = await this.generateComparisonTable(patientData, predictions, aspects);
+      
+      // Generate a plain language summary explaining key differences
+      const plainLanguageSummary = await this.generatePlainLanguageSummary(patientData, predictions, comparisonTable);
+      
+      return {
+        treatments: predictions,
+        comparisonTable,
+        plainLanguageSummary
+      };
+    } catch (error) {
+      console.error('Error comparing treatments side by side:', error);
+      throw new Error(`Treatment comparison failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  /**
+   * Generate a structured comparison table of treatments across different aspects
+   */
+  private async generateComparisonTable(
+    patientData: PatientData,
+    treatments: TreatmentPrediction[],
+    aspects: string[]
+  ): Promise<Record<string, Record<string, string>>> {
+    // Create a detailed prompt for the table generation
+    const prompt = `
+    Based on the patient with ${patientData.diagnosis} and the following treatment predictions, create a detailed comparison table.
+    
+    PATIENT SUMMARY:
+    ${this.createPatientSummary(patientData)}
+    
+    TREATMENT PREDICTIONS:
+    ${JSON.stringify(treatments, null, 2)}
+    
+    ASPECTS TO COMPARE:
+    ${aspects.join('\n')}
+    
+    Generate a detailed comparison table with treatments as columns and the aspects as rows.
+    Format your response as a JSON object with the following structure:
+    {
+      "aspects": {
+        "[Aspect Name]": {
+          "[Treatment Name 1]": "[Comparison point in 1-2 sentences]",
+          "[Treatment Name 2]": "[Comparison point in 1-2 sentences]",
+          ...
+        },
+        ...
+      }
+    }
+    
+    For each cell, provide a concise but informative 1-2 sentence description comparing that aspect for that treatment.
+    Use evidence from the treatment predictions where possible.
+    Make clear comparisons between treatments (e.g., "Better/worse than Treatment X for...").
+    `;
+    
+    // Use GPT-4o for generating the comparison table
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in medical treatment comparisons. Create clear, structured, evidence-based comparisons of different treatment options."
+        },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }
+    });
+    
+    try {
+      const content = response.choices[0]?.message?.content || '{}';
+      const result = JSON.parse(content);
+      return result.aspects || {};
+    } catch (error) {
+      console.error('Error parsing comparison table:', error);
+      return {};
+    }
+  }
+  
+  /**
+   * Generate a plain language summary of the treatment comparison
+   */
+  private async generatePlainLanguageSummary(
+    patientData: PatientData,
+    treatments: TreatmentPrediction[],
+    comparisonTable: Record<string, Record<string, string>>
+  ): Promise<string> {
+    // Create a prompt for the plain language summary
+    const prompt = `
+    Based on the patient with ${patientData.diagnosis} and the detailed treatment comparison, create a plain language summary explaining the key differences between these treatment options.
+    
+    PATIENT SUMMARY:
+    ${this.createPatientSummary(patientData)}
+    
+    TREATMENTS BEING COMPARED:
+    ${treatments.map(t => t.treatmentName).join(', ')}
+    
+    DETAILED COMPARISON:
+    ${JSON.stringify(comparisonTable, null, 2)}
+    
+    Write a clear, compassionate, jargon-free explanation (500-800 words) of:
+    1. The key differences between these treatments in terms of how they work
+    2. The main trade-offs to consider (effectiveness vs. side effects, quality of life impacts, etc.)
+    3. What factors from this patient's specific situation might make one treatment more suitable than others
+    4. Questions the patient might want to discuss with their doctor
+    
+    Address the patient directly using "you" language. Avoid medical jargon when possible, or explain it clearly when needed.
+    Be honest about uncertainties and trade-offs. Emphasize that treatment decisions should always be made with healthcare providers.
+    `;
+    
+    // Use GPT-4o for generating the plain language summary
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are a compassionate medical explainer who helps patients understand complex treatment options in simple language. You speak directly to patients with warmth and clarity."
+        },
+        { role: "user", content: prompt }
+      ],
+    });
+    
+    return response.choices[0]?.message?.content || "No explanation available";
+  }
+
+  /**
    * Compare treatment effectiveness between two patient profiles
    */
   async compareTreatmentEffectiveness(
