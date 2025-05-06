@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Loader2, AlertTriangle, Plus, X } from 'lucide-react';
+import { Loader2, AlertTriangle, Plus, X, Activity, Info as InfoIcon } from 'lucide-react';
 import SideEffectProfile, { SideEffectProfile as SideEffectProfileType } from '@/components/SideEffectProfile';
 
 // Patient characteristics schema for side effect analysis
