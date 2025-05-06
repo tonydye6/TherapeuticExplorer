@@ -46,6 +46,8 @@ export async function getContextualHopeSnippet(userId: string, category?: string
  * @returns The detected query type (HOPE, EMOTIONAL_SUPPORT, or undefined)
  */
 export function analyzeHopeQuery(queryText: string): QueryType | undefined {
+  if (!queryText) return undefined;
+  
   const lowerQuery = queryText.toLowerCase();
   
   // Check for Hope Module queries (Backend Chunk 9)
@@ -60,7 +62,15 @@ export function analyzeHopeQuery(queryText: string): QueryType | undefined {
       lowerQuery.includes('hope quote') ||
       lowerQuery.includes('inspirational quote') ||
       lowerQuery.includes('give me strength') ||
-      lowerQuery.includes('uplifting message')) {
+      lowerQuery.includes('uplifting message') ||
+      lowerQuery.includes('motivation') ||
+      lowerQuery.includes('inspire') ||
+      lowerQuery.includes('encouragement') ||
+      lowerQuery.includes('success stories') ||
+      lowerQuery.includes('overcome') ||
+      lowerQuery.includes('triumph') ||
+      lowerQuery.includes('positive thinking') ||
+      lowerQuery.includes('show me the light')) {
     return QueryType.HOPE;
   }
   
@@ -76,7 +86,25 @@ export function analyzeHopeQuery(queryText: string): QueryType | undefined {
       lowerQuery.includes('coping with') ||
       lowerQuery.includes('help me process') ||
       lowerQuery.includes('struggling with emotions') ||
-      lowerQuery.includes('emotional help')) {
+      lowerQuery.includes('emotional help') ||
+      lowerQuery.includes('feel sad') ||
+      lowerQuery.includes('feel alone') ||
+      lowerQuery.includes('feeling isolated') ||
+      lowerQuery.includes('need to talk') ||
+      lowerQuery.includes('worried about') ||
+      lowerQuery.includes('afraid of') ||
+      lowerQuery.includes('scared about') ||
+      lowerQuery.includes('feeling lost') ||
+      lowerQuery.includes('comforting words') ||
+      lowerQuery.includes('how to cope') ||
+      lowerQuery.includes('need encouragement')) {
+    return QueryType.EMOTIONAL_SUPPORT;
+  }
+  
+  // Advanced pattern recognition (sentiment-based)
+  if (/(?:i\s+(?:feel|am)\s+(?:so|very|really|extremely)\s+(?:sad|depressed|down|upset|worried|anxious|afraid))/i.test(queryText) ||
+      /(?:i\s+(?:need|want|could use)\s+(?:someone|somebody)\s+(?:to talk to|to listen))/i.test(queryText) ||
+      /(?:i\s+(?:don't know|can't|cannot)\s+(?:how to|what to)\s+(?:handle|deal with|cope|manage)\s+(?:this|it|everything))/i.test(queryText)) {
     return QueryType.EMOTIONAL_SUPPORT;
   }
   
@@ -94,20 +122,41 @@ export function formatHopeContext(context: any, queryType: QueryType): string {
   
   // Add basic user profile information
   if (context.userProfile) {
-    contextStr += "User Information:\n";
-    contextStr += `- Name: ${context.userProfile.displayName || context.userProfile.username}\n`;
+    contextStr += "USER INFORMATION:\n";
+    contextStr += `Name: ${context.userProfile.displayName || context.userProfile.username}\n`;
     
     if (context.userProfile.diagnosis) {
-      contextStr += `- Diagnosis: ${context.userProfile.diagnosis}\n`;
+      contextStr += `Diagnosis: ${context.userProfile.diagnosis}\n`;
     }
     
     if (context.userProfile.diagnosisStage) {
-      contextStr += `- Stage: ${context.userProfile.diagnosisStage}\n`;
+      contextStr += `Stage: ${context.userProfile.diagnosisStage}\n`;
     }
     
     if (context.userProfile.diagnosisDate) {
       const date = new Date(context.userProfile.diagnosisDate);
-      contextStr += `- Diagnosis Date: ${date.toLocaleDateString()}\n`;
+      contextStr += `Diagnosis Date: ${date.toLocaleDateString()}\n`;
+    }
+    
+    // Add preferences if available for more personalized hope messages
+    if (context.userProfile.preferences) {
+      contextStr += "\nPREFERENCES:\n";
+      
+      if (context.userProfile.preferences.copingStrategies && context.userProfile.preferences.copingStrategies.length > 0) {
+        contextStr += `Coping Strategies: ${context.userProfile.preferences.copingStrategies.join(', ')}\n`;
+      }
+      
+      if (context.userProfile.preferences.supportSystem && context.userProfile.preferences.supportSystem.length > 0) {
+        contextStr += `Support System: ${context.userProfile.preferences.supportSystem.join(', ')}\n`;
+      }
+      
+      if (context.userProfile.preferences.communicationStyle) {
+        contextStr += `Communication Style: ${context.userProfile.preferences.communicationStyle}\n`;
+      }
+      
+      if (context.userProfile.preferences.hobbies && context.userProfile.preferences.hobbies.length > 0) {
+        contextStr += `Interests/Hobbies: ${context.userProfile.preferences.hobbies.join(', ')}\n`;
+      }
     }
   }
   
@@ -182,9 +231,39 @@ export async function generateHopeMessage(
     }
     
     // Otherwise, we'll need to generate a custom response using AI
-    // This can be implemented in the aiRouter
+    // In a real implementation, we would use the OpenAI or Claude models here
+    // via their respective service files, but for now we'll use a template-based approach
+    // with contextually appropriate hope messages
+    
+    let customMessage = "";
+    
+    // Create messages tailored to the query type and user context
+    if (queryType === QueryType.HOPE) {
+      const hopeTemplates = [
+        "Remember that each day brings new possibilities. Your strength in facing these challenges is truly inspiring.",
+        "Hope isn't about expecting the best, but knowing that something good can emerge from whatever happens.",
+        "Even in the darkest moments, there is always a path forward. You have the courage to find it.",
+        "Your journey may be difficult, but it's shaping you into someone extraordinary. Keep moving forward with hope.",
+        "The human spirit is remarkably resilient. Trust in your ability to adapt and overcome."
+      ];
+      
+      // Select a random template
+      customMessage = hopeTemplates[Math.floor(Math.random() * hopeTemplates.length)];
+    } else if (queryType === QueryType.EMOTIONAL_SUPPORT) {
+      const supportTemplates = [
+        "It's completely natural to feel overwhelmed sometimes. Be gentle with yourself as you navigate these emotions.",
+        "Your feelings are valid. Remember to take time for self-care and reach out to your support network when needed.",
+        "During difficult times, focus on one moment at a time. Small steps forward still move you in the right direction.",
+        "You're not alone in this journey. Many have walked similar paths and found their way through the darkness.",
+        "It takes remarkable courage to face these challenges. Acknowledge your strength, even on the hardest days."
+      ];
+      
+      // Select a random template
+      customMessage = supportTemplates[Math.floor(Math.random() * supportTemplates.length)];
+    }
+    
     return {
-      content: "We're here to support you on your journey. Stay strong and remember that you're never alone in this.",
+      content: customMessage || "We're here to support you on your journey. Stay strong and remember that you're never alone in this.",
       isCustomGenerated: true
     };
   } catch (error) {
