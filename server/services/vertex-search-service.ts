@@ -212,9 +212,54 @@ class VertexSearchService {
     }
     
     try {
-      // Implementation for document upload would go here
-      // For now, throw an error as this would need to be implemented based on specific requirements
-      throw new Error('Document upload functionality not yet implemented');
+      // Construct the location path
+      const locationPath = this.client.projectLocationPath(
+        this.projectId, 
+        this.locationId
+      );
+      
+      // Construct the data store path
+      const dataStorePath = `${locationPath}/dataStores/${this.dataStoreId}`;
+      
+      // Generate a unique document ID
+      const documentId = `doc-${userId}-${uuidv4()}`;
+      
+      // Create structured data for the document
+      const structuredData = {
+        id: documentId,
+        userId: userId, // Important for filtering by user
+        title: metadata.title || 'Untitled Document',
+        content: documentContent,
+        type: metadata.type || 'medical_document',
+        dateAdded: metadata.dateAdded?.toISOString() || new Date().toISOString(),
+        sourceDate: metadata.sourceDate?.toISOString() || null,
+        sourceType: metadata.sourceType || 'upload',
+        documentTypeInfo: metadata.documentTypeInfo || {},
+        // Add any additional metadata that might be useful for search
+        tags: metadata.tags || [],
+        fileType: metadata.fileType || 'text',
+      };
+      
+      // Create the Vertex AI document
+      const document = {
+        id: documentId,
+        structData: JSON.stringify(structuredData),
+        // For improved performance, we can also add schema-specific fields
+        schema: 'sophera_medical_document',
+      };
+      
+      // Build the import document request
+      const request = {
+        parent: dataStorePath,
+        documentId: documentId,
+        document: document,
+      };
+      
+      // Create document in Vertex AI Search data store
+      await this.client.createDocument(request);
+      
+      console.log(`Document successfully uploaded to Vertex AI Search with ID: ${documentId}`);
+      return documentId;
     } catch (error) {
       console.error('Error uploading document to Vertex AI Search:', error);
       throw new Error(`Document upload failed: ${error instanceof Error ? error.message : String(error)}`);
