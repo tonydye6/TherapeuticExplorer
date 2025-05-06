@@ -1391,6 +1391,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Side-by-side treatment comparison for a single patient
+  app.post("/api/treatments/compare-side-by-side", async (req, res) => {
+    try {
+      const { patientData, treatmentOptions, aspectsToCompare } = req.body;
+      
+      if (!patientData || !patientData.diagnosis) {
+        return res.status(400).json({ 
+          message: "Patient data with diagnosis is required" 
+        });
+      }
+      
+      if (!treatmentOptions || !Array.isArray(treatmentOptions) || treatmentOptions.length < 2) {
+        return res.status(400).json({ 
+          message: "At least two treatment options are required for comparison" 
+        });
+      }
+      
+      // Validate patient data structure
+      const validatedPatientData = {
+        userId: DEFAULT_USER_ID, 
+        diagnosis: patientData.diagnosis,
+        age: patientData.age,
+        gender: patientData.gender,
+        diagnosisDate: patientData.diagnosisDate,
+        tumorCharacteristics: patientData.tumorCharacteristics,
+        medicalHistory: patientData.medicalHistory,
+        performanceStatus: patientData.performanceStatus,
+        biomarkers: patientData.biomarkers
+      };
+      
+      // Get side-by-side comparison results
+      const comparisonResults = await treatmentPredictionService.compareTreatmentsSideBySide(
+        validatedPatientData,
+        treatmentOptions,
+        aspectsToCompare || []
+      );
+      
+      res.json(comparisonResults);
+    } catch (error) {
+      console.error("Error generating side-by-side treatment comparison:", error);
+      res.status(500).json({ 
+        message: "Failed to generate side-by-side treatment comparison", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  // Plain language treatment explanation
+  app.post("/api/treatments/explain", async (req, res) => {
+    try {
+      const { treatmentName, diagnosis, audience } = req.body;
+      
+      if (!treatmentName) {
+        return res.status(400).json({ 
+          message: "Treatment name is required" 
+        });
+      }
+      
+      if (!diagnosis) {
+        return res.status(400).json({ 
+          message: "Diagnosis is required" 
+        });
+      }
+      
+      // Validate audience if provided
+      const validAudience = audience && ['patient', 'caregiver', 'child'].includes(audience) 
+        ? audience as 'patient' | 'caregiver' | 'child'
+        : 'patient';
+      
+      // Generate plain language explanation
+      const explanation = await treatmentPredictionService.explainTreatmentInPlainLanguage(
+        treatmentName,
+        diagnosis,
+        validAudience
+      );
+      
+      res.json(explanation);
+    } catch (error) {
+      console.error("Error generating treatment explanation:", error);
+      res.status(500).json({ 
+        message: "Failed to generate treatment explanation", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
   // Side Effect Profile Analysis Route
   app.post("/api/treatments/side-effects", async (req, res) => {
     try {

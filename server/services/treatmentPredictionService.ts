@@ -569,6 +569,84 @@ Provide evidence-based reasoning for your explanations.
 
     return response.choices[0]?.message?.content || "No explanation available";
   }
+
+  /**
+   * Generate a plain language explanation of a treatment
+   */
+  async explainTreatmentInPlainLanguage(
+    treatmentName: string,
+    diagnosis: string,
+    audience: 'patient' | 'caregiver' | 'child' = 'patient'
+  ): Promise<{
+    explanation: string;
+    keywords: string[];
+    visualAid?: string;
+  }> {
+    try {
+      // Create a prompt based on the audience
+      let promptPrefix = '';
+      
+      if (audience === 'child') {
+        promptPrefix = 'Explain this cancer treatment to a child in very simple terms with metaphors they would understand. Use short sentences, simple words, and a warm, reassuring tone.';
+      } else if (audience === 'caregiver') {
+        promptPrefix = 'Explain this cancer treatment to a caregiver who wants to support their loved one. Include practical caregiving advice and what to watch for.';
+      } else {
+        promptPrefix = 'Explain this cancer treatment to a patient in plain, non-technical language. Be warm, honest and supportive while providing practical information.';
+      }
+      
+      const prompt = `
+      ${promptPrefix}
+      
+      Treatment: ${treatmentName}
+      Diagnosis: ${diagnosis}
+      
+      Your explanation should cover:
+      1. What the treatment is and how it works in simple terms
+      2. What the patient can expect during treatment (procedure, duration, frequency)
+      3. Common side effects and how they're typically managed
+      4. How this treatment helps with their specific condition
+      5. What the patient can do to prepare or support the treatment's effectiveness
+      
+      IMPORTANT: Use metaphors and everyday comparisons to explain complex concepts. Avoid medical jargon when possible, or immediately explain it in simple terms if it's necessary to use. Be compassionate but honest. Format your response for readability with appropriate paragraphs and bullet points where helpful.
+      
+      Also include a short list of 5-7 key terms/concepts that would be helpful for the ${audience} to know, with very brief (one sentence) definitions.
+      
+      Format your response as a JSON object with the following structure:
+      {
+        "explanation": "Your detailed plain-language explanation",
+        "keywords": ["Term 1: brief definition", "Term 2: brief definition", ...],
+        "visualAid": "A text description of what would make a helpful visual to accompany this explanation"
+      }
+      `;
+      
+      // Use GPT-4o for generating the plain language explanation
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are a compassionate medical explainer who specializes in making complex cancer treatments understandable to different audiences. You're known for your warm, clear language and ability to explain difficult concepts through relatable analogies."
+          },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" }
+      });
+      
+      try {
+        const content = response.choices[0]?.message?.content || '{}';
+        return JSON.parse(content);
+      } catch (error) {
+        console.error('Error parsing treatment explanation:', error);
+        return {
+          explanation: "I'm sorry, but there was an error generating the treatment explanation.",
+          keywords: []
+        };
+      }
+    } catch (error) {
+      console.error('Error explaining treatment in plain language:', error);
+      throw new Error(`Failed to generate treatment explanation: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }
 
 export const treatmentPredictionService = new TreatmentPredictionService();
