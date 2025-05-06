@@ -757,6 +757,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update document with parsed content
       const document = await storage.updateDocumentParsedContent(documentId, analysis);
       
+      // If document has a Vertex AI Search document ID, also update it there
+      if (document.parsedContent && document.parsedContent.vertexDocumentId) {
+        try {
+          const vertexDocId = document.parsedContent.vertexDocumentId;
+          
+          await vertexSearchService.updateDocument(
+            vertexDocId,
+            content,
+            {
+              userId: document.userId,
+              title: document.title,
+              type: document.type,
+              documentTypeInfo: analysis.structuredData || {},
+              tags: document.tags || []
+            }
+          );
+          
+          console.log(`Updated document in Vertex AI Search: ${vertexDocId}`);
+        } catch (vertexError) {
+          // Don't fail the request if Vertex update fails
+          console.error("Error updating document in Vertex AI Search:", vertexError);
+        }
+      }
+      
       // Generate embeddings for the parsed content
       try {
         // Get existing research items for this document

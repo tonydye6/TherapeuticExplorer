@@ -324,7 +324,113 @@ class VertexSearchService {
       throw new Error(`Failed to get document: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  
+  /**
+   * Update a document in Vertex AI Search
+   * @param documentId The Vertex AI document ID
+   * @param documentContent The updated content of the document
+   * @param metadata Additional metadata for the document
+   * @returns True if update was successful
+   */
+  async updateDocument(documentId: string, documentContent: string, metadata: any): Promise<boolean> {
+    // Check if the service is properly initialized
+    if (!this.initialized || !this.client) {
+      throw new Error('Vertex AI Search service not properly initialized');
+    }
+    
+    try {
+      // Construct the location path
+      const locationPath = this.client.projectLocationPath(
+        this.projectId, 
+        this.locationId
+      );
+      
+      const dataStorePath = `${locationPath}/dataStores/${this.dataStoreId}`;
+      const documentPath = `${dataStorePath}/documents/${documentId}`;
+      
+      // Create structured data for the document update
+      const structuredData = {
+        id: documentId,
+        userId: metadata.userId, // Important for filtering by user
+        title: metadata.title || 'Untitled Document',
+        content: documentContent,
+        type: metadata.type || 'medical_document',
+        dateUpdated: new Date().toISOString(),
+        sourceDate: metadata.sourceDate?.toISOString() || null,
+        sourceType: metadata.sourceType || 'upload',
+        documentTypeInfo: metadata.documentTypeInfo || {},
+        // Add any additional metadata that might be useful for search
+        tags: metadata.tags || [],
+        fileType: metadata.fileType || 'text',
+      };
+      
+      // Create the updated Vertex AI document
+      const document = {
+        name: documentPath,
+        id: documentId,
+        structData: JSON.stringify(structuredData),
+        schema: 'sophera_medical_document',
+      };
+      
+      // Build the update document request
+      const request = {
+        document: document,
+        // Only update specified fields
+        updateMask: {
+          paths: ['structData']
+        }
+      };
+      
+      // Update document in Vertex AI Search data store
+      await this.client.updateDocument(request);
+      
+      console.log(`Document successfully updated in Vertex AI Search: ${documentId}`);
+      return true;
+    } catch (error) {
+      console.error('Error updating document in Vertex AI Search:', error);
+      throw new Error(`Document update failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  /**
+   * Delete a document from Vertex AI Search
+   * @param documentId The Vertex AI document ID
+   * @returns True if deletion was successful
+   */
+  async deleteDocument(documentId: string): Promise<boolean> {
+    // Check if the service is properly initialized
+    if (!this.initialized || !this.client) {
+      throw new Error('Vertex AI Search service not properly initialized');
+    }
+    
+    try {
+      // Construct the location path
+      const locationPath = this.client.projectLocationPath(
+        this.projectId, 
+        this.locationId
+      );
+      
+      const dataStorePath = `${locationPath}/dataStores/${this.dataStoreId}`;
+      const documentPath = `${dataStorePath}/documents/${documentId}`;
+      
+      // Build the delete document request
+      const request = {
+        name: documentPath
+      };
+      
+      // Delete document from Vertex AI Search data store
+      await this.client.deleteDocument(request);
+      
+      console.log(`Document successfully deleted from Vertex AI Search: ${documentId}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting document from Vertex AI Search:', error);
+      throw new Error(`Document deletion failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }
+
+// Export a singleton instance of the service
 
 // Export a singleton instance of the service
 export const vertexSearchService = new VertexSearchService();
