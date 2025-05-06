@@ -1799,13 +1799,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/journal-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const journalLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!journalLogId) {
         return res.status(400).json({ message: "Invalid journal log ID" });
       }
       
-      const journalLog = await storage.getJournalLogById(id);
+      // Use Firestore implementation
+      const journalLog = await firestoreService.getJournalLogById(DEFAULT_USER_ID, journalLogId);
       
       if (!journalLog) {
         return res.status(404).json({ message: "Journal log not found" });
@@ -1820,6 +1822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/journal-logs", async (req, res) => {
     try {
+      const DEFAULT_USER_ID = "1";
       // Pre-process request body to handle date formats
       const requestData = { ...req.body };
       
@@ -1827,12 +1830,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.entryDate = new Date(requestData.entryDate);
       }
       
-      const journalLogData = insertJournalLogSchema.parse({
-        ...requestData,
-        userId: DEFAULT_USER_ID
-      });
+      if (requestData.dateCreated && typeof requestData.dateCreated === 'string') {
+        requestData.dateCreated = new Date(requestData.dateCreated);
+      } else if (!requestData.dateCreated) {
+        // Set dateCreated to current date if not provided
+        requestData.dateCreated = new Date();
+      }
       
-      const journalLog = await storage.createJournalLog(journalLogData);
+      // Use Firestore implementation instead of parsing with schema
+      const journalLog = await firestoreService.addJournalLog(DEFAULT_USER_ID, requestData);
       res.status(201).json(journalLog);
     } catch (error) {
       console.error("Error creating journal log:", error);
@@ -1850,9 +1856,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/journal-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const journalLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!journalLogId) {
         return res.status(400).json({ message: "Invalid journal log ID" });
       }
       
@@ -1863,7 +1870,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.entryDate = new Date(requestData.entryDate);
       }
       
-      const journalLog = await storage.updateJournalLog(id, requestData);
+      // Use Firestore implementation
+      const journalLog = await firestoreService.updateJournalLog(DEFAULT_USER_ID, journalLogId, requestData);
       res.json(journalLog);
     } catch (error) {
       console.error("Error updating journal log:", error);
@@ -1875,7 +1883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -1885,18 +1893,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/journal-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const journalLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!journalLogId) {
         return res.status(400).json({ message: "Invalid journal log ID" });
       }
       
-      await storage.deleteJournalLog(id);
+      // Use Firestore implementation
+      await firestoreService.deleteJournalLog(DEFAULT_USER_ID, journalLogId);
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting journal log:", error);
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -1907,7 +1917,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Diet Log Routes
   app.get("/api/diet-logs", async (req, res) => {
     try {
-      const dietLogs = await storage.getDietLogs(DEFAULT_USER_ID);
+      const DEFAULT_USER_ID = "1";
+      // Use Firestore implementation
+      const dietLogs = await firestoreService.getDietLogs(DEFAULT_USER_ID);
       res.json(dietLogs);
     } catch (error) {
       console.error("Error fetching diet logs:", error);
@@ -1917,13 +1929,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/diet-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const dietLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!dietLogId) {
         return res.status(400).json({ message: "Invalid diet log ID" });
       }
       
-      const dietLog = await storage.getDietLogById(id);
+      // Use Firestore implementation
+      const dietLog = await firestoreService.getDietLogById(DEFAULT_USER_ID, dietLogId);
       
       if (!dietLog) {
         return res.status(404).json({ message: "Diet log not found" });
@@ -1938,6 +1952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/diet-logs", async (req, res) => {
     try {
+      const DEFAULT_USER_ID = "1";
       // Pre-process request body to handle date formats
       const requestData = { ...req.body };
       
@@ -1945,12 +1960,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.mealDate = new Date(requestData.mealDate);
       }
       
-      const dietLogData = insertDietLogSchema.parse({
-        ...requestData,
-        userId: DEFAULT_USER_ID
-      });
+      if (requestData.dateCreated && typeof requestData.dateCreated === 'string') {
+        requestData.dateCreated = new Date(requestData.dateCreated);
+      } else if (!requestData.dateCreated) {
+        // Set dateCreated to current date if not provided
+        requestData.dateCreated = new Date();
+      }
       
-      const dietLog = await storage.createDietLog(dietLogData);
+      // Use Firestore implementation
+      const dietLog = await firestoreService.addDietLog(DEFAULT_USER_ID, requestData);
       res.status(201).json(dietLog);
     } catch (error) {
       console.error("Error creating diet log:", error);
@@ -1968,9 +1986,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/diet-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const dietLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!dietLogId) {
         return res.status(400).json({ message: "Invalid diet log ID" });
       }
       
@@ -1981,7 +2000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData.mealDate = new Date(requestData.mealDate);
       }
       
-      const dietLog = await storage.updateDietLog(id, requestData);
+      // Use Firestore implementation
+      const dietLog = await firestoreService.updateDietLog(DEFAULT_USER_ID, dietLogId, requestData);
       res.json(dietLog);
     } catch (error) {
       console.error("Error updating diet log:", error);
@@ -1993,7 +2013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
@@ -2003,18 +2023,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/diet-logs/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const DEFAULT_USER_ID = "1";
+      const dietLogId = req.params.id;
       
-      if (isNaN(id)) {
+      if (!dietLogId) {
         return res.status(400).json({ message: "Invalid diet log ID" });
       }
       
-      await storage.deleteDietLog(id);
+      // Use Firestore implementation
+      await firestoreService.deleteDietLog(DEFAULT_USER_ID, dietLogId);
       res.status(204).end();
     } catch (error) {
       console.error("Error deleting diet log:", error);
       
-      if (error.message && error.message.includes("not found")) {
+      if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes("not found")) {
         return res.status(404).json({ message: error.message });
       }
       
