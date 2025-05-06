@@ -1,0 +1,83 @@
+﻿Sophera Application Sitemap
+This sitemap outlines the proposed structure and key pages/features of the Sophera application.
+Sophera Application
+│
+├── **Authentication**
+│   ├── Login Page (Patient / Caregiver)
+│   ├── Sign Up / Account Creation (Patient)
+│   └── Password Reset / Account Recovery
+│
+└── **Main Application (Patient View - Post Login)**
+   │
+   ├── **1. Today (Dashboard / Home)**
+   │   ├── Personalized Greeting
+   │   ├── Today's Focus (Key Plan Items Summary)
+   │   ├── Daily Journal Prompt (Link to Journal Input)
+   │   └── Hope Snippet (Quote/Story/Mindfulness)
+   │
+   ├── **2. My Journey (Integrated Tracking)**
+   │   ├── **My Plan**
+   │   │   ├── Calendar View
+   │   │   ├── List View
+   │   │   └── Add/Edit/View Plan Item Details (Modal or Page)
+   │   ├── **My Journal**
+   │   │   ├── Journal Input Form (Mood, Energy, Symptoms, Notes)
+   │   │   └── Journal History View (List/Calendar)
+   │   ├── **Diet Log**
+   │   │   ├── Diet Log Input Form
+   │   │   └── Diet Log History View
+   │   ├── **My Metrics** (Optional/Simple View/Input)
+   │   └── **Trends** (Visualization Charts - Mood, Energy, Symptoms)
+   │
+   ├── **3. Understand (Knowledge Hub)**
+   │   ├── AI Explainer (Search / Tap-to-Define Interface)
+   │   ├── Treatment Guides (View simplified info for items in "My Plan")
+   │   ├── Interaction Checker Info (Detailed explanations linked from "My Plan")
+   │   └── Document Summarizer
+   │       ├── Document Upload Interface
+   │       └── View Document Summaries & Analysis
+   │
+   ├── **4. Explore (Research, Trials & Creative Solutions)**
+   │   ├── Guided Search (Standard Treatments/Therapies)
+   │   ├── Clinical Trial Finder (Search & View Results)
+   │   └── Creative Exploration Sandbox
+   │       ├── Disclaimer Screen (One-time confirmation)
+   │       ├── AI Chat Interface (Multi-modal input support)
+   │       └── Export Doctor Discussion Brief Function
+   │
+   ├── **5. Connect & Hope (Community & Support)**
+   │   ├── Survivor Stories (Library/View)
+   │   ├── Mindfulness Corner (Resource Links)
+   │   ├── Resource Hub (Financial/Advocacy Links)
+   │   └── Caregiver Connect
+   │       ├── Invite Caregiver Interface
+   │       └── Manage Caregivers & Permissions Interface
+   │
+   └── **6. Settings & Profile**
+       ├── Edit User Profile
+       ├── Manage Caregivers (View/Remove/Edit Permissions)
+       ├── Notification Settings (Future)
+       └── Privacy Settings / Data Management
+
+└── **Main Application (Caregiver View - Post Login)**
+   │
+   ├── **Caregiver Dashboard**
+   │   ├── Patient Status Summary (Appointments, Recent Trends)
+   │   └── Quick Links (e.g., View Plan, Add Shared Note)
+   │
+   ├── **View Patient's Journey** (Read-only or limited edit based on permissions)
+   │   ├── View My Plan (Calendar/List)
+   │   ├── View My Journal / Diet Log
+   │   └── View Trends
+   │
+   ├── **Shared Notes** (View/Add notes visible to patient/other caregivers)
+   │
+   ├── **Manage Plan (If Permitted)**
+   │   └── Add/Edit/Check-off Plan Items (Clearly logs caregiver action)
+   │
+   ├── **Explore Access** (Ability to use research/trial/sandbox features)
+   │
+   └── **Settings**
+       └── Manage Connection / View Permissions
+
+This sitemap provides a high-level overview of how a user (either patient or caregiver) would navigate through the different functionalities of Sophera based on the human-centric vision.

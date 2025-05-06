@@ -4,30 +4,41 @@ import useMobile from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import LoginButton from "./LoginButton";
 import {
-  MessageSquare,
-  BookOpen,
-  FileText,
-  Activity,
-  FlaskConical,
-  Settings,
-  HelpCircle,
   User,
   Home,
-  Bookmark,
   SlidersHorizontal,
-  Search,
-  BarChart3,
-  AlertTriangle,
+  Settings,
+  HelpCircle,
   Calendar,
-  Leaf,
-  ImagePlus,
+  FileText,
+  Activity,
+  Search,
+  BookOpen,
+  FlaskConical,
+  Heart,
+  Users,
+  Lightbulb,
+  Brain,
+  Stethoscope,
+  Compass,
+  MessageSquare,
+  Sparkles,
   BookOpen as JournalIcon,
   Utensils,
-  Quote
+  HeartPulse,
+  TrendingUp,
+  FileQuestion
 } from "lucide-react";
 
 interface SidebarProps {
   closeSidebar?: () => void;
+}
+
+interface NavigationItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  section?: string;
 }
 
 export default function Sidebar({ closeSidebar }: SidebarProps) {
@@ -35,25 +46,132 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
   const isMobile = useMobile();
   const { user, isAuthenticated } = useAuth();
 
-  const navigationItems = [
-    { href: "/", label: "Research Assistant", icon: <MessageSquare className="h-5 w-5" /> },
-    { href: "/dashboard", label: "Patient Dashboard", icon: <BarChart3 className="h-5 w-5" /> },
-    { href: "/saved-research", label: "Research Library", icon: <BookOpen className="h-5 w-5" /> },
-    { href: "/semantic-search", label: "Semantic Search", icon: <Search className="h-5 w-5" /> },
-    { href: "/documents", label: "Medical Documents", icon: <FileText className="h-5 w-5" /> },
-    { href: "/multimodal-chat", label: "Image Analysis", icon: <ImagePlus className="h-5 w-5" /> },
-    { href: "/my-plan", label: "My Plan", icon: <Calendar className="h-5 w-5" /> },
-    { href: "/journal-logs", label: "Journal Logs", icon: <JournalIcon className="h-5 w-5" /> },
-    { href: "/diet-logs", label: "Diet Logs", icon: <Utensils className="h-5 w-5" /> },
-    { href: "/hope-snippets", label: "Hope Snippets", icon: <Quote className="h-5 w-5" /> },
-    { href: "/treatment-tracker", label: "Treatment Tracker", icon: <Activity className="h-5 w-5" /> },
-    { href: "/alternative-treatments", label: "Alternative Treatments", icon: <Leaf className="h-5 w-5" /> },
-    { href: "/treatment-predictor", label: "Treatment Predictor", icon: <Activity className="h-5 w-5" /> },
-    { href: "/side-effect-analyzer", label: "Side Effect Analyzer", icon: <AlertTriangle className="h-5 w-5" /> },
-    { href: "/treatment-timeline", label: "Treatment Timeline", icon: <Calendar className="h-5 w-5" /> },
-    { href: "/clinical-trials", label: "Clinical Trials", icon: <FlaskConical className="h-5 w-5" /> },
-    { href: "/preferences", label: "Preferences", icon: <Settings className="h-5 w-5" /> },
-    { href: "/help", label: "Help & Support", icon: <HelpCircle className="h-5 w-5" /> },
+  const navigationItems: NavigationItem[] = [
+    // Today - Dashboard
+    { 
+      href: "/today", 
+      label: "Today", 
+      icon: <Home className="h-5 w-5" />,
+      section: "1. Today"
+    },
+    
+    // My Journey section
+    { 
+      href: "/my-journey/plan", 
+      label: "My Plan", 
+      icon: <Calendar className="h-5 w-5" />,
+      section: "2. My Journey"
+    },
+    { 
+      href: "/my-journey/journal", 
+      label: "My Journal", 
+      icon: <JournalIcon className="h-5 w-5" />,
+      section: "2. My Journey"
+    },
+    { 
+      href: "/my-journey/diet", 
+      label: "Diet Log", 
+      icon: <Utensils className="h-5 w-5" />,
+      section: "2. My Journey"
+    },
+    { 
+      href: "/my-journey/metrics", 
+      label: "My Metrics", 
+      icon: <HeartPulse className="h-5 w-5" />,
+      section: "2. My Journey"
+    },
+    { 
+      href: "/my-journey/trends", 
+      label: "Trends", 
+      icon: <TrendingUp className="h-5 w-5" />,
+      section: "2. My Journey"
+    },
+    
+    // Understand section
+    { 
+      href: "/understand/explainer", 
+      label: "AI Explainer", 
+      icon: <Brain className="h-5 w-5" />,
+      section: "3. Understand"
+    },
+    { 
+      href: "/understand/treatments", 
+      label: "Treatment Guides", 
+      icon: <Stethoscope className="h-5 w-5" />,
+      section: "3. Understand"
+    },
+    { 
+      href: "/understand/interactions", 
+      label: "Interaction Checker", 
+      icon: <Activity className="h-5 w-5" />,
+      section: "3. Understand"
+    },
+    { 
+      href: "/understand/documents", 
+      label: "Document Summarizer", 
+      icon: <FileText className="h-5 w-5" />,
+      section: "3. Understand"
+    },
+    
+    // Explore section
+    { 
+      href: "/explore/search", 
+      label: "Guided Search", 
+      icon: <Search className="h-5 w-5" />,
+      section: "4. Explore"
+    },
+    { 
+      href: "/explore/trials", 
+      label: "Clinical Trial Finder", 
+      icon: <FlaskConical className="h-5 w-5" />,
+      section: "4. Explore"
+    },
+    { 
+      href: "/explore/creative", 
+      label: "Creative Exploration", 
+      icon: <Lightbulb className="h-5 w-5" />,
+      section: "4. Explore"
+    },
+    
+    // Connect & Hope section
+    { 
+      href: "/connect/stories", 
+      label: "Survivor Stories", 
+      icon: <MessageSquare className="h-5 w-5" />,
+      section: "5. Connect & Hope"
+    },
+    { 
+      href: "/connect/mindfulness", 
+      label: "Mindfulness Corner", 
+      icon: <Sparkles className="h-5 w-5" />,
+      section: "5. Connect & Hope"
+    },
+    { 
+      href: "/connect/resources", 
+      label: "Resource Hub", 
+      icon: <BookOpen className="h-5 w-5" />,
+      section: "5. Connect & Hope"
+    },
+    { 
+      href: "/connect/caregivers", 
+      label: "Caregiver Connect", 
+      icon: <Users className="h-5 w-5" />,
+      section: "5. Connect & Hope"
+    },
+    
+    // Settings section
+    { 
+      href: "/settings/profile", 
+      label: "Profile Settings", 
+      icon: <Settings className="h-5 w-5" />,
+      section: "6. Settings & Profile"
+    },
+    { 
+      href: "/help", 
+      label: "Help & Support", 
+      icon: <HelpCircle className="h-5 w-5" />,
+      section: "6. Settings & Profile"
+    },
   ];
 
   return (
@@ -71,31 +189,46 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="mt-4 px-3 space-y-1 overflow-y-auto">
-        {navigationItems.map((item) => (
-          <Link 
-            key={item.href} 
-            href={item.href}
-            onClick={() => {
-              // Close sidebar on mobile when a link is clicked
-              if (isMobile && closeSidebar) {
-                closeSidebar();
-              }
-            }}
-          >
-            <div
-              className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                location === item.href
-                  ? "bg-primary-50 text-primary-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-            >
-              <span className="mr-3 text-gray-500">{item.icon}</span>
-              {item.label}
+      {/* Navigation - Organized by sections */}
+      <nav className="mt-4 px-3 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+        {/* Group items by section */}
+        {Array.from(new Set(navigationItems.map(item => item.section))).map(section => (
+          <div key={section} className="mb-4">
+            {/* Section header */}
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mt-6 mb-2">
+              {section}
+            </h3>
+            
+            {/* Section items */}
+            <div className="space-y-1">
+              {navigationItems
+                .filter(item => item.section === section)
+                .map((item) => (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    onClick={() => {
+                      // Close sidebar on mobile when a link is clicked
+                      if (isMobile && closeSidebar) {
+                        closeSidebar();
+                      }
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                        location === item.href
+                          ? "bg-primary-50 text-primary-700"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      )}
+                    >
+                      <span className="mr-3 text-gray-500">{item.icon}</span>
+                      {item.label}
+                    </div>
+                  </Link>
+                ))}
             </div>
-          </Link>
+          </div>
         ))}
       </nav>
 
