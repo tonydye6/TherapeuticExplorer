@@ -23,7 +23,11 @@ const CATEGORIES = [
   "Other"
 ];
 
-export default function HopeSnippetsPage() {
+interface HopeSnippetsPageProps {
+  inTabView?: boolean;
+}
+
+export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
   const {
     snippets,
     isLoading,
@@ -115,7 +119,7 @@ export default function HopeSnippetsPage() {
   };
   
   return (
-    <div className="container py-6 space-y-6">
+    <div className={`space-y-6 ${!inTabView ? 'container py-6' : ''}`}>
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Hope Snippets</h1>

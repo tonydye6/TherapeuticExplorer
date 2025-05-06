@@ -295,7 +295,7 @@ export default function ResourceHubPage({ inTabView }: ResourceHubPageProps) {
 
       {/* Categories */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <ScrollArea className="w-full" orientation="horizontal">
+        <ScrollArea className="w-full">
           <TabsList className="w-full h-auto flex flex-nowrap py-2 px-1">
             <TabsTrigger value="all" className="flex-shrink-0">
               All Resources
