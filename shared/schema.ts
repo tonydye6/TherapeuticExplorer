@@ -419,6 +419,9 @@ export enum QueryType {
   // Added for Backend Chunk 8 - Creative Exploration Sandbox
   CREATIVE_EXPLORATION = "creative_exploration",
   DOCTOR_BRIEF = "doctor_brief",
+  // Added for Backend Chunk 9 - Hope Module Integration
+  HOPE = "hope",
+  EMOTIONAL_SUPPORT = "emotional_support",
 }
 
 // Source interface for citation and attribution

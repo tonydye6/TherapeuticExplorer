@@ -41,7 +41,10 @@ const modelConfig = {
     [QueryType.TREATMENT_EXPLANATION]: ModelType.GPT, // GPT for plain language treatment explanations
     // Added for Backend Chunk 8 - Creative Exploration Sandbox
     [QueryType.CREATIVE_EXPLORATION]: ModelType.GEMINI, // Gemini is excellent for multi-modal, creative exploration
-    [QueryType.DOCTOR_BRIEF]: ModelType.GPT // GPT for structured doctor briefs generation
+    [QueryType.DOCTOR_BRIEF]: ModelType.GPT, // GPT for structured doctor briefs generation
+    // Added for Backend Chunk 9 - Hope Module Integration
+    [QueryType.HOPE]: ModelType.CLAUDE, // Claude is excellent for empathetic, hopeful messaging
+    [QueryType.EMOTIONAL_SUPPORT]: ModelType.CLAUDE // Claude for emotionally intelligent support
   },
   
   // Fallback models if primary is unavailable
