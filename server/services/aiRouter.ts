@@ -128,7 +128,12 @@ function determineModel(query: AIQuery): ModelType {
 async function callModel(modelType: ModelType, query: AIQuery): Promise<AIResponse> {
   switch (modelType) {
     case ModelType.GPT:
-      const openaiResponse = await openaiService.generateResponse(query.content, query.context, query.userId);
+      const openaiResponse = await openaiService.generateResponse(
+        query.content, 
+        query.context, 
+        query.userId,
+        query.type // Pass query type to service
+      );
       return {
         content: openaiResponse.text,
         modelUsed: ModelType.GPT,
@@ -138,7 +143,12 @@ async function callModel(modelType: ModelType, query: AIQuery): Promise<AIRespon
       };
       
     case ModelType.CLAUDE:
-      const claudeResponse = await claudeService.generateResponse(query.content, query.context, query.userId);
+      const claudeResponse = await claudeService.generateResponse(
+        query.content, 
+        query.context, 
+        query.userId,
+        query.type // Pass query type to service
+      );
       return {
         content: claudeResponse.text,
         modelUsed: ModelType.CLAUDE,
@@ -148,7 +158,12 @@ async function callModel(modelType: ModelType, query: AIQuery): Promise<AIRespon
       };
       
     case ModelType.GEMINI:
-      const geminiResponse = await geminiService.generateResponse(query.content, query.context, query.userId);
+      const geminiResponse = await geminiService.generateResponse(
+        query.content, 
+        query.context, 
+        query.userId,
+        query.type // Pass query type to service
+      );
       return {
         content: geminiResponse.text,
         modelUsed: ModelType.GEMINI,
