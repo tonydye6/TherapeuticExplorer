@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient'; // Assuming queryClient is correctly set up
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,24 +10,20 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast"; // Assuming this hook is set up
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertCircleIcon, AlertTriangleIcon, CheckCircle2Icon, ClipboardCopyIcon, Mail, PlusIcon, ShieldIcon, TrashIcon, UserPlusIcon, X, XCircleIcon } from 'lucide-react';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertCircleIcon, CheckCircle2Icon, ClipboardCopyIcon, Mail, PlusIcon, ShieldIcon, TrashIcon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react'; // Added UsersIcon
+import { ScrollArea } from "@/components/ui/scroll-area"; // Ensure this is styled or used appropriately
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // Ensure this is styled
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CaregiverConnectPageProps {
   inTabView?: boolean;
 }
 
-// Permission types
 type PermissionType = 'view' | 'update' | 'manage';
-
-// Permission categories
 type PermissionCategory = 'medical' | 'careplan' | 'journal' | 'documents' | 'appointments';
 
-// Permission interface
 interface Permission {
   category: PermissionCategory;
   label: string;
@@ -36,81 +32,20 @@ interface Permission {
   granted: boolean;
 }
 
-// Default permissions template
 const DEFAULT_PERMISSIONS: Permission[] = [
-  {
-    category: 'medical',
-    label: 'View Medical Information',
-    description: 'Can view diagnosis, treatments, and medical history',
-    type: 'view',
-    granted: true
-  },
-  {
-    category: 'medical',
-    label: 'Update Medical Information',
-    description: 'Can update medical information and track treatments',
-    type: 'update',
-    granted: false
-  },
-  {
-    category: 'careplan',
-    label: 'View Care Plan',
-    description: 'Can view care plan items and schedules',
-    type: 'view',
-    granted: true
-  },
-  {
-    category: 'careplan',
-    label: 'Update Care Plan',
-    description: 'Can add, edit, and mark care plan items as complete',
-    type: 'update',
-    granted: true
-  },
-  {
-    category: 'journal',
-    label: 'View Journal Entries',
-    description: 'Can view journal entries, symptoms, and mood tracking',
-    type: 'view',
-    granted: true
-  },
-  {
-    category: 'journal',
-    label: 'Create Journal Notes',
-    description: 'Can add caregiver notes to journal',
-    type: 'update',
-    granted: true
-  },
-  {
-    category: 'documents',
-    label: 'View Documents',
-    description: 'Can view uploaded medical documents',
-    type: 'view',
-    granted: true
-  },
-  {
-    category: 'documents',
-    label: 'Manage Documents',
-    description: 'Can upload and organize documents',
-    type: 'manage',
-    granted: false
-  },
-  {
-    category: 'appointments',
-    label: 'View Appointments',
-    description: 'Can view upcoming medical appointments',
-    type: 'view',
-    granted: true
-  },
-  {
-    category: 'appointments',
-    label: 'Manage Appointments',
-    description: 'Can add and edit appointment information',
-    type: 'manage',
-    granted: false
-  }
+  // ... (DEFAULT_PERMISSIONS array remains the same as user provided)
+    { category: 'medical', label: 'View Medical Information', description: 'Can view diagnosis, treatments, and medical history', type: 'view', granted: true },
+    { category: 'medical', label: 'Update Medical Information', description: 'Can update medical information and track treatments', type: 'update', granted: false },
+    { category: 'careplan', label: 'View Care Plan', description: 'Can view care plan items and schedules', type: 'view', granted: true },
+    { category: 'careplan', label: 'Update Care Plan', description: 'Can add, edit, and mark care plan items as complete', type: 'update', granted: true },
+    { category: 'journal', label: 'View Journal Entries', description: 'Can view journal entries, symptoms, and mood tracking', type: 'view', granted: true },
+    { category: 'journal', label: 'Create Journal Notes', description: 'Can add caregiver notes to journal', type: 'update', granted: true },
+    { category: 'documents', label: 'View Documents', description: 'Can view uploaded medical documents', type: 'view', granted: true },
+    { category: 'documents', label: 'Manage Documents', description: 'Can upload and organize documents', type: 'manage', granted: false },
+    { category: 'appointments', label: 'View Appointments', description: 'Can view upcoming medical appointments', type: 'view', granted: true },
+    { category: 'appointments', label: 'Manage Appointments', description: 'Can add and edit appointment information', type: 'manage', granted: false }
 ];
 
-// Caregiver interface
 interface Caregiver {
   id: string;
   name: string;
@@ -122,43 +57,11 @@ interface Caregiver {
   permissions: Permission[];
 }
 
-// Sample caregiver data
 const CAREGIVERS: Caregiver[] = [
-  {
-    id: '1',
-    name: 'Michael Johnson',
-    email: 'michael.j@example.com',
-    relationship: 'Spouse',
-    dateInvited: '2025-01-15',
-    status: 'active',
-    lastActive: '2025-04-05',
-    permissions: [
-      ...DEFAULT_PERMISSIONS.map(p => ({ ...p }))
-    ]
-  },
-  {
-    id: '2',
-    name: 'Emily Davis',
-    email: 'emily.davis@example.com',
-    relationship: 'Daughter',
-    dateInvited: '2025-02-03',
-    status: 'active',
-    lastActive: '2025-04-03',
-    permissions: [
-      ...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.type === 'view' }))
-    ]
-  },
-  {
-    id: '3',
-    name: 'Dr. Sarah Wilson',
-    email: 'dr.wilson@example.com',
-    relationship: 'Healthcare Provider',
-    dateInvited: '2025-03-10',
-    status: 'pending',
-    permissions: [
-      ...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.category === 'medical' || p.category === 'careplan' }))
-    ]
-  }
+  // ... (CAREGIVERS array remains the same as user provided for mock data)
+    { id: '1', name: 'Michael Johnson', email: 'michael.j@example.com', relationship: 'Spouse', dateInvited: '2025-01-15', status: 'active', lastActive: '2025-04-05', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p }))] },
+    { id: '2', name: 'Emily Davis', email: 'emily.davis@example.com', relationship: 'Daughter', dateInvited: '2025-02-03', status: 'active', lastActive: '2025-04-03', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.type === 'view' }))] },
+    { id: '3', name: 'Dr. Sarah Wilson', email: 'dr.wilson@example.com', relationship: 'Healthcare Provider', dateInvited: '2025-03-10', status: 'pending', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.category === 'medical' || p.category === 'careplan' }))] }
 ];
 
 export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPageProps) {
@@ -169,26 +72,23 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
   const [openPermissionsDialog, setOpenPermissionsDialog] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  
+
   const { toast } = useToast();
-  
-  // In a real implementation, these would fetch from the backend
+
   const { data: caregivers, isLoading } = useQuery({
     queryKey: ["/api/caregivers"],
-    // This is a placeholder since we're using static data
     queryFn: async () => {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       return CAREGIVERS;
     },
     refetchOnWindowFocus: false,
   });
 
-  // Invitation mutation
   const { mutate: sendInvitation, isPending: isSending } = useMutation({
     mutationFn: async (data: { email: string, relationship: string }) => {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate success/error for demo
+      if (data.email.includes("fail")) throw new Error("Simulated API error");
       return { success: true };
     },
     onSuccess: () => {
@@ -196,88 +96,78 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
       setInviteRelationship('');
       setOpenInviteDialog(false);
       toast({
-        title: "Invitation sent",
-        description: "The caregiver invitation has been sent successfully.",
+        title: "Invitation Sent!",
+        description: "Your invitation has been sent successfully.",
+        className: "bg-sophera-brand-primary text-white rounded-sophera-button", // Positive toast
       });
-      // In a real app, we would invalidate the query here
-      // queryClient.invalidateQueries({ queryKey: ["/api/caregivers"] });
     },
     onError: (error) => {
       toast({
-        title: "Failed to send invitation",
-        description: "There was a problem sending the invitation. Please try again.",
-        variant: "destructive",
+        title: "Oh no! Invitation Failed",
+        description: "There was a problem sending the invitation. Please check the details and try again.",
+        variant: "destructive", // This should pick up destructive colors from theme
+        className: "rounded-sophera-button",
       });
     },
   });
 
-  // Update permissions mutation
   const { mutate: updatePermissions, isPending: isUpdatingPermissions } = useMutation({
     mutationFn: async (data: { caregiverId: string, permissions: Permission[] }) => {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
     onSuccess: () => {
       setOpenPermissionsDialog(false);
       toast({
-        title: "Permissions updated",
+        title: "Permissions Updated",
         description: "Caregiver permissions have been updated successfully.",
+        className: "bg-sophera-brand-primary text-white rounded-sophera-button",
       });
-      // In a real app, we would invalidate the query here
-      // queryClient.invalidateQueries({ queryKey: ["/api/caregivers"] });
     },
     onError: (error) => {
       toast({
-        title: "Failed to update permissions",
-        description: "There was a problem updating the permissions. Please try again.",
+        title: "Update Failed",
+        description: "There was a problem updating permissions. Please try again.",
         variant: "destructive",
+        className: "rounded-sophera-button",
       });
     },
   });
 
-  // Remove caregiver mutation
   const { mutate: removeCaregiver, isPending: isRemoving } = useMutation({
     mutationFn: async (caregiverId: string) => {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
     onSuccess: () => {
       toast({
-        title: "Caregiver removed",
-        description: "The caregiver has been removed successfully.",
+        title: "Caregiver Removed",
+        description: "The caregiver has been successfully removed.",
+        className: "bg-sophera-brand-primary text-white rounded-sophera-button",
       });
-      // In a real app, we would invalidate the query here
-      // queryClient.invalidateQueries({ queryKey: ["/api/caregivers"] });
     },
     onError: (error) => {
       toast({
-        title: "Failed to remove caregiver",
+        title: "Removal Failed",
         description: "There was a problem removing the caregiver. Please try again.",
         variant: "destructive",
+        className: "rounded-sophera-button",
       });
     },
   });
 
-  // Filter caregivers based on status and active tab
   const filteredCaregivers = caregivers?.filter(caregiver => {
-    if (activeTab === 'current') {
-      return caregiver.status === 'active';
-    } else if (activeTab === 'pending') {
-      return caregiver.status === 'pending';
-    }
-    return true; // 'all' tab
+    if (activeTab === 'current') return caregiver.status === 'active';
+    if (activeTab === 'pending') return caregiver.status === 'pending';
+    return true;
   });
 
-  // Handle opening the permissions dialog
   const handleOpenPermissions = (caregiver: Caregiver) => {
     setSelectedCaregiver(caregiver);
-    setPermissions([...caregiver.permissions]);
+    setPermissions(caregiver.permissions.map(p => ({ ...p }))); // Ensure deep copy for editing
     setOpenPermissionsDialog(true);
   };
 
-  // Handle toggling a permission
   const handleTogglePermission = (index: number) => {
     setPermissions(prev => {
       const updated = [...prev];
@@ -286,116 +176,105 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
     });
   };
 
-  // Handle saving the permissions
   const handleSavePermissions = () => {
     if (selectedCaregiver) {
-      updatePermissions({
-        caregiverId: selectedCaregiver.id,
-        permissions: permissions
-      });
+      updatePermissions({ caregiverId: selectedCaregiver.id, permissions });
     }
   };
 
-  // Handle invitation submission
   const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inviteEmail && inviteRelationship) {
-      sendInvitation({
-        email: inviteEmail,
-        relationship: inviteRelationship
-      });
+      sendInvitation({ email: inviteEmail, relationship: inviteRelationship });
     }
   };
 
-  // Copy invitation link
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://sophera.replit.app/invitation?code=ABC123`);
+    navigator.clipboard.writeText(`https://sophera.app/join?invite=CAREINVITE123`); // Example link
     toast({
-      title: "Link copied",
-      description: "The invitation link has been copied to your clipboard.",
+      title: "Link Copied!",
+      description: "Invitation link copied to your clipboard.",
+      className: "bg-sophera-brand-primary text-white rounded-sophera-button",
     });
   };
 
-  // Handle remove caregiver
   const handleRemoveCaregiver = (id: string) => {
-    if (confirm("Are you sure you want to remove this caregiver? They will no longer have access to your information.")) {
+    // Consider using a custom confirmation dialog styled with Sophera theme
+    if (window.confirm("Are you sure you want to remove this caregiver? They will no longer have access to your Sophera information.")) {
       removeCaregiver(id);
     }
   };
 
   return (
-    <div className={`space-y-6 ${!inTabView ? 'container py-6' : ''}`}>
+    <div className={`space-y-8 ${!inTabView ? 'container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12' : ''}`}>
       {!inTabView && (
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Caregiver Connect</h1>
-          <p className="text-muted-foreground">
-            Invite and manage caregivers to help support your care journey.
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading mb-2">Caregiver Connect</h1>
+          <p className="text-lg text-sophera-text-body">
+            Invite and manage trusted individuals to support you on your Sophera journey.
           </p>
         </div>
       )}
-      
-      {/* Action buttons */}
-      <div className="flex justify-between items-center">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-          <TabsList>
-            <TabsTrigger value="current">Active</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+          <TabsList className="grid w-full grid-cols-3 sm:inline-flex h-12 p-1 bg-sophera-gradient-start rounded-sophera-button">
+            <TabsTrigger value="current" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10 px-4">Active</TabsTrigger>
+            <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10 px-4">Pending</TabsTrigger>
+            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10 px-4">All</TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
         <Dialog open={openInviteDialog} onOpenChange={setOpenInviteDialog}>
           <DialogTrigger asChild>
-            <Button>
-              <UserPlusIcon className="mr-2 h-4 w-4" />
+            <Button className="w-full sm:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+              <UserPlusIcon className="mr-2 h-5 w-5" />
               Invite Caregiver
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite a Caregiver</DialogTitle>
-              <DialogDescription>
-                Send an invitation to someone who helps with your care. They'll receive an email with instructions to create an account.
+          <DialogContent className="sm:max-w-lg p-0 rounded-sophera-modal-outer bg-sophera-bg-card">
+            <DialogHeader className="px-6 py-5 border-b border-sophera-border-primary">
+              <DialogTitle className="text-2xl font-bold text-sophera-text-heading">Invite a Caregiver</DialogTitle>
+              <DialogDescription className="text-sophera-text-body pt-1">
+                They'll receive an email with instructions to join Sophera and support you.
               </DialogDescription>
             </DialogHeader>
-            
-            <form onSubmit={handleInviteSubmit} className="space-y-4 mt-2">
+            <form onSubmit={handleInviteSubmit} className="space-y-6 p-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="caregiver@example.com" 
+                <Label htmlFor="email" className="text-sm font-medium text-sophera-text-heading">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="caregiver@example.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
+                  className="rounded-sophera-input text-base"
                 />
               </div>
-              
               <div className="space-y-2">
-                <Label htmlFor="relationship">Relationship</Label>
-                <Input 
-                  id="relationship" 
-                  placeholder="Spouse, Friend, Nurse, etc." 
+                <Label htmlFor="relationship" className="text-sm font-medium text-sophera-text-heading">Relationship to You</Label>
+                <Input
+                  id="relationship"
+                  placeholder="e.g., Spouse, Daughter, Friend, Nurse"
                   value={inviteRelationship}
                   onChange={(e) => setInviteRelationship(e.target.value)}
                   required
+                  className="rounded-sophera-input text-base"
                 />
               </div>
-              
               <DialogFooter className="pt-4">
-                <Button type="submit" disabled={isSending}>
+                <Button type="button" variant="outline" onClick={() => setOpenInviteDialog(false)} className="rounded-sophera-button">Cancel</Button>
+                <Button type="submit" disabled={isSending} className="bg-sophera-brand-primary text-white rounded-sophera-button hover:bg-sophera-brand-primary-hover">
                   {isSending ? "Sending..." : "Send Invitation"}
                 </Button>
               </DialogFooter>
             </form>
-            
-            <Separator className="my-4" />
-            
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">Or share an invitation link:</p>
-              <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                <ClipboardCopyIcon className="mr-2 h-3.5 w-3.5" />
+            <Separator className="my-4 bg-sophera-border-primary/50" />
+            <div className="px-6 pb-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <p className="text-sm text-sophera-text-subtle text-center sm:text-left">Or, share this secure invitation link:</p>
+              <Button variant="outline" size="sm" onClick={handleCopyLink} className="rounded-sophera-button border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light">
+                <ClipboardCopyIcon className="mr-2 h-4 w-4" />
                 Copy Link
               </Button>
             </div>
@@ -404,236 +283,152 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-5 w-1/3 mb-1" />
-                <Skeleton className="h-4 w-1/4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i} className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6 space-y-4">
+              <div className="flex justify-between items-start">
+                <Skeleton className="h-6 w-1/2 rounded-md" />
+                <Skeleton className="h-8 w-24 rounded-sophera-button" />
+              </div>
+              <Skeleton className="h-4 w-1/3 rounded-md" />
+              <Skeleton className="h-4 w-3/4 rounded-md" />
+              <div className="flex gap-2 pt-2">
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-24 rounded-full" />
+              </div>
             </Card>
           ))}
         </div>
       ) : filteredCaregivers?.length === 0 ? (
-        <Card className="text-center p-8">
-          <div className="flex flex-col items-center justify-center space-y-3">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <UserPlusIcon className="h-6 w-6 text-primary" />
+        <Card className="text-center p-10 md:p-16 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+              <UsersIcon className="h-12 w-12 text-sophera-brand-primary" />
             </div>
-            <CardTitle>No caregivers found</CardTitle>
-            <CardDescription>
-              {activeTab === 'pending' 
-                ? "You don't have any pending caregiver invitations."
+            <CardTitle className="text-2xl font-bold text-sophera-text-heading">No Caregivers Yet</CardTitle>
+            <CardDescription className="text-sophera-text-body max-w-md">
+              {activeTab === 'pending'
+                ? "You don't have any pending caregiver invitations at the moment."
                 : activeTab === 'current'
-                  ? "You haven't added any caregivers yet."
-                  : "No caregivers have been added to your account."}
+                  ? "It looks like you haven't invited any caregivers yet. Invite someone to help support your journey!"
+                  : "No caregivers have been added. Invite someone you trust to join your support team."}
             </CardDescription>
-            <Button onClick={() => setOpenInviteDialog(true)} className="mt-4">
-              <UserPlusIcon className="mr-2 h-4 w-4" />
-              Invite Caregiver
+            <Button onClick={() => setOpenInviteDialog(true)} className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+              <UserPlusIcon className="mr-2 h-5 w-5" />
+              Invite Your First Caregiver
             </Button>
           </div>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredCaregivers?.map(caregiver => (
-            <Card key={caregiver.id} className="overflow-hidden">
-              <div className={`h-1 ${caregiver.status === 'active' ? 'bg-green-500' : caregiver.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'}`} />
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
+            <Card key={caregiver.id} className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg overflow-hidden flex flex-col">
+              <div className={`h-1.5 ${caregiver.status === 'active' ? 'bg-green-500' : caregiver.status === 'pending' ? 'bg-yellow-400' : 'bg-red-500'}`} />
+              <CardHeader className="pb-3 pt-5 px-6">
+                <div className="flex justify-between items-start gap-2">
                   <div>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="text-xl font-semibold text-sophera-text-heading flex items-center">
                       {caregiver.name}
                       {caregiver.status === 'pending' && (
-                        <Badge variant="outline" className="ml-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400">
-                          Pending
-                        </Badge>
+                        <Badge variant="outline" className="ml-2 bg-sunny-100 text-sunny-700 border-sunny-300 rounded-md text-xs px-2 py-0.5">Pending</Badge>
+                      )}
+                       {caregiver.status === 'active' && (
+                        <Badge variant="outline" className="ml-2 bg-green-100 text-green-700 border-green-300 rounded-md text-xs px-2 py-0.5">Active</Badge>
                       )}
                     </CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <span>{caregiver.relationship}</span>
-                      <span className="text-xs">•</span>
-                      <span>{caregiver.email}</span>
+                    <CardDescription className="text-sm text-sophera-text-subtle mt-0.5">
+                      {caregiver.relationship} &bull; {caregiver.email}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Dialog open={openPermissionsDialog && selectedCaregiver?.id === caregiver.id} onOpenChange={isOpen => {
+                  <div className="flex items-center gap-1.5 shrink-0">
+                     <Dialog open={openPermissionsDialog && selectedCaregiver?.id === caregiver.id} onOpenChange={isOpen => {
                       setOpenPermissionsDialog(isOpen);
                       if (!isOpen) setSelectedCaregiver(null);
                     }}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => handleOpenPermissions(caregiver)} disabled={caregiver.status !== 'active'}>
-                          <ShieldIcon className="mr-1 h-3.5 w-3.5" />
+                        <Button variant="outline" size="sm" onClick={() => handleOpenPermissions(caregiver)} disabled={caregiver.status !== 'active'} className="rounded-sophera-button text-xs h-9 px-3 border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light">
+                          <ShieldIcon className="mr-1.5 h-4 w-4" />
                           Permissions
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Caregiver Permissions</DialogTitle>
-                          <DialogDescription>
-                            Manage what information {selectedCaregiver?.name} can access and modify.
+                      <DialogContent className="sm:max-w-2xl p-0 rounded-sophera-modal-outer bg-sophera-bg-card">
+                        <DialogHeader className="px-6 py-5 border-b border-sophera-border-primary">
+                          <DialogTitle className="text-2xl font-bold text-sophera-text-heading">Permissions for {selectedCaregiver?.name}</DialogTitle>
+                          <DialogDescription className="text-sophera-text-body pt-1">
+                            Manage what {selectedCaregiver?.name} can access and modify in your Sophera account.
                           </DialogDescription>
                         </DialogHeader>
-
-                        <div className="space-y-6 my-4">
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Medical Information</h3>
-                            <div className="grid gap-3">
-                              {permissions
-                                .filter(p => p.category === 'medical')
-                                .map((permission, index) => {
-                                  const originalIndex = permissions.findIndex(p => p === permission);
-                                  return (
-                                    <div key={permission.label} className="flex items-center justify-between">
-                                      <div>
-                                        <p className="text-sm font-medium">{permission.label}</p>
-                                        <p className="text-xs text-muted-foreground">{permission.description}</p>
-                                      </div>
-                                      <Switch
-                                        checked={permission.granted}
-                                        onCheckedChange={() => handleTogglePermission(originalIndex)}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                            </div>
+                        <ScrollArea className="max-h-[60vh] p-1">
+                          <div className="space-y-6 p-6 pt-4">
+                            {['medical', 'careplan', 'journal', 'documents', 'appointments'].map(categoryKey => (
+                              <div key={categoryKey}>
+                                <h3 className="text-lg font-semibold text-sophera-text-heading mb-3 capitalize">{categoryKey === 'careplan' ? 'Care Plan' : categoryKey}</h3>
+                                <div className="space-y-4">
+                                  {permissions
+                                    .filter(p => p.category === categoryKey)
+                                    .map((permission) => {
+                                      const originalIndex = permissions.findIndex(pOrig => pOrig.label === permission.label && pOrig.category === permission.category);
+                                      return (
+                                        <div key={permission.label} className="flex items-center justify-between p-3 bg-sophera-gradient-start rounded-sophera-input border border-sophera-border-primary/50">
+                                          <div>
+                                            <p className="text-sm font-medium text-sophera-text-body">{permission.label}</p>
+                                            <p className="text-xs text-sophera-text-subtle">{permission.description}</p>
+                                          </div>
+                                          <Switch
+                                            checked={permission.granted}
+                                            onCheckedChange={() => handleTogglePermission(originalIndex)}
+                                            // Switch should pick up themed colors
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                                {categoryKey !== 'appointments' && <Separator className="my-6 bg-sophera-border-primary/50" />}
+                              </div>
+                            ))}
                           </div>
-
-                          <Separator />
-
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Care Plan</h3>
-                            <div className="grid gap-3">
-                              {permissions
-                                .filter(p => p.category === 'careplan')
-                                .map((permission, index) => {
-                                  const originalIndex = permissions.findIndex(p => p === permission);
-                                  return (
-                                    <div key={permission.label} className="flex items-center justify-between">
-                                      <div>
-                                        <p className="text-sm font-medium">{permission.label}</p>
-                                        <p className="text-xs text-muted-foreground">{permission.description}</p>
-                                      </div>
-                                      <Switch
-                                        checked={permission.granted}
-                                        onCheckedChange={() => handleTogglePermission(originalIndex)}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-
-                          <Separator />
-
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Journal & Documents</h3>
-                            <div className="grid gap-3">
-                              {permissions
-                                .filter(p => p.category === 'journal' || p.category === 'documents')
-                                .map((permission, index) => {
-                                  const originalIndex = permissions.findIndex(p => p === permission);
-                                  return (
-                                    <div key={permission.label} className="flex items-center justify-between">
-                                      <div>
-                                        <p className="text-sm font-medium">{permission.label}</p>
-                                        <p className="text-xs text-muted-foreground">{permission.description}</p>
-                                      </div>
-                                      <Switch
-                                        checked={permission.granted}
-                                        onCheckedChange={() => handleTogglePermission(originalIndex)}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-
-                          <Separator />
-
-                          <div className="space-y-4">
-                            <h3 className="text-sm font-medium">Appointments</h3>
-                            <div className="grid gap-3">
-                              {permissions
-                                .filter(p => p.category === 'appointments')
-                                .map((permission, index) => {
-                                  const originalIndex = permissions.findIndex(p => p === permission);
-                                  return (
-                                    <div key={permission.label} className="flex items-center justify-between">
-                                      <div>
-                                        <p className="text-sm font-medium">{permission.label}</p>
-                                        <p className="text-xs text-muted-foreground">{permission.description}</p>
-                                      </div>
-                                      <Switch
-                                        checked={permission.granted}
-                                        onCheckedChange={() => handleTogglePermission(originalIndex)}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        </div>
-
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setOpenPermissionsDialog(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleSavePermissions} disabled={isUpdatingPermissions}>
+                        </ScrollArea>
+                        <DialogFooter className="px-6 py-4 border-t border-sophera-border-primary">
+                          <Button variant="outline" onClick={() => setOpenPermissionsDialog(false)} className="rounded-sophera-button">Cancel</Button>
+                          <Button onClick={handleSavePermissions} disabled={isUpdatingPermissions} className="bg-sophera-brand-primary text-white rounded-sophera-button hover:bg-sophera-brand-primary-hover">
                             {isUpdatingPermissions ? "Saving..." : "Save Permissions"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveCaregiver(caregiver.id)}>
-                            <TrashIcon className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-sophera-destructive hover:bg-red-100 rounded-full" onClick={() => handleRemoveCaregiver(caregiver.id)}>
+                            <TrashIcon className="h-4.5 w-4.5" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Remove caregiver</p>
+                        <TooltipContent className="rounded-sophera-input bg-sophera-text-heading text-white">
+                          <p>Remove {caregiver.name}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-sm">
-                  <div className="flex items-center text-muted-foreground mb-2">
-                    <span className="mr-2">Invited:</span>
-                    <span>{new Date(caregiver.dateInvited).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                    {caregiver.lastActive && (
-                      <>
-                        <span className="mx-2">•</span>
-                        <span className="mr-2">Last active:</span>
-                        <span>{new Date(caregiver.lastActive).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {caregiver.permissions
-                      .filter(p => p.granted)
-                      .slice(0, 3)
-                      .map(permission => (
-                        <Badge key={permission.label} variant="secondary" className="text-xs">
-                          {permission.label}
-                        </Badge>
-                      ))}
-                    {caregiver.permissions.filter(p => p.granted).length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{caregiver.permissions.filter(p => p.granted).length - 3} more
-                      </Badge>
-                    )}
-                  </div>
+              <CardContent className="text-sm flex-grow px-6 pb-5">
+                <div className="text-sophera-text-body mb-3">
+                  <p>Invited: {new Date(caregiver.dateInvited).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  {caregiver.lastActive && (
+                    <p>Last active: {new Date(caregiver.lastActive).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {caregiver.permissions.filter(p => p.granted).slice(0, 4).map(permission => (
+                    <Badge key={permission.label} variant="secondary" className="text-xs rounded-md bg-sophera-brand-primary-light text-sophera-brand-primary border-sophera-brand-primary/50">
+                      {permission.label}
+                    </Badge>
+                  ))}
+                  {caregiver.permissions.filter(p => p.granted).length > 4 && (
+                    <Badge variant="outline" className="text-xs rounded-md border-sophera-border-primary text-sophera-text-subtle">
+                      +{caregiver.permissions.filter(p => p.granted).length - 4} more
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -641,40 +436,40 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
         </div>
       )}
 
-      {/* Help section */}
-      <Card className="bg-primary/5 border-primary/10">
+      <Card className="mt-10 bg-sophera-gradient-start border-sophera-brand-primary/30 rounded-sophera-card shadow-lg">
         <CardHeader>
-          <CardTitle className="text-lg">About Caregiver Connect</CardTitle>
+          <CardTitle className="text-xl font-semibold text-sophera-text-heading flex items-center gap-2">
+            <UsersIcon className="h-6 w-6 text-sophera-brand-primary" />
+            About Caregiver Connect
+          </CardTitle>
+          <CardDescription className="text-sophera-text-body">
+            Securely share your Sophera journey with trusted individuals.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4 text-sm">
-            <p>
-              <strong>Caregiver Connect</strong> allows you to invite trusted family members, friends, or healthcare professionals to help manage your care. Each caregiver can be given specific permissions to access different parts of your Sophera account.
-            </p>
-            
-            <div className="grid gap-2">
-              <div className="flex items-start gap-2">
-                <ShieldIcon className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium">Customizable Permissions</p>
-                  <p className="text-muted-foreground">Control exactly what information each caregiver can view or edit</p>
-                </div>
+        <CardContent className="space-y-5 text-sm text-sophera-text-body">
+          <p>
+            <strong>Caregiver Connect</strong> empowers you to build a support system within Sophera. Invite family members, friends, or healthcare professionals to view your progress, help manage your plan, and offer encouragement. You control what each caregiver can see and do.
+          </p>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3 p-3 bg-sophera-bg-card rounded-sophera-input border border-sophera-border-primary/50">
+              <ShieldIcon className="h-7 w-7 text-sophera-brand-primary mt-1 shrink-0" />
+              <div>
+                <p className="font-semibold text-sophera-text-heading">Custom Permissions</p>
+                <p className="text-xs text-sophera-text-subtle">You decide who sees what. Tailor access for each caregiver.</p>
               </div>
-              
-              <div className="flex items-start gap-2">
-                <CheckCircle2Icon className="h-5 w-5 text-green-600 mt-0.5" />
-                <div>
-                  <p className="font-medium">Easy Invitation Process</p>
-                  <p className="text-muted-foreground">Caregivers receive an email invitation to create their account</p>
-                </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-sophera-bg-card rounded-sophera-input border border-sophera-border-primary/50">
+              <CheckCircle2Icon className="h-7 w-7 text-green-500 mt-1 shrink-0" />
+              <div>
+                <p className="font-semibold text-sophera-text-heading">Simple Invitations</p>
+                <p className="text-xs text-sophera-text-subtle">Easily invite caregivers via email or a secure link.</p>
               </div>
-              
-              <div className="flex items-start gap-2">
-                <AlertCircleIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div>
-                  <p className="font-medium">Revoke Access Anytime</p>
-                  <p className="text-muted-foreground">You can remove a caregiver's access at any time if needed</p>
-                </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-sophera-bg-card rounded-sophera-input border border-sophera-border-primary/50">
+              <AlertCircleIcon className="h-7 w-7 text-sophera-accent-tertiary mt-1 shrink-0" />
+              <div>
+                <p className="font-semibold text-sophera-text-heading">Full Control</p>
+                <p className="text-xs text-sophera-text-subtle">Modify permissions or revoke access at any time.</p>
               </div>
             </div>
           </div>
