@@ -1,0 +1,64 @@
+// client/src/pages/ExplorePage.tsx
+
+import React from 'react';
+// Assuming TabsLayout is a custom component that internally uses shadcn/ui Tabs
+// or is styled to match the Sophera theme.
+import { TabsLayout } from '@/components/ui/tabs-layout'; 
+import ResearchAssistant from './ResearchAssistant'; // Needs styling review
+import ClinicalTrialsPage from './ClinicalTrials'; // Needs styling review (Note: Renamed from ClinicalTrials)
+import MultimodalChatPage from './MultimodalChatPage'; // Needs styling review
+
+import {
+  Search,         // Good for Guided Search
+  FlaskConical,   // Okay for Trials, maybe BeakerIcon or ListChecks?
+  Lightbulb,      // Good for Creative Exploration
+  Compass       // Alternative icon for Explore
+} from 'lucide-react';
+
+const ExplorePage = () => {
+  const tabs = [
+    {
+      id: 'search',
+      label: 'Guided Search',
+      // Icon styled with Sophera v5 colors and size
+      icon: <Search className="h-5 w-5 text-sophera-brand-primary" />, 
+      content: <ResearchAssistant inTabView /> // Pass inTabView prop
+    },
+    {
+      id: 'trials',
+      label: 'Clinical Trials', // Updated label for consistency
+      // Icon styled with Sophera v5 colors and size
+      icon: <FlaskConical className="h-5 w-5 text-sophera-accent-secondary" />, 
+      content: <ClinicalTrialsPage inTabView /> // Use updated component name and pass prop
+    },
+    {
+      id: 'creative',
+      label: 'Creative Exploration',
+      // Icon styled with Sophera v5 colors and size
+      icon: <Lightbulb className="h-5 w-5 text-sophera-accent-tertiary" />, 
+      content: <MultimodalChatPage inTabView /> // Pass inTabView prop
+    }
+  ];
+
+  // The main page container will have the global gradient background applied via body styles.
+  // The TabsLayout component itself will define the internal layout and styling for tabs.
+  // We pass title and description, which TabsLayout should style according to Sophera v5 typography.
+  return (
+    // The `TabsLayout` component is expected to handle its own internal padding
+    // and apply card-like styling for its main container if appropriate,
+    // or simply structure the tab navigation and content area.
+    // Ensure TabsLayout applies Sophera v5 styling to title, description, TabsList, and TabsTrigger.
+    <TabsLayout
+      // Apply Sophera v5 heading styles within TabsLayout component definition
+      title="Explore Options" // Slightly more action-oriented title
+      // Apply Sophera v5 body text styles within TabsLayout component definition
+      description="Research standard treatments, find relevant clinical trials, and brainstorm innovative ideas." 
+      tabs={tabs}
+      // Ensure TabsLayout internally applies the following styles to its shadcn/ui Tabs components:
+      // TabsList: className="grid w-full grid-cols-3 h-auto p-1.5 bg-sophera-gradient-start rounded-sophera-button mb-6 md:mb-8 gap-1.5"
+      // TabsTrigger: className="text-sm md:text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11 md:h-12 flex items-center justify-center gap-1.5 px-3"
+    />
+  );
+};
+
+export default ExplorePage;
