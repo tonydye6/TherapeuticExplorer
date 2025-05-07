@@ -58,10 +58,33 @@ NeoNavigationItem.displayName = "NeoNavigationItem"
 export interface NeoNavigationSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
   icon?: React.ReactNode
+  collapsible?: boolean
+  defaultCollapsed?: boolean
+  href?: string
+  active?: boolean
 }
 
 export const NeoNavigationSection = React.forwardRef<HTMLDivElement, NeoNavigationSectionProps>(
-  ({ className, title, icon, children, ...props }, ref) => {
+  ({ className, title, icon, children, collapsible = false, defaultCollapsed = true, href, active, ...props }, ref) => {
+    const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
+    
+    const toggleCollapse = (e: React.MouseEvent) => {
+      if (collapsible) {
+        e.preventDefault();
+        setIsCollapsed(!isCollapsed);
+      }
+    };
+    
+    const handleClick = (e: React.MouseEvent) => {
+      toggleCollapse(e);
+    };
+
+    const MainElement = href ? 
+      ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => 
+        <Link href={href}><div {...props}>{children}</div></Link> : 
+      ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => 
+        <div {...props}>{children}</div>;
+    
     return (
       <div
         ref={ref}
@@ -69,15 +92,58 @@ export const NeoNavigationSection = React.forwardRef<HTMLDivElement, NeoNavigati
         {...props}
       >
         {title && (
-          <div className="relative inline-block mb-2">
-            <h3 className="text-xs uppercase font-bold tracking-wider text-sophera-text-subtle px-3">
-              {icon && <span className="mr-2">{icon}</span>}
-              {title}
-            </h3>
-            <div className="absolute bottom-[-0.1rem] left-[0.2rem] h-[0.2rem] w-3/4 bg-sophera-accent-tertiary/40"></div>
-          </div>
+          <>
+            <MainElement
+              className={cn(
+                "relative flex items-center justify-between w-full cursor-pointer select-none px-3 py-2 rounded-lg mb-2 transition-all duration-300",
+                collapsible && "hover:bg-slate-100 hover:shadow-[0.15rem_0.15rem_0_#05060f] border-2 border-sophera-text-heading/20 hover:border-sophera-text-heading/80"
+              )}
+              onClick={handleClick}
+            >
+              <div className="relative">
+                <div className="flex items-center">
+                  {icon && <span className="mr-2 text-sophera-text-subtle">{icon}</span>}
+                  <h3 className={cn(
+                    "text-xs uppercase font-bold tracking-wider",
+                    active ? "text-sophera-brand-primary" : "text-sophera-text-subtle"
+                  )}>
+                    {title}
+                  </h3>
+                </div>
+                <div className={cn(
+                  "absolute bottom-[-0.1rem] left-[0.2rem] h-[0.2rem] w-3/4 transition-all duration-300",
+                  active ? "bg-sophera-brand-primary/60" : "bg-sophera-accent-tertiary/40"
+                )}></div>
+              </div>
+              
+              {collapsible && (
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="18" 
+                  height="18" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className={cn(
+                    "transition-transform duration-300 text-sophera-text-subtle",
+                    isCollapsed ? "transform rotate-0" : "transform rotate-180"
+                  )}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              )}
+            </MainElement>
+          </>
         )}
-        <div className="space-y-1">{children}</div>
+        <div className={cn(
+          "space-y-1 transition-all overflow-hidden duration-300",
+          collapsible && isCollapsed ? "max-h-0 opacity-0 invisible" : "max-h-[1000px] opacity-100 visible"
+        )}>
+          {children}
+        </div>
       </div>
     )
   }

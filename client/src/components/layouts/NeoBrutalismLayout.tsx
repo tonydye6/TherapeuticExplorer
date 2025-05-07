@@ -114,7 +114,13 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="My Journey" icon={<Route />}>
+          <NeoNavigationSection 
+            title="My Journey" 
+            icon={<Route />} 
+            collapsible={true} 
+            defaultCollapsed={true}
+            active={location.startsWith('/my-journey')}
+          >
             <NeoNavigationItem 
               href="/my-journey/plan" 
               active={location.startsWith('/my-journey/plan')}
@@ -139,7 +145,13 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="Understand" icon={<BookOpen />}>
+          <NeoNavigationSection 
+            title="Understand" 
+            icon={<BookOpen />} 
+            collapsible={true} 
+            defaultCollapsed={true}
+            active={location.startsWith('/understand')}
+          >
             <NeoNavigationItem 
               href="/understand/explainer" 
               active={location.startsWith('/understand/explainer')}
@@ -171,7 +183,13 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="Explore" icon={<Search />}>
+          <NeoNavigationSection 
+            title="Explore" 
+            icon={<Search />}
+            collapsible={true} 
+            defaultCollapsed={true}
+            active={location.startsWith('/explore')}
+          >
             <NeoNavigationItem 
               href="/explore/search" 
               active={location.startsWith('/explore/search')}
@@ -195,7 +213,13 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="Connect & Hope" icon={<Heart />}>
+          <NeoNavigationSection 
+            title="Connect & Hope" 
+            icon={<Heart />}
+            collapsible={true} 
+            defaultCollapsed={true}
+            active={location.startsWith('/connect')}
+          >
             <NeoNavigationItem 
               href="/connect/stories" 
               active={location.startsWith('/connect/stories')}
@@ -227,7 +251,13 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="Settings" icon={<Settings />}>
+          <NeoNavigationSection 
+            title="Settings" 
+            icon={<Settings />}
+            collapsible={true} 
+            defaultCollapsed={true}
+            active={location.startsWith('/settings') || location === '/help'}
+          >
             <NeoNavigationItem 
               href="/settings/profile" 
               active={location.startsWith('/settings/profile')}
@@ -245,7 +275,11 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </NeoNavigationItem>
           </NeoNavigationSection>
           
-          <NeoNavigationSection title="Design System">
+          <NeoNavigationSection 
+            title="Design System"
+            collapsible={true} 
+            defaultCollapsed={true}
+          >
             <NeoNavigationItem 
               href="/design/neo-brutalism" 
               active={location.startsWith('/design/neo-brutalism')}
