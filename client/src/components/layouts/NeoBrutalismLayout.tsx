@@ -98,7 +98,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             </div>
           </Link>
           <div className="mt-2 text-sm text-sophera-text-subtle font-medium">
-            Your personal healing companion
+            Win the day!
           </div>
         </div>
         
