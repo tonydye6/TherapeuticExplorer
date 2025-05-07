@@ -89,6 +89,14 @@ export interface IStorage {
   getEmbeddingsForResearchItem(researchItemId: number): Promise<VectorEmbedding[]>;
   getEmbeddingsForDocument(documentId: number): Promise<VectorEmbedding[]>;
   
+  // Action steps methods
+  getActionSteps(userId: string): Promise<ActionStep[]>;
+  getActionStepById(id: number): Promise<ActionStep | undefined>;
+  createActionStep(step: InsertActionStep): Promise<ActionStep>;
+  updateActionStep(id: number, stepData: Partial<ActionStep>): Promise<ActionStep>;
+  getCompletedActionSteps(userId: string): Promise<ActionStep[]>;
+  deleteIncompleteActionSteps(userId: string): Promise<void>;
+  
   // Plan item methods
   getPlanItems(userId: string): Promise<PlanItem[]>;
   getPlanItemById(id: number): Promise<PlanItem | undefined>;
@@ -118,14 +126,6 @@ export interface IStorage {
   createHopeSnippet(snippet: InsertHopeSnippet): Promise<HopeSnippet>;
   updateHopeSnippet(id: number, snippet: Partial<HopeSnippet>): Promise<HopeSnippet>;
   deleteHopeSnippet(id: number): Promise<void>;
-  
-  // Action steps methods
-  getActionSteps(userId: string): Promise<ActionStep[]>;
-  getActionStepById(id: number): Promise<ActionStep | undefined>;
-  createActionStep(step: InsertActionStep): Promise<ActionStep>;
-  updateActionStep(id: number, step: Partial<ActionStep>): Promise<ActionStep>;
-  getCompletedActionSteps(userId: string): Promise<ActionStep[]>;
-  deleteIncompleteActionSteps(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
