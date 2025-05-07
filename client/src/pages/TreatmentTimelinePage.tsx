@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -128,105 +129,123 @@ const TreatmentTimelinePage = () => {
   ];
   
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-2">Treatment Timeline</h1>
-      <p className="text-gray-600 mb-6">Visualize the complete timeline for esophageal cancer treatments, including all phases and key milestones.</p>
+    <div className="container mx-auto px-4 py-8 md:py-10 max-w-5xl">
+      <h1 className="text-3xl lg:text-4xl font-extrabold mb-3 text-sophera-text-heading tracking-tight">Treatment Timeline</h1>
+      <p className="text-lg text-sophera-text-body mb-8">Visualize the complete timeline for cancer treatments, including all phases and key milestones to help you plan and prepare.</p>
       
       {showTimeline && treatmentTimeline ? (
         <>
-          <TreatmentTimeline timeline={treatmentTimeline} />
+          <Card className="rounded-sophera-card border-sophera-border-primary shadow-lg bg-sophera-bg-card mb-8 overflow-hidden">
+            <CardContent className="p-0">
+              <TreatmentTimeline timeline={treatmentTimeline} />
+            </CardContent>
+          </Card>
           
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end mt-8 gap-4">
             <Button
               variant="outline"
-              className="mr-2"
+              className="rounded-sophera-button border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light h-12 px-5"
               onClick={() => setShowTimeline(false)}
             >
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="mr-2 h-5 w-5" />
               Edit Details
             </Button>
             <Button
-              variant="default"
+              className="rounded-sophera-button bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white h-12 px-5 shadow-md"
               onClick={() => {
                 form.reset();
                 setShowTimeline(false);
                 setTreatmentTimeline(null);
               }}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-5 w-5" />
               New Timeline
             </Button>
           </div>
         </>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Treatment Timeline</CardTitle>
-            <CardDescription>
+        <Card className="rounded-sophera-card border-sophera-border-primary shadow-lg bg-sophera-bg-card overflow-hidden">
+          <CardHeader className="bg-sophera-gradient-start/10 border-b border-sophera-border-soft px-6 py-5">
+            <CardTitle className="text-2xl font-bold text-sophera-text-heading flex items-center">
+              <Calendar className="h-6 w-6 mr-3 text-sophera-brand-primary" />
+              Generate Treatment Timeline
+            </CardTitle>
+            <CardDescription className="text-sophera-text-body mt-1.5">
               Enter treatment information to visualize a complete timeline with all phases, milestones, and important events.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 py-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
                 {/* Treatment Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Treatment Information</h3>
+                <div className="space-y-5">
+                  <h3 className="text-xl font-semibold text-sophera-text-heading flex items-center">
+                    <span className="w-1 h-5 bg-sophera-brand-primary rounded-full mr-2.5"></span>
+                    Treatment Information
+                  </h3>
                   
                   <FormField
                     control={form.control}
                     name="treatmentName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Treatment Name/Protocol *</FormLabel>
+                        <FormLabel className="text-sophera-text-heading font-medium">Treatment Name/Protocol *</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input">
                                 <SelectValue placeholder="Select or type a treatment" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card">
                               {commonTreatments.map((treatment) => (
-                                <SelectItem key={treatment} value={treatment}>
+                                <SelectItem key={treatment} value={treatment} className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">
                                   {treatment}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </FormControl>
-                        <FormDescription>
+                        <FormDescription className="text-sophera-text-subtle">
                           Choose a standard protocol or enter a custom treatment plan
                         </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-sophera-accent-primary" />
                       </FormItem>
                     )}
                   />
                 </div>
                 
-                <Separator />
+                <Separator className="bg-sophera-border-soft my-6" />
                 
                 {/* Patient Factors */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Patient Factors</h3>
-                  <p className="text-sm text-gray-500 mb-4">
+                <div className="space-y-5">
+                  <h3 className="text-xl font-semibold text-sophera-text-heading flex items-center">
+                    <span className="w-1 h-5 bg-sophera-accent-secondary rounded-full mr-2.5"></span>
+                    Patient Factors
+                  </h3>
+                  <p className="text-base text-sophera-text-body">
                     Adding patient-specific factors allows for a more tailored treatment timeline.
                   </p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
                       name="patientFactors.age"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Age</FormLabel>
+                          <FormLabel className="text-sophera-text-heading font-medium">Age</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="65" {...field} />
+                            <Input 
+                              type="number" 
+                              placeholder="65" 
+                              {...field} 
+                              className="h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input"
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-sophera-accent-primary" />
                         </FormItem>
                       )}
                     />
@@ -236,22 +255,22 @@ const TreatmentTimelinePage = () => {
                       name="patientFactors.performanceStatus"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>ECOG Performance Status</FormLabel>
+                          <FormLabel className="text-sophera-text-heading font-medium">ECOG Performance Status</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input">
                                 <SelectValue placeholder="Select" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="0">0 - Fully active</SelectItem>
-                              <SelectItem value="1">1 - Restricted but ambulatory</SelectItem>
-                              <SelectItem value="2">2 - Ambulatory, capable of self-care</SelectItem>
-                              <SelectItem value="3">3 - Limited self-care</SelectItem>
-                              <SelectItem value="4">4 - Completely disabled</SelectItem>
+                            <SelectContent className="border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card">
+                              <SelectItem value="0" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">0 - Fully active</SelectItem>
+                              <SelectItem value="1" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">1 - Restricted but ambulatory</SelectItem>
+                              <SelectItem value="2" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">2 - Ambulatory, capable of self-care</SelectItem>
+                              <SelectItem value="3" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">3 - Limited self-care</SelectItem>
+                              <SelectItem value="4" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">4 - Completely disabled</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <FormMessage className="text-sophera-accent-primary" />
                         </FormItem>
                       )}
                     />
@@ -262,22 +281,22 @@ const TreatmentTimelinePage = () => {
                     name="patientFactors.stage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cancer Stage</FormLabel>
+                        <FormLabel className="text-sophera-text-heading font-medium">Cancer Stage</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input">
                               <SelectValue placeholder="Select" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Stage I">Stage I</SelectItem>
-                            <SelectItem value="Stage II">Stage II</SelectItem>
-                            <SelectItem value="Stage III">Stage III</SelectItem>
-                            <SelectItem value="Stage IVA">Stage IVA</SelectItem>
-                            <SelectItem value="Stage IVB">Stage IVB</SelectItem>
+                          <SelectContent className="border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card">
+                            <SelectItem value="Stage I" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">Stage I</SelectItem>
+                            <SelectItem value="Stage II" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">Stage II</SelectItem>
+                            <SelectItem value="Stage III" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">Stage III</SelectItem>
+                            <SelectItem value="Stage IVA" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">Stage IVA</SelectItem>
+                            <SelectItem value="Stage IVB" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">Stage IVB</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage />
+                        <FormMessage className="text-sophera-accent-primary" />
                       </FormItem>
                     )}
                   />
@@ -288,38 +307,42 @@ const TreatmentTimelinePage = () => {
                     name="patientFactors.comorbidities"
                     render={() => (
                       <FormItem>
-                        <FormLabel>Comorbidities</FormLabel>
-                        <div className="flex items-center gap-2 mb-2">
+                        <FormLabel className="text-sophera-text-heading font-medium">Comorbidities</FormLabel>
+                        <div className="flex items-center gap-3 mb-3">
                           <Input
                             value={newComorbidity}
                             onChange={(e) => setNewComorbidity(e.target.value)}
                             placeholder="e.g., Diabetes, Hypertension"
-                            className="flex-grow"
+                            className="flex-grow h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input"
                           />
                           <Button
                             type="button"
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={addComorbidity}
+                            className="h-12 w-12 rounded-sophera-input border-sophera-border-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-5 w-5" />
                           </Button>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {form.watch('patientFactors.comorbidities')?.map((item, index) => (
-                            <Badge key={index} variant="secondary" className="gap-1 px-3 py-1">
+                            <Badge 
+                              key={index} 
+                              className="gap-1.5 px-3 py-1.5 rounded-full bg-sophera-bg-secondary text-sophera-text-body border-sophera-border-soft"
+                            >
                               {item}
                               <X
-                                className="h-3 w-3 cursor-pointer"
+                                className="h-3.5 w-3.5 cursor-pointer hover:text-sophera-accent-primary"
                                 onClick={() => removeComorbidity(index)}
                               />
                             </Badge>
                           ))}
                         </div>
-                        <FormDescription>
+                        <FormDescription className="text-sophera-text-subtle mt-2">
                           Add any existing medical conditions
                         </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-sophera-accent-primary" />
                       </FormItem>
                     )}
                   />
@@ -330,43 +353,47 @@ const TreatmentTimelinePage = () => {
                     name="patientFactors.previousTreatments"
                     render={() => (
                       <FormItem>
-                        <FormLabel>Previous Treatments</FormLabel>
-                        <div className="flex items-center gap-2 mb-2">
+                        <FormLabel className="text-sophera-text-heading font-medium">Previous Treatments</FormLabel>
+                        <div className="flex items-center gap-3 mb-3">
                           <Input
                             value={newPreviousTreatment}
                             onChange={(e) => setNewPreviousTreatment(e.target.value)}
                             placeholder="e.g., Chemotherapy, Surgery"
-                            className="flex-grow"
+                            className="flex-grow h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input"
                           />
                           <Button
                             type="button"
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={addPreviousTreatment}
+                            className="h-12 w-12 rounded-sophera-input border-sophera-border-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-5 w-5" />
                           </Button>
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {form.watch('patientFactors.previousTreatments')?.map((item, index) => (
-                            <Badge key={index} variant="secondary" className="gap-1 px-3 py-1">
+                            <Badge 
+                              key={index} 
+                              className="gap-1.5 px-3 py-1.5 rounded-full bg-sophera-bg-secondary text-sophera-text-body border-sophera-border-soft"
+                            >
                               {item}
                               <X
-                                className="h-3 w-3 cursor-pointer"
+                                className="h-3.5 w-3.5 cursor-pointer hover:text-sophera-accent-primary"
                                 onClick={() => removePreviousTreatment(index)}
                               />
                             </Badge>
                           ))}
                         </div>
-                        <FormMessage />
+                        <FormMessage className="text-sophera-accent-primary" />
                       </FormItem>
                     )}
                   />
                 </div>
                 
-                <Alert className="bg-blue-50 border-blue-200">
-                  <Info className="h-4 w-4 text-blue-500" />
-                  <AlertTitle>Privacy Notice</AlertTitle>
+                <Alert className="rounded-sophera-input bg-sophera-accent-tertiary/10 border-sophera-accent-tertiary/30 text-sophera-text-body">
+                  <Info className="h-5 w-5 text-sophera-accent-tertiary" />
+                  <AlertTitle className="text-sophera-text-heading font-medium">Privacy Notice</AlertTitle>
                   <AlertDescription>
                     This information is used only to generate the timeline and is not stored on our servers.
                   </AlertDescription>
@@ -375,17 +402,17 @@ const TreatmentTimelinePage = () => {
                 <div className="pt-4">
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full h-12 bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white rounded-sophera-button shadow-md"
                     disabled={generateTimelineMutation.isPending}
                   >
                     {generateTimelineMutation.isPending ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                         Generating Timeline...
                       </>
                     ) : (
                       <>
-                        <Calendar className="mr-2 h-4 w-4" />
+                        <Calendar className="mr-3 h-5 w-5" />
                         Generate Treatment Timeline
                       </>
                     )}
