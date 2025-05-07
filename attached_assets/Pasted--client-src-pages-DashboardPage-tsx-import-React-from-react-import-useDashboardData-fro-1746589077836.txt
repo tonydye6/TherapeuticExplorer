@@ -1,0 +1,85 @@
+// client/src/pages/DashboardPage.tsx
+
+import React from 'react';
+import { useDashboardData } from '@/hooks/use-dashboard-data'; // Assuming this hook fetches necessary data
+import { Loader2 } from 'lucide-react';
+import { Greeting } from '@/components/dashboard/Greeting';
+import { TodaysFocus } from '@/components/dashboard/TodaysFocus';
+import { JournalPrompt } from '@/components/dashboard/JournalPrompt';
+import { HopeSnippet } from '@/components/dashboard/HopeSnippet';
+
+// Sophera v5 Design:
+// - Main page container has global gradient background (applied via body styles).
+// - This component will apply page-specific padding and layout.
+// - Child components (Greeting, TodaysFocus, etc.) will need their own internal styling
+//   according to the Sophera v5 specs when their code is provided.
+
+export default function DashboardPage() {
+  const {
+    userData,
+    upcomingPlanItems,
+    isLoading,
+  } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      // Centered loading state with Sophera v5 styling
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] p-4"> {/* Adjusted min-height to account for potential header/nav */}
+        {/* Loader icon styled with primary brand color */}
+        <Loader2 className="h-16 w-16 animate-spin text-sophera-brand-primary mb-6" />
+        <h3 className="text-xl font-semibold text-sophera-text-heading mb-2">
+          Loading your dashboard...
+        </h3>
+        <p className="text-sophera-text-body text-center max-w-xs">
+          Gathering your latest information to personalize your Sophera experience.
+        </p>
+      </div>
+    );
+  }
+
+  // Use a more robust way to get a display name, or default to "User"
+  const displayName = userData?.displayName || userData?.username || 'User';
+
+  return (
+    // Page container with Sophera v5 padding and max-width.
+    // The gradient background is applied globally via body styles.
+    <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      {/* Greeting Component - Will need its own internal styling */}
+      {/* Expecting H1 style for greeting text, and supportive subtext */}
+      <div className="mb-8 md:mb-10">
+        <Greeting userName={displayName} />
+      </div>
+
+      {/* Main content grid - using a 2-column layout for wider screens */}
+      {/* Cards within child components should follow Sophera v5 card styling */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        {/* Left Column (takes up 2/3 on larger screens) */}
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+          {/* Today's Focus Section - TodaysFocus component will contain a Card */}
+          <TodaysFocus planItems={upcomingPlanItems} isLoading={isLoading} />
+
+          {/* Journal Prompt Section - JournalPrompt component will contain a Card */}
+          <JournalPrompt />
+        </div>
+
+        {/* Right Column (takes up 1/3 on larger screens) */}
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+          {/* Hope Snippet Section - HopeSnippet component will contain a Card */}
+          <HopeSnippet />
+
+          {/* Placeholder for future dashboard elements if needed.
+            Example:
+            <Card className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-sophera-text-heading">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sophera-text-body">Future quick actions here...</p>
+              </CardContent>
+            </Card>
+          */}
+        </div>
+      </div>
+    </div>
+  );
+}
