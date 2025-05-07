@@ -189,8 +189,8 @@ export function SidebarNavigation() {
   const toggleSection = (section: string) => {
     setExpandedSections(prev => 
       prev.includes(section) 
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
+        ? [] // Close all sections if clicking on an already open section
+        : [section] // Open only this section, replacing any previously open ones
     )
   }
 
@@ -289,7 +289,7 @@ export function SidebarNavigation() {
                 )}
                 
                 {section.isParent && section.children && expandedSections.includes(section.title) && (
-                  <div className="ml-4 pl-4 border-l-2 border-sophera-text-heading/20 space-y-2 animate-fadeIn">
+                  <div className="ml-4 pl-4 border-l-2 border-sophera-text-heading/20 space-y-4 animate-fadeIn mt-4">
                     {section.children.map((child) => (
                       <Link key={child.href} href={child.href}>
                         <button 
