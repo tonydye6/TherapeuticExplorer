@@ -1,0 +1,36 @@
+Please redesign the Creative Exploration page (MultimodalChatPage.tsx) following our neo-brutalism design system. The current tabbed implementation should be replaced with a dedicated full-page experience with the following elements:
+
+1. VISUAL STYLING:
+   - Use thick black borders (3-4px) on all container elements
+   - Implement chunky shadows (0.3-0.5rem offset) using the transform technique (translate + negative offset + shadow)
+   - Use our warm coral color (#fb9678) for the main header, combined with teal (#3db4ab) for the chat container
+   - Include decorative elements like solid-color corners, simple geometric shapes, and playful accents
+   - Maintain high contrast with bold typography (uppercase for headers)
+
+2. PAGE STRUCTURE:
+   - Full-width header with "CREATIVE EXPLORATION" title and description
+   - Privacy notice banner with offset shadow and warning icon
+   - Three-step process cards explaining the workflow (UPLOAD IMAGES → ADD CONTEXT → RECEIVE INSIGHTS)
+   - Main chat container with:
+     - Distinctive header bar with "UPLOAD & ANALYZE" title
+     - AI model selection toggles (GPT-4o Vision, Gemini Pro)
+     - Large input area for text/image uploads
+     - Attachment and send buttons with neo-brutalism styling
+   - Action button to "GENERATE DOCTOR BRIEF" with offset shadow
+
+3. INTERACTION ELEMENTS:
+   - Model selection toggles should have clear active/inactive states with bold visual difference
+   - Upload button with file icon and chunky neo-brutalism shadow
+   - Send button with arrow icon and contrasting color
+   - Close (X) button in the top-right of the chat container
+   - Generate Doctor Brief button with prominent styling for this key action
+
+4. CONTENT:
+   - Emphasize that this is a safe space for creative exploration
+   - Include clear privacy notices about uploaded medical images
+   - Maintain a supportive, hopeful tone in all text elements
+   - Explain the purpose: exploring innovative approaches while maintaining connection to professional care
+
+This page should NOT use the TabsLayout component, but instead be a standalone page with its own layout. The MultimodalChatPage component should be refactored to follow this new design approach while maintaining its core functionality of allowing users to upload medical images and converse with the AI about possible approaches.
+
+Reference our NeoButton, NeoCard, and other neo-brutalism components for consistent styling.

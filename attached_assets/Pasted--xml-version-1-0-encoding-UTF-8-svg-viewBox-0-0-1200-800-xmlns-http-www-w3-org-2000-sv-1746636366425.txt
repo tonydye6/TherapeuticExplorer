@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main Background -->
+  <rect width="1200" height="800" fill="#f0f5fa" />
+  
+  <!-- Page Container with Neo-Brutalism shadow -->
+  <rect x="24" y="24" width="1152" height="752" rx="16" fill="#ffffff" stroke="#000000" stroke-width="4" />
+  <rect x="20" y="20" width="1152" height="752" rx="16" fill="#ffffff" stroke="#000000" stroke-width="4" />
+  
+  <!-- Header Section -->
+  <rect x="20" y="20" width="1152" height="120" rx="16" fill="#fb9678" stroke="#000000" stroke-width="4" />
+  <rect x="20" y="20" width="40" height="40" rx="0" fill="#f87a5c" stroke="#000000" stroke-width="4" />
+  
+  <!-- Title and Description -->
+  <text x="80" y="65" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#ffffff" stroke="#000000" stroke-width="1">CREATIVE EXPLORATION</text>
+  <text x="80" y="100" font-family="Inter, sans-serif" font-size="16" fill="#ffffff">Explore innovative approaches and ideas for your cancer journey in a safe space.</text>
+  
+  <!-- Privacy Notice - Neo-Brutalism style -->
+  <rect x="178" y="160" width="996" height="100" rx="12" fill="#fff9e6" stroke="#000000" stroke-width="3" transform="translate(-5, -5)" />
+  <rect x="178" y="160" width="996" height="100" rx="12" fill="#fff9e6" stroke="#000000" stroke-width="3" />
+  
+  <circle cx="208" cy="210" r="16" fill="#fb9678" stroke="#000000" stroke-width="2" />
+  <text x="205" y="216" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#000000">!</text>
+  
+  <text x="235" y="195" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#000000">IMPORTANT PRIVACY INFORMATION</text>
+  <text x="235" y="225" font-family="Inter, sans-serif" font-size="14" fill="#333333" width="900">Before uploading any medical images, please ensure they contain no personal identifying information. This tool is for informational purposes only and should not replace professional medical advice.</text>
+  
+  <!-- Three-step Process Cards with Neo-Brutalism style -->
+  <rect x="183" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" transform="translate(-5, -5)" />
+  <rect x="183" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" />
+  <circle cx="213" cy="350" r="20" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="208" y="356" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#4a88db">1</text>
+  <text x="243" y="350" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#000000">UPLOAD IMAGES</text>
+  <text x="243" y="380" font-family="Inter, sans-serif" font-size="14" fill="#333333">Add up to 5 medical images for analysis</text>
+  
+  <rect x="523" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" transform="translate(-5, -5)" />
+  <rect x="523" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" />
+  <circle cx="553" cy="350" r="20" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="548" y="356" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#4a88db">2</text>
+  <text x="583" y="350" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#000000">ADD CONTEXT</text>
+  <text x="583" y="380" font-family="Inter, sans-serif" font-size="14" fill="#333333">Describe what you'd like to learn about</text>
+  
+  <rect x="863" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" transform="translate(-5, -5)" />
+  <rect x="863" y="320" width="320" height="120" rx="12" fill="#e8f4ff" stroke="#000000" stroke-width="3" />
+  <circle cx="893" cy="350" r="20" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="888" y="356" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#4a88db">3</text>
+  <text x="923" y="350" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#000000">RECEIVE INSIGHTS</text>
+  <text x="923" y="380" font-family="Inter, sans-serif" font-size="14" fill="#333333">Get AI analysis of your medical images</text>
+  
+  <!-- Main Chat Container with Neo-Brutalism style -->
+  <rect x="183" y="460" width="996" height="260" rx="12" fill="#3db4ab" stroke="#000000" stroke-width="4" transform="translate(-5, -5)" />
+  <rect x="183" y="460" width="996" height="260" rx="12" fill="#3db4ab" stroke="#000000" stroke-width="4" />
+  <rect x="183" y="460" width="996" height="60" rx="12" fill="#2d9d94" stroke="#000000" stroke-width="4" />
+  <rect x="183" y="460" width="40" height="40" rx="0" fill="#2a8f87" stroke="#000000" stroke-width="4" />
+  
+  <text x="240" y="500" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#ffffff">UPLOAD & ANALYZE</text>
+  <text x="580" y="500" font-family="Inter, sans-serif" font-size="14" fill="#ffffff">SHARE MEDICAL IMAGES WITH AI FOR PROFESSIONAL ANALYSIS AND EXPLANATIONS.</text>
+  <text x="1130" y="495" font-family="Inter, sans-serif" font-size="20" font-weight="800" fill="#ffffff">✕</text>
+  
+  <!-- AI Model Selection -->
+  <text x="730" y="550" font-family="Inter, sans-serif" font-size="16" fill="#ffffff">AI Model:</text>
+  
+  <rect x="800" y="530" width="140" height="40" rx="20" fill="#2d9d94" stroke="#000000" stroke-width="2" transform="translate(-3, -3)" />
+  <rect x="800" y="530" width="140" height="40" rx="20" fill="#2d9d94" stroke="#000000" stroke-width="2" />
+  <circle cx="820" cy="550" r="12" fill="#ffffff" stroke="#000000" stroke-width="1" />
+  <text x="840" y="552" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#ffffff">GPT-4o Vision</text>
+  
+  <rect x="950" y="530" width="140" height="40" rx="20" fill="#ffffff" stroke="#000000" stroke-width="2" transform="translate(-3, -3)" />
+  <rect x="950" y="530" width="140" height="40" rx="20" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="990" y="552" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#333333">Gemini Pro</text>
+  
+  <!-- Chat Input Area -->
+  <rect x="203" y="580" width="880" height="100" rx="12" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="230" y="635" font-family="Inter, sans-serif" font-size="14" fill="#999999">Type a message and/or upload images...</text>
+  
+  <!-- Attachment & Send Buttons -->
+  <rect x="1093" y="580" width="50" height="50" rx="8" fill="#ffffff" stroke="#000000" stroke-width="2" transform="translate(-2, -2)" />
+  <rect x="1093" y="580" width="50" height="50" rx="8" fill="#ffffff" stroke="#000000" stroke-width="2" />
+  <text x="1108" y="612" font-family="Inter, sans-serif" font-size="20" fill="#333333">📎</text>
+  
+  <rect x="1093" y="640" width="50" height="50" rx="8" fill="#fb9678" stroke="#000000" stroke-width="2" transform="translate(-2, -2)" />
+  <rect x="1093" y="640" width="50" height="50" rx="8" fill="#fb9678" stroke="#000000" stroke-width="2" />
+  <text x="1108" y="672" font-family="Inter, sans-serif" font-size="20" fill="#ffffff">➤</text>
+  
+  <!-- Footer Information -->
+  <text x="450" y="740" font-family="Inter, sans-serif" font-size="14" fill="#666666">Upload up to 5 images (JPEG, PNG). Images are analyzed for medical content.</text>
+  
+  <!-- Document Generate Button -->
+  <rect x="960" y="730" width="220" height="50" rx="8" fill="#4a88db" stroke="#000000" stroke-width="3" transform="translate(-3, -3)" />
+  <rect x="960" y="730" width="220" height="50" rx="8" fill="#4a88db" stroke="#000000" stroke-width="3" />
+  <text x="985" y="760" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#ffffff">GENERATE DOCTOR BRIEF</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="1170" cy="65" r="30" fill="#ffe066" stroke="#000000" stroke-width="3" />
+  
+  <!-- Right corner decorative element -->
+  <path d="M1100,210 L1170,170 L1170,240 Z" fill="#fb9678" stroke="#000000" stroke-width="2" />
+  
+  <path d="M120,650 C60,580 60,680 120,630" stroke="#3db4ab" stroke-width="4" fill="none" />
+  <path d="M120,700 C40,680 40,740 100,730" stroke="#fb9678" stroke-width="4" fill="none" />
+</svg>

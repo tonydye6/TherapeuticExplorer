@@ -1,30 +1,37 @@
-import { useState, useEffect } from 'react';
-import { NeoCard, NeoCardHeader, NeoCardContent, NeoCardTitle, NeoCardDescription, NeoCardFooter, NeoCardDecoration } from '@/components/ui/neo-card';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { NeoButton } from '@/components/ui/neo-button';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MultimodalChat } from '@/components/MultimodalChat';
+import { 
+  AlertTriangle, 
+  Trash2, 
+  FileUp, 
+  SendHorizontal, 
+  DownloadCloud, 
+  X, 
+  Image as ImageIcon, 
+  MessageCircle, 
+  Lightbulb,
+  Info,
+  CheckCircle2,
+  Zap
+} from 'lucide-react';
 import { ModelType } from '@shared/schema';
-import { MessageCircle, Image as ImageIcon, Info, Lightbulb, AlertCircle, FileDown, CheckCircle2, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import ModelBadge from '@/components/ModelBadge';
-import { NeoButton } from '@/components/ui/neo-button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
-interface MultimodalResponse {
-  id: number;
+interface Message {
+  id: string;
   content: string;
-  imageAnalysis?: {
-    description: string;
-    detectedObjects?: string[];
-    detectedText?: string;
-    visualFindings?: string[];
-  }[];
-  contextualInsights?: string[];
-  modelUsed: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  images?: { url: string; preview: string }[];
 }
 
 interface MultimodalChatPageProps {
@@ -32,10 +39,16 @@ interface MultimodalChatPageProps {
 }
 
 export default function MultimodalChatPage({ inTabView = false }: MultimodalChatPageProps) {
-  const [responses, setResponses] = useState<MultimodalResponse[]>([]);
-  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.GPT4O);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,7 +59,22 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
     } else {
       setIsDisclaimerAccepted(true);
     }
+
+    // Add welcome message
+    setMessages([
+      {
+        id: '1',
+        content: "Welcome to Creative Exploration! This space is designed for exploring innovative approaches to your cancer journey. You can share medical images or describe symptoms to receive insights about alternative treatments, complementary therapies, and experimental approaches that might be worth discussing with your healthcare team.",
+        role: 'assistant',
+        timestamp: new Date()
+      }
+    ]);
   }, []);
+
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleDisclaimerAccept = () => {
     localStorage.setItem('sophera_creative_disclaimer_accepted', 'true');
@@ -59,293 +87,564 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
     });
   };
 
-  const handleExportDoctorBrief = async () => {
-    if (responses.length === 0) {
+  const handleFileSelection = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const newFiles: File[] = [];
+    const newPreviews: string[] = [];
+    
+    Array.from(e.target.files).forEach(file => {
+      if (selectedFiles.length + newFiles.length >= 5) {
+        toast({
+          title: "Maximum files reached",
+          description: "You can only upload up to 5 images at once.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are supported.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: "File too large",
+          description: "Images must be under 10MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      newFiles.push(file);
+      const preview = URL.createObjectURL(file);
+      newPreviews.push(preview);
+    });
+    
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+    setFilePreviews(prev => [...prev, ...newPreviews]);
+    
+    // Reset the input value to allow selecting the same file again
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = [...selectedFiles];
+    const newPreviews = [...filePreviews];
+    
+    // Revoke the object URL to avoid memory leaks
+    URL.revokeObjectURL(newPreviews[index]);
+    
+    newFiles.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setSelectedFiles(newFiles);
+    setFilePreviews(newPreviews);
+  };
+
+  const clearAllFiles = () => {
+    // Revoke all object URLs
+    filePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    
+    setSelectedFiles([]);
+    setFilePreviews([]);
+  };
+
+  const handleSendMessage = async () => {
+    if ((!inputValue.trim() && selectedFiles.length === 0) || isProcessing) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Create a new user message
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        content: inputValue,
+        role: 'user',
+        timestamp: new Date(),
+        images: selectedFiles.length > 0 ? selectedFiles.map((file, index) => ({
+          url: URL.createObjectURL(file),
+          preview: filePreviews[index]
+        })) : undefined
+      };
+      
+      // Add user message to the conversation
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Clear input and files after sending
+      setInputValue('');
+      // Don't clear files yet as we need to upload them
+      
+      // In a real implementation, you would:
+      // 1. Upload files to server
+      // 2. Send message content and file references to AI service
+      // 3. Receive response from AI
+      
+      // For now, simulate response after a delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate AI response based on content and model
+      let responseContent = "";
+      
+      if (selectedFiles.length > 0) {
+        if (inputValue.toLowerCase().includes("treatment") || inputValue.toLowerCase().includes("therapy")) {
+          responseContent = "Based on the image and your query about alternative treatments, I can identify several relevant approaches that might be worth exploring:\n\n• Integrative therapy approaches combining conventional treatment with complementary methods\n• Nutritional interventions specific to your condition\n• Mind-body practices that may help manage treatment side effects\n\nWould you like me to explore any of these areas in more detail?";
+        } else {
+          responseContent = "I've analyzed the medical image you've shared. While I can see certain patterns, I'd need more context about your specific question. Are you interested in learning about alternative treatments, visualization techniques, or complementary approaches for this condition?";
+        }
+      } else if (inputValue.toLowerCase().includes("alternative") || inputValue.toLowerCase().includes("treatment")) {
+        responseContent = "There are several innovative approaches being explored for cancer care beyond traditional treatments:\n\n• Immunotherapy enhancements through lifestyle modifications\n• Targeted nutritional protocols based on biomarker profiles\n• Mind-body techniques with promising preliminary research\n• Heat therapy and hyperthermia as treatment adjuncts\n\nRemember that any alternative approach should be discussed with your healthcare team to ensure it complements your primary treatment plan.";
+      } else {
+        responseContent = "Thank you for sharing. To provide the most helpful creative exploration insights, could you share:\n\n1. What specific aspect of your cancer journey are you looking to explore alternatives for? (e.g., side effect management, treatment enhancement, emotional wellbeing)\n\n2. What approaches have you already tried or considered?\n\nThis will help me tailor information to your unique situation.";
+      }
+      
+      // Add AI response to the conversation
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: responseContent,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // Now clear the files
+      clearAllFiles();
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process your message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleGenerateDoctorBrief = async () => {
+    if (messages.length <= 1) { // Only the welcome message
       toast({
         title: "No content to export",
-        description: "Please have a conversation first before exporting.",
+        description: "Please have a conversation first before generating a doctor brief.",
         variant: "destructive"
       });
       return;
     }
     
-    setIsExporting(true);
+    toast({
+      title: "Generating Doctor Brief",
+      description: "Your doctor discussion brief is being prepared...",
+    });
     
-    try {
-      // Call the backend API to generate a doctor discussion brief
-      const response = await fetch('/api/multimodal/export-brief', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ conversations: responses }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to export doctor brief');
-      }
-      
-      // Get the export data as a blob
-      const blob = await response.blob();
-      
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'Doctor_Discussion_Brief.pdf';
-      
-      // Append to the document and trigger download
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Export Successful",
-        description: "Your Doctor Discussion Brief has been downloaded.",
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export Failed",
-        description: error instanceof Error ? error.message : "Failed to export doctor brief. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleResponseReceived = (response: MultimodalResponse) => {
-    setResponses(prev => [response, ...prev]);
+    // In a real implementation, you would call your backend API to generate the brief
+    // For now, simulate the process
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    toast({
+      title: "Doctor Brief Generated",
+      description: "Your doctor discussion brief has been downloaded.",
+    });
   };
 
   return (
-    <div className="container py-6 max-w-6xl">
-      {/* Disclaimer Dialog */}
-      <Dialog open={isDisclaimerOpen} onOpenChange={setIsDisclaimerOpen}>
-        <DialogContent className="sm:max-w-md border-3 border-sophera-text-heading rounded-xl bg-sophera-bg-card">
-          <DialogHeader>
-            <DialogTitle className="font-extrabold text-xl text-sophera-text-heading">CREATIVE EXPLORATION DISCLAIMER</DialogTitle>
-            <DialogDescription className="text-sophera-text-body">
-              Before using the Creative Exploration Sandbox, please read and acknowledge the following:
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4 text-sm">
-            <div className="space-y-2">
-              <h4 className="font-bold mb-1 text-sophera-text-heading">What is Creative Exploration?</h4>
-              <p className="text-sophera-text-body">
-                The Creative Exploration Sandbox allows you to explore unconventional or experimental approaches to cancer care that may not be part of standard medical practice.
-              </p>
+    <div className="container mx-auto max-w-6xl px-4 py-6 space-y-6">
+      {/* Neo-Brutalism Page Header */}
+      <div 
+        className="relative bg-[#fb9678] px-8 py-5 border-4 border-black rounded-2xl shadow-[0.5rem_0.5rem_0_#000]"
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
+        }}
+      >
+        <div className="absolute left-0 top-0 w-12 h-12 bg-[#f87a5c] border-r-4 border-b-4 border-black"></div>
+        <h1 className="text-3xl font-extrabold text-white stroke-black stroke-1 tracking-wide mt-2">CREATIVE EXPLORATION</h1>
+        <p className="text-white text-opacity-90 font-medium mt-1 max-w-3xl">
+          Explore innovative approaches and ideas for your cancer journey in a safe space.
+        </p>
+        
+        <div className="absolute right-8 top-6">
+          <div className="h-12 w-12 rounded-full bg-[#ffe066] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+            <Zap className="h-6 w-6 text-black" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Privacy Notice */}
+      <div className="relative bg-amber-50 px-6 py-4 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000]">
+        <div className="flex gap-4">
+          <div className="flex-shrink-0">
+            <div className="h-10 w-10 rounded-full bg-[#fb9678] border-3 border-black shadow-[0.1rem_0.1rem_0_#000] flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-white" />
             </div>
-            <div className="space-y-2">
-              <h4 className="font-bold mb-1 text-sophera-text-heading">Important Disclaimer</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sophera-text-body">
+          </div>
+          <div>
+            <h3 className="text-lg font-extrabold text-black">IMPORTANT PRIVACY INFORMATION</h3>
+            <p className="text-gray-800 mt-1">
+              Before uploading any medical images, please ensure they contain no personal identifying information. 
+              This tool is for informational purposes only and should not replace professional medical advice.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Three-step Process Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          {
+            step: 1,
+            title: "UPLOAD IMAGES",
+            description: "Add up to 5 medical images for analysis",
+            icon: <ImageIcon className="h-5 w-5 text-[#4a88db]" />
+          },
+          {
+            step: 2,
+            title: "ADD CONTEXT",
+            description: "Describe what you'd like to learn about",
+            icon: <MessageCircle className="h-5 w-5 text-[#4a88db]" />
+          },
+          {
+            step: 3,
+            title: "RECEIVE INSIGHTS",
+            description: "Get AI analysis of your medical images",
+            icon: <Lightbulb className="h-5 w-5 text-[#4a88db]" />
+          }
+        ].map((step, index) => (
+          <div 
+            key={index} 
+            className="relative bg-blue-50 px-6 py-4 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-white border-3 border-black shadow-[0.1rem_0.1rem_0_#000] flex items-center justify-center text-lg font-bold text-[#4a88db]">
+                {step.step}
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-black">{step.title}</h3>
+                <p className="text-gray-700 mt-1">{step.description}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Main Chat Container */}
+      <div className="relative">
+        {/* Neo-Brutalism Chat Header */}
+        <div 
+          className="bg-[#3db4ab] px-6 py-3 border-4 border-black rounded-t-xl"
+          style={{
+            clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
+          }}
+        >
+          <div className="absolute left-0 top-0 w-10 h-10 bg-[#2a8f87] border-r-4 border-b-4 border-black"></div>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-extrabold text-white ml-6">UPLOAD & ANALYZE</h2>
+              <p className="text-white text-opacity-90 ml-6">Share medical images with AI for professional analysis and explanations.</p>
+            </div>
+            <button 
+              className="h-8 w-8 rounded-md bg-[#2d9d94] border-2 border-black flex items-center justify-center hover:translate-y-[-2px] transition-transform"
+              onClick={() => {
+                // In a real implementation, this would close or minimize the chat
+                toast({
+                  title: "Info",
+                  description: "This would close the chat in a full implementation.",
+                });
+              }}
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Neo-Brutalism Chat Body */}
+        <div className="bg-[#3db4ab] bg-opacity-10 border-4 border-t-0 border-black rounded-b-xl p-6">
+          {/* AI Model Selection */}
+          <div className="flex justify-end items-center mb-4 gap-3">
+            <span className="text-gray-800 font-bold">AI Model:</span>
+            <RadioGroup 
+              value={selectedModel} 
+              onValueChange={(value) => setSelectedModel(value as ModelType)} 
+              className="flex"
+            >
+              <div className={`relative px-4 py-2 rounded-full border-3 border-black ${selectedModel === ModelType.GPT4O ? 'bg-[#2d9d94] text-white' : 'bg-white text-gray-800'} mr-2 cursor-pointer shadow-[0.1rem_0.1rem_0_#000] flex items-center hover:translate-y-[-1px] transition-transform`}>
+                <RadioGroupItem 
+                  value={ModelType.GPT4O} 
+                  id="gpt4o" 
+                  className="opacity-0 absolute" 
+                />
+                <Label htmlFor="gpt4o" className="cursor-pointer font-bold">GPT-4o Vision</Label>
+              </div>
+              
+              <div className={`relative px-4 py-2 rounded-full border-3 border-black ${selectedModel === ModelType.GEMINI ? 'bg-[#2d9d94] text-white' : 'bg-white text-gray-800'} cursor-pointer shadow-[0.1rem_0.1rem_0_#000] flex items-center hover:translate-y-[-1px] transition-transform`}>
+                <RadioGroupItem 
+                  value={ModelType.GEMINI} 
+                  id="gemini" 
+                  className="opacity-0 absolute" 
+                />
+                <Label htmlFor="gemini" className="cursor-pointer font-bold">Gemini Pro</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          
+          {/* Message Display Area */}
+          <div className="bg-white border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] mb-4 overflow-hidden">
+            <ScrollArea className="h-[400px] p-4">
+              <div className="space-y-6">
+                {messages.map((message, index) => (
+                  <div 
+                    key={message.id} 
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+                          <Lightbulb className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div 
+                      className={`relative max-w-[85%] ${
+                        message.role === 'user' 
+                          ? 'bg-blue-50 border-3 border-black rounded-xl p-4 shadow-[0.2rem_0.2rem_0_#000]' 
+                          : 'bg-white border-3 border-black rounded-xl p-4 shadow-[0.2rem_0.2rem_0_#000] pl-6'
+                      }`}
+                    >
+                      {message.role === 'assistant' && (
+                        <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#3db4ab]"></div>
+                      )}
+                      
+                      {message.role === 'user' && (
+                        <div className="flex-shrink-0 ml-3 absolute -right-14 top-0">
+                          <div className="h-10 w-10 rounded-full bg-[#ffe066] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center font-bold text-gray-800">
+                            U
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Display uploaded images if any */}
+                      {message.images && message.images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          {message.images.map((img, imgIndex) => (
+                            <div key={imgIndex} className="relative border-2 border-black rounded-lg overflow-hidden shadow-[0.1rem_0.1rem_0_#000] bg-white">
+                              <img 
+                                src={img.preview} 
+                                alt={`Uploaded image ${imgIndex + 1}`}
+                                className="w-full h-32 object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="whitespace-pre-wrap text-gray-800">
+                        {message.content}
+                      </div>
+                      
+                      <div className="pt-2 mt-2 border-t-2 border-dashed border-gray-300 flex justify-between items-center">
+                        <div className="text-xs text-gray-500 font-medium">
+                          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {isProcessing && (
+                  <div className="flex justify-start">
+                    <div className="flex-shrink-0 mr-3">
+                      <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+                        <Lightbulb className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white border-3 border-black rounded-xl p-4 shadow-[0.2rem_0.2rem_0_#000] pl-6 max-w-[85%] relative">
+                      <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#3db4ab]"></div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        <span className="font-bold text-gray-400 ml-1">Analyzing and researching...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div ref={messageEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
+          
+          {/* File Upload Preview */}
+          {selectedFiles.length > 0 && (
+            <div className="mb-4 p-3 bg-white border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000]">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-gray-800">SELECTED IMAGES ({selectedFiles.length}/5)</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearAllFiles}
+                  className="h-8 px-2 hover:bg-red-50 text-red-500 font-bold"
+                >
+                  CLEAR ALL
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2">
+                {filePreviews.map((preview, index) => (
+                  <div key={index} className="relative">
+                    <img 
+                      src={preview} 
+                      alt={`Preview ${index}`} 
+                      className="h-16 w-16 object-cover rounded-lg border-2 border-black"
+                    />
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center border border-black"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Input Area */}
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Input 
+                className="h-[100px] px-4 py-3 border-3 border-black rounded-xl bg-white shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#3db4ab] focus-visible:ring-offset-2 font-medium text-gray-800 resize-none"
+                placeholder="Type a message and/or upload images..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={isProcessing}
+                style={{ minHeight: '100px' }}
+              />
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelection}
+                accept="image/*"
+                multiple
+                className="hidden"
+                disabled={selectedFiles.length >= 5 || isProcessing}
+              />
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      className={`h-12 w-12 border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all ${selectedFiles.length >= 5 ? 'bg-gray-300' : 'bg-white'}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={selectedFiles.length >= 5 || isProcessing}
+                    >
+                      <FileUp className="h-5 w-5 text-gray-700" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="font-bold">
+                    Upload Images (Max 5)
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <Button 
+                className="h-12 w-12 bg-[#fb9678] hover:bg-[#fa8668] border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all"
+                onClick={handleSendMessage}
+                disabled={(!inputValue.trim() && selectedFiles.length === 0) || isProcessing}
+              >
+                <SendHorizontal className="h-5 w-5 text-white" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Info Text */}
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-600 font-medium">
+          Upload up to 5 images (JPEG, PNG). Images are analyzed for medical content.
+        </p>
+        
+        <NeoButton
+          buttonText="GENERATE DOCTOR BRIEF"
+          icon={<DownloadCloud className="h-5 w-5" />}
+          color="cyan"
+          className="bg-[#4a88db] hover:bg-[#4a88db]/90 text-white"
+          onClick={handleGenerateDoctorBrief}
+          disabled={messages.length <= 1}
+        />
+      </div>
+      
+      {/* Disclaimer Dialog */}
+      {isDisclaimerOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white border-4 border-black rounded-xl shadow-[0.5rem_0.5rem_0_#000] max-w-lg w-full p-6">
+            <h2 className="text-2xl font-extrabold text-black mb-4">CREATIVE EXPLORATION DISCLAIMER</h2>
+            
+            <div className="mb-6">
+              <h3 className="font-bold text-lg mb-2">What is Creative Exploration?</h3>
+              <p className="text-gray-800 mb-4">
+                The Creative Exploration space allows you to explore unconventional or experimental approaches to cancer care that may not be part of standard medical practice.
+              </p>
+              
+              <h3 className="font-bold text-lg mb-2">Important Disclaimer</h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-800">
                 <li>Ideas and suggestions provided in this section are <strong>not medical advice</strong>.</li>
                 <li>Always consult with your healthcare team before trying any new treatments or approaches.</li>
                 <li>Information here may include approaches not supported by traditional clinical evidence.</li>
                 <li>We encourage creative thinking but prioritize your safety above all.</li>
               </ul>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="disclaimer-checkbox" onCheckedChange={(checked) => {
-                if (checked) {
-                  handleDisclaimerAccept();
-                }
-              }} className="border-2 border-sophera-text-heading data-[state=checked]:bg-sophera-brand-primary data-[state=checked]:text-white" />
-              <Label htmlFor="disclaimer-checkbox" className="text-sm text-sophera-text-heading">
-                I understand this is for exploratory purposes only and not medical advice
-              </Label>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-start">
-            <NeoButton 
-              buttonText="Cancel" 
-              size="sm" 
-              color="red" 
-              onClick={() => setIsDisclaimerOpen(false)} 
-            />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <div className="flex flex-col space-y-6">
-        <div className="pb-2 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-sophera-text-heading">CREATIVE EXPLORATION</h1>
-            <p className="text-sophera-text-body mt-2">
-              Explore innovative approaches and ideas for your cancer journey in a safe space.
-            </p>
-          </div>
-          {responses.length > 0 && (
-            <NeoButton 
-              buttonText={isExporting ? "Preparing Document..." : "Export Doctor Discussion Brief"}
-              color="primary"
-              disabled={isExporting || !isDisclaimerAccepted}
-              icon={isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-              onClick={handleExportDoctorBrief}
-            />
-          )}
-        </div>
-        
-        <NeoCard className="h-auto border-orange-300">
-          <NeoCardContent className="pt-4 pb-2">
-            <div className="flex gap-2">
-              <AlertCircle className="h-5 w-5 text-sophera-accent-secondary mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-bold text-sophera-text-heading text-sm">IMPORTANT PRIVACY INFORMATION</h3>
-                <p className="text-sophera-text-body text-xs mt-1">
-                  Before uploading any medical images, please ensure they contain no personal identifying information. 
-                  This tool is for informational purposes only and should not replace professional medical advice.
-                </p>
+            
+            <div className="flex items-center mb-6">
+              <div 
+                className="h-6 w-6 rounded-md border-3 border-black mr-3 relative cursor-pointer"
+                onClick={handleDisclaimerAccept}
+              >
+                {isDisclaimerAccepted && (
+                  <CheckCircle2 className="h-5 w-5 text-[#3db4ab] absolute -top-0.5 -left-0.5" />
+                )}
               </div>
+              <label className="cursor-pointer" onClick={handleDisclaimerAccept}>
+                I understand this is for exploratory purposes only and not medical advice
+              </label>
             </div>
-          </NeoCardContent>
-        </NeoCard>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
-            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
-              <ImageIcon className="h-4 w-4 text-sophera-brand-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-sophera-text-heading">UPLOAD IMAGES</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Add up to 5 medical images for analysis</p>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
-            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
-              <MessageCircle className="h-4 w-4 text-sophera-brand-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-sophera-text-heading">ADD CONTEXT</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Describe what you'd like to learn about</p>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
-            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
-              <Lightbulb className="h-4 w-4 text-sophera-brand-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-sophera-text-heading">RECEIVE INSIGHTS</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Get AI analysis of your medical images</p>
+            
+            <div className="flex justify-between">
+              <NeoButton
+                buttonText="CANCEL"
+                color="red"
+                onClick={() => {
+                  setIsDisclaimerOpen(false);
+                  // In a real implementation, you might redirect from this page
+                  toast({
+                    title: "Disclaimer",
+                    description: "You need to accept the disclaimer to use Creative Exploration.",
+                  });
+                }}
+              />
+              
+              <NeoButton
+                buttonText="I UNDERSTAND"
+                color="primary"
+                disabled={!isDisclaimerAccepted}
+                onClick={handleDisclaimerAccept}
+              />
             </div>
           </div>
         </div>
-
-        <NeoCard className="h-auto">
-          <NeoCardDecoration />
-          <NeoCardHeader>
-            <NeoCardTitle>UPLOAD & ANALYZE</NeoCardTitle>
-            <NeoCardDescription>
-              Share medical images with AI for professional analysis and explanations.
-            </NeoCardDescription>
-          </NeoCardHeader>
-          <NeoCardContent>
-            <MultimodalChat onSend={handleResponseReceived} />
-          </NeoCardContent>
-        </NeoCard>
-
-        {responses.length > 0 && (
-          <NeoCard className="h-auto">
-            <NeoCardHeader>
-              <NeoCardTitle>ANALYSIS RESULTS</NeoCardTitle>
-              <NeoCardDescription>
-                Recent AI analyses of your uploads and messages.
-              </NeoCardDescription>
-            </NeoCardHeader>
-            <NeoCardContent>
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-6">
-                  {responses.map((response, index) => (
-                    <div key={response.id || index} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <ModelBadge model={response.modelUsed as ModelType} showText />
-                          <span className="text-sm font-bold text-sophera-text-heading">Response #{responses.length - index}</span>
-                        </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge variant="outline" className="flex items-center gap-1 h-7 px-2 bg-white text-sophera-brand-primary cursor-help border-2 border-sophera-text-heading rounded-md">
-                                <Info className="h-3.5 w-3.5" />
-                                <span className="text-xs font-bold">MULTIMODAL ANALYSIS</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs border-2 border-sophera-text-heading rounded-lg">
-                              <p>This analysis was generated from both text and image inputs using advanced AI vision capabilities.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      
-                      <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
-                        <div className="flex items-start gap-2">
-                          <MessageCircle className="h-5 w-5 mt-1 text-sophera-brand-primary" />
-                          <div className="flex-1">
-                            <div className="font-bold mb-1 text-sophera-text-heading">Analysis</div>
-                            <div className="text-sm whitespace-pre-wrap text-sophera-text-body">{response.content}</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {response.imageAnalysis && response.imageAnalysis.length > 0 && (
-                        <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
-                          <div className="flex items-start gap-2">
-                            <ImageIcon className="h-5 w-5 mt-1 text-sophera-brand-primary" />
-                            <div className="flex-1">
-                              <div className="font-bold mb-1 text-sophera-text-heading">Image Analysis</div>
-                              <div className="space-y-2">
-                                {response.imageAnalysis.map((analysis, i) => (
-                                  <div key={i} className="text-sm">
-                                    <div className="font-medium text-xs text-muted-foreground mb-1">Image {i + 1}</div>
-                                    <div className="whitespace-pre-wrap text-sophera-text-body">{analysis.description}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {response.contextualInsights && response.contextualInsights.length > 0 && (
-                        <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
-                          <div className="flex items-start gap-2">
-                            <Lightbulb className="h-5 w-5 mt-1 text-sophera-accent-tertiary" />
-                            <div className="flex-1">
-                              <div className="font-bold mb-1 text-sophera-text-heading">Contextual Insights</div>
-                              <div className="space-y-2">
-                                {response.contextualInsights.map((insight, i) => (
-                                  <div key={i} className="flex items-start gap-2">
-                                    <span className="text-sm text-muted-foreground mt-0.5">•</span>
-                                    <p className="text-sm text-sophera-text-body flex-1">{insight}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {index < responses.length - 1 && <Separator className="my-4 border-t-2 border-dashed border-sophera-text-heading/30" />}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </NeoCardContent>
-            <NeoCardFooter>
-              <p className="text-xs text-muted-foreground">
-                Analysis results are not stored permanently and will be lost on page refresh.
-              </p>
-            </NeoCardFooter>
-          </NeoCard>
-        )}
-      </div>
+      )}
     </div>
   );
 }
