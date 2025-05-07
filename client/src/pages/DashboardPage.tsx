@@ -4,13 +4,15 @@
 import React from 'react';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { 
-  Loader2, 
-  Palette, 
+  Loader2,
   Home, 
   CalendarCheck, 
   FileText, 
-  Heart 
+  Heart,
+  MessageCircle
 } from 'lucide-react';
+import { ModelType } from '@shared/schema';
+import ChatInterface from '@/components/ChatInterface';
 import { Greeting } from '@/components/dashboard/Greeting';
 import { TodaysFocus } from '@/components/dashboard/TodaysFocus';
 import { JournalPrompt } from '@/components/dashboard/JournalPrompt';
@@ -138,20 +140,27 @@ export default function DashboardPage() {
             </NeoCardFooter>
           </NeoCard>
           
-          {/* Neo Brutalism Demo Link Card */}
-          <NeoCard className="bg-sophera-bg-subtle">
-            <NeoCardContent className="p-6">
-              <div className="absolute top-[-0.5rem] right-[-0.5rem] w-5 h-5 bg-sophera-accent-tertiary transform rotate-45 border-2 border-sophera-text-heading z-10"></div>
-              <h3 className="text-xl font-bold text-sophera-text-heading mb-4 flex items-center">
-                <Palette className="h-5 w-5 mr-2 text-sophera-brand-primary" />
-                Design System
-              </h3>
-              <p className="text-sophera-text-body mb-4">
-                Check out our new Neo Brutalism Design components with exaggerated shadows, playful elements, and bold styling.
-              </p>
-              <Link href="/design">
-                <NeoButton variant="primary" shine className="w-full">View Design System</NeoButton>
-              </Link>
+          {/* AI Chat Assistant Card */}
+          <NeoCard>
+            <NeoCardDecoration />
+            <NeoCardHeader>
+              <NeoCardTitle className="flex items-center">
+                <MessageCircle className="h-5 w-5 mr-2 text-sophera-brand-primary" />
+                AI Assistant
+              </NeoCardTitle>
+              <NeoCardDescription>
+                Get quick answers and support for your journey
+              </NeoCardDescription>
+            </NeoCardHeader>
+            <NeoCardContent>
+              <div className="h-[300px]">
+                <ChatInterface 
+                  title=""
+                  placeholder="Ask me anything about your care journey..."
+                  preferredModel={ModelType.GEMINI}
+                  className="h-full"
+                />
+              </div>
             </NeoCardContent>
           </NeoCard>
         </div>
