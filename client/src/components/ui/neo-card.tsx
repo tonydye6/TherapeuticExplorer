@@ -8,7 +8,7 @@ const NeoCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative bg-sophera-bg-card border-4 border-sophera-text-heading rounded-xl shadow-[0.5rem_0.5rem_0_#05060f] transition-all duration-300 hover:translate-x-[-0.3rem] hover:translate-y-[-0.3rem] hover:shadow-[0.8rem_0.8rem_0_#05060f] overflow-hidden",
+      "relative bg-sophera-bg-card border-3 sm:border-4 border-sophera-text-heading rounded-xl shadow-[0.3rem_0.3rem_0_#05060f] sm:shadow-[0.5rem_0.5rem_0_#05060f] transition-all duration-300 hover:translate-x-[-0.2rem] hover:translate-y-[-0.2rem] sm:hover:translate-x-[-0.3rem] sm:hover:translate-y-[-0.3rem] hover:shadow-[0.5rem_0.5rem_0_#05060f] sm:hover:shadow-[0.8rem_0.8rem_0_#05060f] overflow-hidden",
       className
     )}
     {...props}
@@ -23,7 +23,7 @@ const NeoCardHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative px-6 py-5 bg-sophera-brand-primary text-white font-extrabold flex justify-between items-center border-b-4 border-sophera-text-heading uppercase tracking-wide z-10",
+      "relative px-4 sm:px-6 py-4 sm:py-5 bg-sophera-brand-primary text-white font-extrabold flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 sm:gap-0 border-b-3 sm:border-b-4 border-sophera-text-heading uppercase tracking-wide z-10",
       className
     )}
     {...props}
@@ -64,7 +64,7 @@ const NeoCardContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div 
     ref={ref} 
-    className={cn("relative p-6 z-10", className)} 
+    className={cn("relative p-4 sm:p-6 z-10", className)} 
     {...props} 
   />
 ))
@@ -104,14 +104,17 @@ const NeoCardDecoration = () => {
   return (
     <>
       {/* Corner accent */}
-      <div className="absolute top-[-1rem] right-[-1rem] w-16 h-16 bg-sophera-accent-secondary transform rotate-45 z-10"></div>
-      <div className="absolute top-2 right-2 text-sophera-text-heading text-xl font-bold z-20">★</div>
+      <div className="absolute top-[-0.7rem] sm:top-[-1rem] right-[-0.7rem] sm:right-[-1rem] w-12 sm:w-16 h-12 sm:h-16 bg-sophera-accent-secondary transform rotate-45 z-10"></div>
+      <div className="absolute top-1 sm:top-2 right-1 sm:right-2 text-sophera-text-heading text-lg sm:text-xl font-bold z-20">★</div>
       
       {/* Card pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:0.5rem_0.5rem] opacity-50 pointer-events-none"></div>
       
       {/* Bottom decoration */}
-      <div className="absolute bottom-[-1.2rem] right-8 w-10 h-10 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45 transition-transform hover:rotate-[55deg] hover:scale-110"></div>
+      <div className="hidden sm:block absolute bottom-[-1.2rem] right-8 w-10 h-10 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45 transition-transform hover:rotate-[55deg] hover:scale-110"></div>
+      
+      {/* Mobile-optimized bottom decoration */}
+      <div className="block sm:hidden absolute bottom-[-0.8rem] right-4 w-7 h-7 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45 transition-transform hover:rotate-[55deg] hover:scale-110"></div>
     </>
   )
 }

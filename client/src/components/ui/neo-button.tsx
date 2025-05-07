@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const neoButtonVariants = cva(
-  "relative inline-flex items-center justify-center whitespace-nowrap text-sm font-bold uppercase tracking-wide rounded-lg border-3 border-sophera-text-heading transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:pointer-events-none",
+  "relative inline-flex items-center justify-center whitespace-nowrap text-sm font-bold uppercase tracking-wide rounded-lg border-2 sm:border-3 border-sophera-text-heading transition-all duration-300 overflow-hidden disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        primary: "bg-sophera-brand-primary text-white shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.4rem_0.4rem_0_#05060f] active:translate-x-[0.1rem] active:translate-y-[0.1rem] active:shadow-[0.15rem_0.15rem_0_#05060f]",
-        secondary: "bg-sophera-accent-secondary text-white shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-accent-secondary/90 active:translate-x-[0.1rem] active:translate-y-[0.1rem] active:shadow-[0.15rem_0.15rem_0_#05060f]",
-        tertiary: "bg-sophera-accent-tertiary text-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-accent-tertiary/90 active:translate-x-[0.1rem] active:translate-y-[0.1rem] active:shadow-[0.15rem_0.15rem_0_#05060f]",
-        outline: "bg-white text-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-bg-subtle active:translate-x-[0.1rem] active:translate-y-[0.1rem] active:shadow-[0.15rem_0.15rem_0_#05060f]",
-        destructive: "bg-sophera-error text-white shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-error/90 active:translate-x-[0.1rem] active:translate-y-[0.1rem] active:shadow-[0.15rem_0.15rem_0_#05060f]",
+        primary: "bg-sophera-brand-primary text-white shadow-[0.2rem_0.2rem_0_#05060f] sm:shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.08rem] hover:translate-y-[-0.08rem] sm:hover:translate-x-[-0.1rem] sm:hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#05060f] sm:hover:shadow-[0.4rem_0.4rem_0_#05060f] active:translate-x-[0.08rem] active:translate-y-[0.08rem] sm:active:translate-x-[0.1rem] sm:active:translate-y-[0.1rem] active:shadow-[0.1rem_0.1rem_0_#05060f] sm:active:shadow-[0.15rem_0.15rem_0_#05060f]",
+        secondary: "bg-sophera-accent-secondary text-white shadow-[0.2rem_0.2rem_0_#05060f] sm:shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.08rem] hover:translate-y-[-0.08rem] sm:hover:translate-x-[-0.1rem] sm:hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#05060f] sm:hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-accent-secondary/90 active:translate-x-[0.08rem] active:translate-y-[0.08rem] sm:active:translate-x-[0.1rem] sm:active:translate-y-[0.1rem] active:shadow-[0.1rem_0.1rem_0_#05060f] sm:active:shadow-[0.15rem_0.15rem_0_#05060f]",
+        tertiary: "bg-sophera-accent-tertiary text-sophera-text-heading shadow-[0.2rem_0.2rem_0_#05060f] sm:shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.08rem] hover:translate-y-[-0.08rem] sm:hover:translate-x-[-0.1rem] sm:hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#05060f] sm:hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-accent-tertiary/90 active:translate-x-[0.08rem] active:translate-y-[0.08rem] sm:active:translate-x-[0.1rem] sm:active:translate-y-[0.1rem] active:shadow-[0.1rem_0.1rem_0_#05060f] sm:active:shadow-[0.15rem_0.15rem_0_#05060f]",
+        outline: "bg-white text-sophera-text-heading shadow-[0.2rem_0.2rem_0_#05060f] sm:shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.08rem] hover:translate-y-[-0.08rem] sm:hover:translate-x-[-0.1rem] sm:hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#05060f] sm:hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-bg-subtle active:translate-x-[0.08rem] active:translate-y-[0.08rem] sm:active:translate-x-[0.1rem] sm:active:translate-y-[0.1rem] active:shadow-[0.1rem_0.1rem_0_#05060f] sm:active:shadow-[0.15rem_0.15rem_0_#05060f]",
+        destructive: "bg-sophera-error text-white shadow-[0.2rem_0.2rem_0_#05060f] sm:shadow-[0.3rem_0.3rem_0_#05060f] hover:translate-x-[-0.08rem] hover:translate-y-[-0.08rem] sm:hover:translate-x-[-0.1rem] sm:hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#05060f] sm:hover:shadow-[0.4rem_0.4rem_0_#05060f] hover:bg-sophera-error/90 active:translate-x-[0.08rem] active:translate-y-[0.08rem] sm:active:translate-x-[0.1rem] sm:active:translate-y-[0.1rem] active:shadow-[0.1rem_0.1rem_0_#05060f] sm:active:shadow-[0.15rem_0.15rem_0_#05060f]",
         link: "text-sophera-brand-primary underline underline-offset-4 hover:text-sophera-brand-primary-dark hover:underline-offset-8 hover:scale-105 border-0 shadow-none",
       },
       size: {
-        default: "h-11 px-6 py-2.5 gap-2",
-        sm: "h-9 px-4 py-2 gap-1.5 text-xs",
-        lg: "h-14 px-8 py-3 gap-3 text-base",
-        icon: "h-11 w-11 p-2",
+        default: "h-10 sm:h-11 px-4 sm:px-6 py-2 sm:py-2.5 gap-1.5 sm:gap-2 text-xs sm:text-sm",
+        sm: "h-8 sm:h-9 px-3 sm:px-4 py-1.5 sm:py-2 gap-1 sm:gap-1.5 text-xs",
+        lg: "h-12 sm:h-14 px-6 sm:px-8 py-2.5 sm:py-3 gap-2 sm:gap-3 text-sm sm:text-base",
+        icon: "h-10 w-10 sm:h-11 sm:w-11 p-2",
       },
     },
     defaultVariants: {
