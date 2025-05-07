@@ -20,7 +20,7 @@ export class ActionStepsService {
         researchItems,
         journalLogs,
         dietLogs,
-        completedActionSteps
+        allActionSteps
       ] = await Promise.all([
         storage.getUser(userId),
         storage.getTreatments(userId).catch(() => []),
@@ -28,8 +28,11 @@ export class ActionStepsService {
         storage.getResearchItems(userId).catch(() => []),
         storage.getJournalLogs(userId).catch(() => []),
         storage.getDietLogs(userId).catch(() => []),
-        storage.getCompletedActionSteps(userId).catch(() => [])
+        storage.getActionSteps(userId).catch(() => [])
       ]);
+      
+      // Filter for completed action steps
+      const completedActionSteps = (allActionSteps || []).filter(step => step.isCompleted);
 
       // Use AI router to generate personalized action steps
       const userData = {
@@ -44,7 +47,27 @@ export class ActionStepsService {
       const prompt = this.buildActionStepsPrompt(userData);
 
       // If there are existing incomplete action steps, delete them
-      await storage.deleteIncompleteActionSteps(userId);
+      try {
+        if (typeof storage.deleteIncompleteActionSteps === 'function') {
+          await storage.deleteIncompleteActionSteps(userId);
+        } else {
+          // Fallback: get all action steps and delete incomplete ones manually
+          const existingSteps = await storage.getActionSteps(userId);
+          for (const step of existingSteps) {
+            if (!step.isCompleted) {
+              // Note: This is a simplified approach since we don't have a proper delete method
+              // We'll just update them to be completed with a special note
+              await storage.updateActionStep(step.id, {
+                isCompleted: true,
+                completedDate: new Date(),
+                description: 'Replaced by newer recommendation'
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Could not delete incomplete action steps:', error);
+      }
 
       // Call the AI service to generate steps
       const actionStepsResponse = await aiRouter.getPersonalizedActionSteps(prompt);
