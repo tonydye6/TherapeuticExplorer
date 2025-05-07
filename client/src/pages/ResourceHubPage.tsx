@@ -203,7 +203,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-sophera-input border-sophera-border-primary">
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all-categories">All Categories</SelectItem>
                 {RESOURCE_CATEGORIES.map(category => (
                   <SelectItem key={category.id} value={category.id}>
                     <div className="flex items-center gap-2">
