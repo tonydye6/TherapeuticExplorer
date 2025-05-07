@@ -109,12 +109,6 @@ const NeoCardDecoration = () => {
 
       {/* Card pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:0.5rem_0.5rem] opacity-50 pointer-events-none"></div>
-
-      {/* Bottom decoration */}
-      <div className="hidden sm:block absolute bottom-[-1.2rem] right-8 w-10 h-10 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45"></div>
-
-      {/* Mobile-optimized bottom decoration */}
-      <div className="block sm:hidden absolute bottom-[-0.8rem] right-4 w-7 h-7 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45"></div>
     </>
   )
 }
