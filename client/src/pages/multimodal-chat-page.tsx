@@ -259,150 +259,77 @@ export default function MultimodalChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden p-6">
-      {/* Page Header - Neo Brutalism style */}
-      <div 
-        className="relative w-full bg-[#fb9678] border-4 border-black rounded-xl p-6 mb-6 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px]"
-        style={{
-          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
-        }}
-      >
-        <div className="absolute left-0 top-0 w-10 h-10 bg-[#f87a5c] border-r-4 border-b-4 border-black"></div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide ml-8">CREATIVE EXPLORATION</h1>
-            <p className="text-white text-opacity-90 font-medium ml-8 max-w-2xl">
-              Explore innovative approaches and ideas for your cancer journey in a safe space.
-            </p>
-          </div>
-          
-          <div className="h-12 w-12 rounded-full bg-[#ffe066] border-4 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
-            <Zap className="h-6 w-6 text-black" />
-          </div>
-        </div>
-      </div>
-      
-      {/* Privacy Notice */}
-      <div className="w-full bg-amber-50 border-4 border-black rounded-xl p-5 mb-6 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px]">
-        <div className="flex gap-4">
-          <div className="flex-shrink-0">
-            <div className="h-10 w-10 rounded-full bg-[#fb9678] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-white" />
+    <div className="fixed inset-0 p-4 md:p-6 overflow-hidden" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div className="flex flex-col h-full w-full">
+        {/* Page Header - Neo Brutalism style */}
+        <div 
+          className="relative w-full bg-[#fb9678] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px]"
+          style={{
+            clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
+          }}
+        >
+          <div className="absolute left-0 top-0 w-10 h-10 bg-[#f87a5c] border-r-4 border-b-4 border-black"></div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide ml-8">CREATIVE EXPLORATION</h1>
+              <p className="text-white text-opacity-90 font-medium ml-8 max-w-2xl">
+                Explore innovative approaches and ideas for your cancer journey in a safe space.
+              </p>
+            </div>
+            
+            <div className="h-12 w-12 rounded-full bg-[#ffe066] border-4 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+              <Zap className="h-6 w-6 text-black" />
             </div>
           </div>
-          <div>
-            <h3 className="text-lg font-extrabold text-black">IMPORTANT PRIVACY INFORMATION</h3>
-            <p className="text-gray-800 mt-1">
-              Before uploading any medical images, please ensure they contain no personal identifying information. 
-              This tool is for informational purposes only and should not replace professional medical advice.
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Three-step Process Cards */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {[
-          {
-            step: 1,
-            title: "UPLOAD IMAGES",
-            description: "Add up to 5 medical images for analysis",
-            icon: <ImageIcon className="h-5 w-5 text-[#4a88db]" />
-          },
-          {
-            step: 2,
-            title: "ADD CONTEXT",
-            description: "Describe what you'd like to learn about",
-            icon: <MessageCircle className="h-5 w-5 text-[#4a88db]" />
-          },
-          {
-            step: 3,
-            title: "RECEIVE INSIGHTS",
-            description: "Get AI analysis of your medical images",
-            icon: <Lightbulb className="h-5 w-5 text-[#4a88db]" />
-          }
-        ].map((step, index) => (
-          <NeoCard key={index} className="h-auto border-[#000000]">
-            <NeoCardContent className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-full bg-white border-3 border-black shadow-[0.1rem_0.1rem_0_#000] flex items-center justify-center text-lg font-bold text-[#4a88db]">
-                  {step.step}
-                </div>
-                <div>
-                  <h3 className="text-lg font-extrabold text-black">{step.title}</h3>
-                  <p className="text-gray-700 mt-1">{step.description}</p>
-                </div>
-              </div>
-            </NeoCardContent>
-          </NeoCard>
-        ))}
-      </div>
-      
-      {/* Main Chat Container - Takes full remaining vertical space */}
-      <div className="flex-1 min-h-0 w-full flex flex-col border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-[#3db4ab] overflow-hidden">
-        {/* Chat Header */}
-        <div className="bg-[#2d9d94] border-b-4 border-black p-5 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-extrabold text-white ml-8">UPLOAD & ANALYZE</h2>
-            <p className="text-white text-opacity-90 ml-8">
-              Share medical images with AI for professional analysis and explanations.
-            </p>
-          </div>
-          <button 
-            className="h-8 w-8 rounded-md bg-[#2a8f87] border-2 border-black flex items-center justify-center hover:translate-y-[-2px] transition-transform"
-            onClick={() => {
-              // For demonstration - in a real app this would close or minimize
-              toast({
-                title: "Info",
-                description: "This would close the chat in a full implementation.",
-              });
-            }}
-          >
-            <X className="h-5 w-5 text-white" />
-          </button>
         </div>
         
-        {/* Chat Main Area */}
-        <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden">
-          {/* AI Model Selection */}
-          <div className="flex justify-end items-center p-4 border-b-3 border-black gap-3 bg-[#3db4ab] bg-opacity-10">
-            <span className="text-gray-800 font-bold">AI MODEL:</span>
-            <RadioGroup 
-              value={selectedModel} 
-              onValueChange={(value) => setSelectedModel(value as ModelType)} 
-              className="flex"
-            >
-              <div className={`relative px-4 py-2 rounded-full border-3 border-black ${selectedModel === ModelType.GPT4O ? 'bg-[#2d9d94] text-white' : 'bg-white text-gray-800'} mr-2 cursor-pointer shadow-[0.1rem_0.1rem_0_#000] flex items-center hover:translate-y-[-1px] transition-transform`}>
-                <RadioGroupItem 
-                  value={ModelType.GPT4O} 
-                  id="gpt4o" 
-                  className="opacity-0 absolute" 
-                />
-                <Label htmlFor="gpt4o" className="cursor-pointer flex items-center">
-                  <Cpu className="h-4 w-4 mr-2" />
-                  <span className="font-bold">GPT-4o VISION</span>
-                </Label>
+        {/* Privacy Notice - Only shown on larger screens */}
+        <div className="w-full bg-amber-50 border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] hidden md:block">
+          <div className="flex gap-4">
+            <div className="flex-shrink-0">
+              <div className="h-10 w-10 rounded-full bg-[#fb9678] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-white" />
               </div>
-              
-              <div className={`relative px-4 py-2 rounded-full border-3 border-black ${selectedModel === ModelType.GEMINI ? 'bg-[#2d9d94] text-white' : 'bg-white text-gray-800'} cursor-pointer shadow-[0.1rem_0.1rem_0_#000] flex items-center hover:translate-y-[-1px] transition-transform`}>
-                <RadioGroupItem 
-                  value={ModelType.GEMINI} 
-                  id="gemini" 
-                  className="opacity-0 absolute" 
-                />
-                <Label htmlFor="gemini" className="cursor-pointer flex items-center">
-                  <Bot className="h-4 w-4 mr-2" />
-                  <span className="font-bold">GEMINI PRO</span>
-                </Label>
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-black">IMPORTANT PRIVACY INFORMATION</h3>
+              <p className="text-gray-800 mt-1">
+                Before uploading any medical images, please ensure they contain no personal identifying information. 
+                This tool is for informational purposes only and should not replace professional medical advice.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Main Chat Container - Flex-grow to fill available space */}
+        <div className="flex-grow flex flex-col min-h-0 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-[#3db4ab] overflow-hidden">
+          {/* Chat Header */}
+          <div className="bg-[#2d9d94] border-b-4 border-black p-4 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-extrabold text-white ml-2">UPLOAD & ANALYZE</h2>
+              <p className="text-white text-opacity-90 ml-2 text-sm">
+                Share medical images with AI for professional analysis
+              </p>
+            </div>
+            
+            {/* Model Selection - Simplified for mobile */}
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1.5 rounded-full border-2 border-black ${selectedModel === ModelType.GPT4O ? 'bg-[#2a8f87] text-white' : 'bg-white text-gray-800'} cursor-pointer shadow-[0.1rem_0.1rem_0_#000] text-xs font-bold`}
+                   onClick={() => setSelectedModel(ModelType.GPT4O)}>
+                GPT-4o
               </div>
-            </RadioGroup>
+              <div className={`px-3 py-1.5 rounded-full border-2 border-black ${selectedModel === ModelType.GEMINI ? 'bg-[#2a8f87] text-white' : 'bg-white text-gray-800'} cursor-pointer shadow-[0.1rem_0.1rem_0_#000] text-xs font-bold`}
+                   onClick={() => setSelectedModel(ModelType.GEMINI)}>
+                GEMINI
+              </div>
+            </div>
           </div>
           
-          {/* Message Display Area with ScrollArea */}
-          <div className="flex-1 min-h-0 overflow-hidden">
+          {/* Messages Area */}
+          <div className="flex-grow min-h-0 bg-white overflow-hidden">
             <ScrollArea className="h-full p-4">
-              <div className="space-y-6 pb-2">
-                {messages.map((message, index) => (
+              <div className="space-y-4 pb-2">
+                {messages.map((message) => (
                   <div 
                     key={message.id} 
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -495,7 +422,7 @@ export default function MultimodalChatPage() {
                         <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
                         <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                         <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                        <span className="font-bold text-gray-400 ml-1">Analyzing and researching...</span>
+                        <span className="font-bold text-gray-400 ml-1">Analyzing...</span>
                       </div>
                     </div>
                   </div>
@@ -541,21 +468,20 @@ export default function MultimodalChatPage() {
             </div>
           )}
           
-          {/* Input Area - Always visible at bottom */}
-          <div className="border-t-3 border-black p-4 bg-[#3db4ab] bg-opacity-5">
+          {/* Input Area - Always at bottom */}
+          <div className="bg-[#3db4ab] bg-opacity-5 border-t-3 border-black p-3">
             <div className="flex gap-3">
               <div className="flex-1">
                 <Input 
-                  className="min-h-[80px] px-4 py-3 border-3 border-black rounded-xl bg-white shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#3db4ab] focus-visible:ring-offset-2 font-medium text-gray-800 translate-x-[-2px] translate-y-[-2px]"
+                  className="h-12 px-4 py-2 border-3 border-black rounded-xl bg-white shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#3db4ab] focus-visible:ring-offset-2 font-medium text-gray-800 translate-x-[-2px] translate-y-[-2px]"
                   placeholder="Type a message and/or upload images..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   disabled={isProcessing}
-                  style={{ minHeight: '80px', height: '80px' }}
                 />
               </div>
               
-              <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -570,7 +496,7 @@ export default function MultimodalChatPage() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
-                        className={`h-[80px] w-12 border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all ${selectedFiles.length >= 5 ? 'bg-gray-300' : 'bg-white'} translate-x-[-2px] translate-y-[-2px]`}
+                        className={`h-12 w-12 border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all ${selectedFiles.length >= 5 ? 'bg-gray-300' : 'bg-white'} translate-x-[-2px] translate-y-[-2px]`}
                         onClick={() => fileInputRef.current?.click()}
                         disabled={selectedFiles.length >= 5 || isProcessing}
                       >
@@ -584,7 +510,7 @@ export default function MultimodalChatPage() {
                 </TooltipProvider>
                 
                 <Button 
-                  className="h-[80px] w-12 bg-[#fb9678] hover:bg-[#fa8668] border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all translate-x-[-2px] translate-y-[-2px]"
+                  className="h-12 w-12 bg-[#fb9678] hover:bg-[#fa8668] border-3 border-black rounded-xl shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.25rem_0.25rem_0_#000] transition-all translate-x-[-2px] translate-y-[-2px]"
                   onClick={handleSendMessage}
                   disabled={(!inputValue.trim() && selectedFiles.length === 0) || isProcessing}
                 >
@@ -593,15 +519,13 @@ export default function MultimodalChatPage() {
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4">
-              <p className="text-sm text-gray-600 font-medium">
-                Upload up to 5 images (JPEG, PNG). Images are analyzed for medical content.
-              </p>
-              
+            {/* Doctor Brief Button */}
+            <div className="flex justify-end mt-3">
               <NeoButton
                 buttonText="GENERATE DOCTOR BRIEF"
                 icon={<FileText className="h-5 w-5" />}
                 color="cyan"
+                size="sm"
                 className="bg-[#4a88db] hover:bg-[#4a88db]/90 text-white border-black"
                 onClick={handleGenerateDoctorBrief}
                 disabled={messages.length <= 1}
