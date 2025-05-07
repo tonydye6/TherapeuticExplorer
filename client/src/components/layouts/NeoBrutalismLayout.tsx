@@ -53,7 +53,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
       {/* Neo Brutalism Toggle Switch for Mobile */}
       {isMobile && (
         <div 
-          className="fixed top-3 right-3 z-50 flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#000000] transition-all"
+          className="fixed top-3 left-3 z-50 flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#000000] transition-all"
         >
           <span className="text-sm font-semibold text-sophera-text-heading">{sidebarOpen ? "Hide Menu" : "Show Menu"}</span>
           <label className="switch">
