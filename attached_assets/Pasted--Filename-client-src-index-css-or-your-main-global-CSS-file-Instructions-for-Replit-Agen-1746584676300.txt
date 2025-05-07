@@ -1,0 +1,76 @@
+/* Filename: client/src/index.css (or your main global CSS file) */
+/* Instructions for Replit Agent:
+   1. Add these styles to your main global CSS file that is imported into your application.
+   2. Ensure Tailwind CSS base, components, and utilities are imported BEFORE these custom global styles.
+      Example (typically at the top of your global CSS file):
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+*/
+
+/* Apply the global gradient background to the main application body or root layout container */
+body { /* Or your main app wrapper like #root or .app-container */
+  background: linear-gradient(135deg, #E6FFFA 0%, #FFF0E9 100%);
+  font-family: 'Inter', sans-serif; /* Ensure Inter font is primary */
+  color: #4A5568; /* Default body text color - Medium Gray */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure cards and modals stand out against the gradient */
+/* This might already be handled by Tailwind card classes if they set a background,
+   but explicitly define if needed, especially if cards are directly on the gradient. */
+.card-background-on-gradient { /* Apply this class to card components if needed */
+  background-color: #FFFFFF; /* White */
+}
+
+/* Define CSS variables for colors if your shadcn/ui theme setup uses them extensively.
+   The tailwind.config.ts above defines them directly for Tailwind's use.
+   If theme.json and @replit/vite-plugin-shadcn-theme-json are setting HSL variables
+   like --background, --foreground, --primary, etc., you need to ensure those HSL
+   variables are updated to reflect the new Sophera palette.
+
+   Example of how you might update CSS variables if your theme.json drives them:
+   (This would typically be in a file like `theme.css` or a `<style>` tag in `index.html`
+    BEFORE your main app bundle, or managed by the theme plugin)
+
+:root {
+  --background: 204 10% 97%; /* HSL for #F9FAFB */
+  --foreground: 222 22% 20%; /* HSL for #2D3748 */
+
+  --card: 0 0% 100%; /* HSL for #FFFFFF */
+  --card-foreground: 222 22% 20%; /* HSL for #2D3748 */
+
+  --popover: 0 0% 100%; /* HSL for #FFFFFF */
+  --popover-foreground: 222 22% 20%; /* HSL for #2D3748 */
+
+  --primary: 174 82% 31%; /* HSL for #0D9488 */
+  --primary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
+
+  --secondary: 16 100% 66%; /* HSL for #FF7F50 */
+  --secondary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
+
+  --muted: 216 28% 95%; /* HSL for #EFF2F5 */
+  --muted-foreground: 216 12% 47%; /* HSL for #718096 */
+
+  --accent: 45 100% 51%; /* HSL for #FFC107 (Sunny Yellow - Tertiary Accent) */
+  --accent-foreground: 222 22% 20%; /* HSL for #2D3748 */
+
+  --destructive: 0 84% 60%; /* HSL for #EF4444 */
+  --destructive-foreground: 0 0% 100%; /* HSL for #FFFFFF */
+
+  --border: 215 20% 82%; /* HSL for #CBD5E0 */
+  --input: 215 20% 82%; /* HSL for #CBD5E0 */
+  --ring: 174 82% 31%; /* HSL for #0D9488 */
+
+  --radius: 1rem; /* Corresponds to 16px, for card radius */
+}
+
+.dark {
+  /* Define dark theme HSL variables if supporting dark mode */
+}
+*/
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+

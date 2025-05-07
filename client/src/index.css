@@ -7,35 +7,53 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 204 10% 97%; /* HSL for #F9FAFB */
+    --foreground: 222 22% 20%; /* HSL for #2D3748 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 100%; /* HSL for #FFFFFF */
+    --card-foreground: 222 22% 20%; /* HSL for #2D3748 */
  
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 100%; /* HSL for #FFFFFF */
+    --popover-foreground: 222 22% 20%; /* HSL for #2D3748 */
  
-    --primary: 173 85% 31%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 174 82% 31%; /* HSL for #0D9488 */
+    --primary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
+    --primary-hover: 174 84% 27%; /* HSL for #0A7D70 */
+    --primary-light: 174 82% 31% / 0.1; /* RGBA for primary with 10% opacity */
+    --primary-focus-ring: 174 82% 31% / 0.25; /* RGBA for primary with 25% opacity */
  
-    --secondary: 16 100% 65%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 16 100% 66%; /* HSL for #FF7F50 */
+    --secondary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
+    --secondary-hover: 15 75% 59%; /* HSL for #E67348 */
  
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --tertiary: 45 100% 51%; /* HSL for #FFC107 - Sunny Yellow */
+    --tertiary-foreground: 222 22% 20%; /* HSL for #2D3748 */
  
-    --accent: 16 100% 65%;
-    --accent-foreground: 222 47% 11%;
+    --muted: 216 28% 95%; /* HSL for #EFF2F5 */
+    --muted-foreground: 216 12% 47%; /* HSL for #718096 */
  
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 16 100% 66%; /* Same as secondary for compatibility */
+    --accent-foreground: 222 22% 20%; /* HSL for #2D3748 */
+ 
+    --destructive: 0 84% 60%; /* HSL for #EF4444 */
+    --destructive-foreground: 0 0% 100%; /* HSL for #FFFFFF */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 173 85% 31%;
+    --border: 215 20% 82%; /* HSL for #CBD5E0 */
+    --input: 215 20% 82%; /* HSL for #CBD5E0 */
+    --ring: 174 82% 31%; /* HSL for #0D9488 */
+    
+    /* Text colors */
+    --text-headings: 222 22% 20%; /* HSL for #2D3748 - Dark Charcoal */
+    --text-body: 217 19% 35%; /* HSL for #4A5568 - Medium Gray */
+    --text-subtle: 216 12% 47%; /* HSL for #718096 - Cool Gray */
+    
+    /* Gradient colors */
+    --gradient-start-aqua: 167 100% 94%; /* HSL for #E6FFFA */
+    --gradient-end-peach: 20 100% 96%; /* HSL for #FFF0E9 */
  
-    --radius: 1rem;
+    --radius: 1rem; /* 16px for cards */
+    --radius-md: 0.625rem; /* 10px for buttons/inputs */
+    --radius-sm: 0.5rem; /* 8px for smaller elements */
   }
 
   * {
@@ -93,7 +111,8 @@
 
   /* Card styles */
   .card {
-    @apply bg-white rounded-xl border border-border shadow-md p-6;
+    @apply bg-white border border-border shadow-md p-6;
+    border-radius: var(--radius, 16px);
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
   }
   
@@ -113,33 +132,57 @@
   .card-hope {
     @apply border-t-4 border-t-tertiary bg-gradient-to-br from-white to-sunny-50;
   }
+  
+  /* Card with background that stands out on gradient */
+  .card-background-on-gradient {
+    @apply bg-white;
+  }
 
   /* Button styles */
   .btn {
-    @apply px-6 py-3 rounded-md font-semibold transition-all duration-200 shadow-sm;
+    @apply px-6 py-3 font-semibold transition-all duration-200 shadow-sm;
     letter-spacing: 0.5px;
-    border-radius: 10px; /* Matches design spec */
+    border-radius: var(--radius-md, 10px); /* Matches design spec */
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-hover hover:scale-[1.03];
+    @apply text-white hover:scale-[1.03];
+    background-color: hsl(var(--primary));
+  }
+  .btn-primary:hover {
+    background-color: hsl(var(--primary-hover));
   }
 
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary-hover hover:scale-[1.03];
+    @apply text-white hover:scale-[1.03];
+    background-color: hsl(var(--secondary));
+  }
+  .btn-secondary:hover {
+    background-color: hsl(var(--secondary-hover));
   }
   
   .btn-tertiary {
-    @apply bg-tertiary text-text_headings hover:bg-tertiary/90 hover:scale-[1.03];
+    background-color: hsl(var(--tertiary));
+    color: hsl(var(--tertiary-foreground));
+  }
+  .btn-tertiary:hover {
+    @apply scale-[1.03];
+    filter: brightness(95%);
   }
 
   .btn-outline {
-    @apply bg-transparent text-primary border-2 border-primary hover:bg-primary-light;
+    @apply bg-transparent border-2 hover:scale-[1.03];
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
     padding: 10px 22px;
+  }
+  .btn-outline:hover {
+    background-color: var(--primary-light);
   }
 
   .btn-text {
-    @apply bg-transparent text-primary shadow-none font-semibold hover:underline;
+    @apply bg-transparent shadow-none font-semibold hover:underline;
+    color: hsl(var(--primary));
   }
   
   /* Loading State */
@@ -166,9 +209,20 @@
 
   /* Input styles */
   input, textarea, select {
-    @apply rounded-md border border-input px-4 py-3 placeholder-text_subtle
-    focus:border-primary focus:ring focus:ring-primary-focusRing;
-    border-radius: 10px; /* Matches design spec */
+    @apply border px-4 py-3;
+    border-color: hsl(var(--input));
+    color: hsl(var(--foreground));
+    border-radius: var(--radius-md, 10px); /* Matches design spec */
+  }
+  
+  input::placeholder, textarea::placeholder, select::placeholder {
+    color: hsl(var(--text-subtle));
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px var(--primary-focus-ring);
   }
   
   /* Tabs/Segmented Controls */
