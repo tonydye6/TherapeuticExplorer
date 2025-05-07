@@ -2670,10 +2670,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to create sample health data for a user
+  async function createSampleUserHealthData(userId: string) {
+    try {
+      // Check if the user already has journal logs
+      const existingJournalLogs = await storage.getJournalLogs(userId).catch(() => []);
+      if (existingJournalLogs.length === 0) {
+        console.log('Creating sample journal logs for user', userId);
+        const now = new Date();
+        
+        // Create sample journal logs
+        await storage.createJournalLog({
+          userId,
+          content: "Today I experienced less fatigue than usual. I was able to go for a 20-minute walk without feeling completely drained. Still having some trouble swallowing but it seems a bit better than last week.",
+          entryDate: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // yesterday
+          mood: "hopeful",
+          painLevel: 3,
+          energyLevel: 4,
+          sleepQuality: 3,
+          symptoms: ["mild fatigue", "difficulty swallowing", "heartburn"],
+          tags: ["treatment", "symptoms"]
+        });
+        
+        await storage.createJournalLog({
+          userId,
+          content: "Had my radiation treatment today. The medical team was supportive, but I feel very tired now. Dealing with more heartburn than usual after eating. Planning to ask my doctor about it at next appointment.",
+          entryDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+          mood: "tired",
+          painLevel: 4,
+          energyLevel: 2,
+          sleepQuality: 2,
+          symptoms: ["severe fatigue", "increased heartburn", "nausea"],
+          tags: ["radiation", "side effects"]
+        });
+      }
+      
+      // Check if the user already has diet logs
+      const existingDietLogs = await storage.getDietLogs(userId).catch(() => []);
+      if (existingDietLogs.length === 0) {
+        console.log('Creating sample diet logs for user', userId);
+        const now = new Date();
+        
+        // Create sample diet logs
+        await storage.createDietLog({
+          userId,
+          mealType: "breakfast",
+          mealDate: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // yesterday
+          foods: ["oatmeal with honey", "banana", "herbal tea"],
+          calories: 350,
+          protein: 8,
+          notes: "Was able to eat most of it without discomfort",
+          mood: "content",
+          difficulty: 2
+        });
+        
+        await storage.createDietLog({
+          userId,
+          mealType: "lunch",
+          mealDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+          foods: ["vegetable soup", "soft bread", "applesauce"],
+          calories: 420,
+          protein: 10,
+          notes: "Had trouble swallowing the bread, soup was easier",
+          mood: "frustrated",
+          difficulty: 4
+        });
+      }
+      
+      // Check if the user already has research items
+      const existingResearchItems = await storage.getResearchItems(userId).catch(() => []);
+      if (existingResearchItems.length === 0) {
+        console.log('Creating sample research items for user', userId);
+        
+        // Create sample research items
+        await storage.createResearchItem({
+          userId,
+          title: "New immunotherapy approaches for esophageal cancer",
+          content: "Recent clinical trials have shown promising results with checkpoint inhibitors in combination with traditional chemotherapy for advanced esophageal cancer.",
+          sourceType: "research",
+          sourceId: "10.1056/NEJMoa2032125",
+          sourceName: "New England Journal of Medicine",
+          evidenceLevel: "high",
+          isFavorite: true
+        });
+        
+        await storage.createResearchItem({
+          userId,
+          title: "Nutritional strategies during esophageal cancer treatment",
+          content: "Small, frequent meals with high protein content can help maintain weight and muscle mass during treatment. Nutrient-dense liquid supplements are recommended for patients with severe swallowing difficulties.",
+          sourceType: "research",
+          sourceId: "10.1093/ajcn/nqaa048",
+          sourceName: "American Journal of Clinical Nutrition",
+          evidenceLevel: "moderate",
+          isFavorite: false
+        });
+      }
+      
+      // Check if the user already has treatments
+      const existingTreatments = await storage.getTreatments(userId).catch(() => []);
+      if (existingTreatments.length === 0) {
+        console.log('Creating sample treatments for user', userId);
+        const now = new Date();
+        
+        // Create sample treatments
+        await storage.createTreatment({
+          userId,
+          name: "Radiation Therapy",
+          type: "radiation",
+          startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+          endDate: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
+          frequency: "daily",
+          dosage: "30 Gy over 15 sessions",
+          provider: "Dr. Emily Johnson",
+          location: "Memorial Cancer Center",
+          notes: "Experiencing fatigue and mild skin irritation. Taking oral rinse for esophagitis.",
+          sideEffects: ["fatigue", "esophagitis", "skin irritation"]
+        });
+        
+        await storage.createTreatment({
+          userId,
+          name: "Chemotherapy - FLOT Regimen",
+          type: "chemotherapy",
+          startDate: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
+          endDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          frequency: "every 2 weeks",
+          dosage: "Standard dose, cycle 3 of 6",
+          provider: "Dr. Michael Stevens",
+          location: "Memorial Cancer Center",
+          notes: "Nausea well-controlled with antiemetics. Some peripheral neuropathy in fingers.",
+          sideEffects: ["nausea", "peripheral neuropathy", "reduced white blood cell count"]
+        });
+      }
+      
+      // Check if the user already has documents
+      const existingDocuments = await storage.getDocuments(userId).catch(() => []);
+      if (existingDocuments.length === 0) {
+        console.log('Creating sample documents for user', userId);
+        
+        // Create sample documents
+        await storage.createDocument({
+          userId,
+          title: "Pathology Report",
+          type: "medical_report",
+          content: "Esophageal adenocarcinoma, moderately differentiated, T2N1M0 (Stage IIB). Tumor size 3.2cm with invasion into muscularis propria. Margins negative. 2 of 12 regional lymph nodes positive for metastatic carcinoma.",
+          parsedContent: {
+            diagnosis: "Esophageal adenocarcinoma",
+            stage: "IIB",
+            margins: "negative",
+            lymphNodes: "2 of 12 positive"
+          },
+          sourceDate: new Date(2023, 1, 15)
+        });
+        
+        await storage.createDocument({
+          userId,
+          title: "PET/CT Scan Report",
+          type: "imaging",
+          content: "FDG-avid mass in distal esophagus measuring 3.2 x 2.8 cm with SUVmax of 12.4. Two FDG-avid regional lymph nodes noted. No evidence of distant metastatic disease.",
+          parsedContent: {
+            location: "distal esophagus",
+            size: "3.2 x 2.8 cm",
+            SUVmax: 12.4,
+            metastasis: "regional lymph nodes only"
+          },
+          sourceDate: new Date(2023, 1, 10)
+        });
+      }
+      
+      console.log('Sample health data creation complete for user', userId);
+    } catch (error) {
+      console.error('Error creating sample health data:', error);
+    }
+  }
+
   // Action Steps API Routes
   app.get("/api/action-steps", async (req, res) => {
     try {
       const DEFAULT_USER_ID = "1";
+      
+      // Create sample user health data if needed
+      await createSampleUserHealthData(DEFAULT_USER_ID);
+      
       // Get action steps for the user
       let actionSteps = [];
       
@@ -2696,6 +2873,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/action-steps/generate", async (req, res) => {
     try {
       const DEFAULT_USER_ID = "1";
+      
+      // Create sample user health data if needed
+      await createSampleUserHealthData(DEFAULT_USER_ID);
+      
       // Generate new action steps
       const actionSteps = await actionStepsService.generateActionSteps(DEFAULT_USER_ID);
       res.json(actionSteps);
