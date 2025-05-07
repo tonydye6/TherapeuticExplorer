@@ -6,6 +6,38 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+ 
+    --primary: 173 85% 31%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 16 100% 65%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --accent: 16 100% 65%;
+    --accent-foreground: 222 47% 11%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 173 85% 31%;
+ 
+    --radius: 1rem;
+  }
+
   * {
     @apply border-border;
   }
@@ -15,70 +47,209 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    @apply text-charcoal-600; /* Medium Gray for body text */
-    background: linear-gradient(135deg, #E6FFFA 0%, #FFF0E9 100%);
+    @apply font-sans antialiased text-text_body;
+    background: linear-gradient(135deg, var(--gradient-start-aqua, #E6FFFA) 0%, var(--gradient-end-peach, #FFF0E9) 100%);
+    background-attachment: fixed;
     min-height: 100vh;
     line-height: 1.7;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply text-charcoal-700;
+    @apply text-text_headings;
     line-height: 1.3;
   }
 
   h1 {
-    @apply text-3xl md:text-4xl font-extrabold mb-4;
-    font-weight: 800;
+    @apply text-3xl md:text-[30px] font-extrabold mb-4;
+    font-weight: 800; /* Extra-Bold for H1 (page titles) */
   }
 
   h2 {
-    @apply text-2xl md:text-3xl font-bold mb-3;
-    font-weight: 700;
+    @apply text-2xl md:text-[24px] font-bold mb-3;
+    font-weight: 700; /* Bold for H2 (section titles) */
   }
 
   h3 {
-    @apply text-xl md:text-2xl font-semibold mb-3;
-    font-weight: 600;
+    @apply text-xl md:text-[20px] font-semibold mb-3;
+    font-weight: 600; /* Semi-Bold for H3 (card titles) */
   }
 
   p {
-    @apply mb-4 text-base text-charcoal-600;
+    @apply mb-4 text-base text-text_body;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  
+  label {
+    @apply text-sm font-semibold text-text_headings;
+    font-weight: 600; /* Semi-Bold for labels */
+    font-size: 14px;
+  }
+  
+  .helper-text, .caption-text {
+    @apply text-text_subtle text-xs;
+    font-size: 13px;
   }
 
   /* Card styles */
   .card {
-    @apply bg-white rounded-2xl border border-charcoal-300 shadow-md p-6;
+    @apply bg-white rounded-xl border border-border shadow-md p-6;
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Card variants */
+  .card-primary {
+    @apply border-t-4 border-t-primary;
+  }
+  
+  .card-secondary {
+    @apply border-t-4 border-t-secondary;
+  }
+  
+  .card-tertiary {
+    @apply border-t-4 border-t-tertiary;
+  }
+  
+  .card-hope {
+    @apply border-t-4 border-t-tertiary bg-gradient-to-br from-white to-sunny-50;
   }
 
   /* Button styles */
   .btn {
-    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm;
+    @apply px-6 py-3 rounded-md font-semibold transition-all duration-200 shadow-sm;
     letter-spacing: 0.5px;
+    border-radius: 10px; /* Matches design spec */
   }
 
   .btn-primary {
-    @apply bg-sophera-500 text-white hover:bg-sophera-600 hover:scale-[1.03];
+    @apply bg-primary text-white hover:bg-primary-hover hover:scale-[1.03];
   }
 
   .btn-secondary {
-    @apply bg-coral-500 text-white hover:bg-coral-600 hover:scale-[1.03];
+    @apply bg-secondary text-white hover:bg-secondary-hover hover:scale-[1.03];
+  }
+  
+  .btn-tertiary {
+    @apply bg-tertiary text-text_headings hover:bg-tertiary/90 hover:scale-[1.03];
   }
 
   .btn-outline {
-    @apply bg-transparent text-sophera-500 border-2 border-sophera-500 hover:bg-sophera-500/10;
+    @apply bg-transparent text-primary border-2 border-primary hover:bg-primary-light;
     padding: 10px 22px;
   }
 
   .btn-text {
-    @apply bg-transparent text-sophera-500 shadow-none font-semibold hover:underline;
+    @apply bg-transparent text-primary shadow-none font-semibold hover:underline;
+  }
+  
+  /* Loading State */
+  .loading {
+    @apply animate-pulse;
+  }
+  
+  /* Toast Notifications */
+  .toast-success {
+    @apply bg-primary text-white border-l-4 border-primary-hover;
+  }
+  
+  .toast-info {
+    @apply bg-blue-500 text-white border-l-4 border-blue-600;
+  }
+  
+  .toast-warning {
+    @apply bg-tertiary text-text_headings border-l-4 border-tertiary/80;
+  }
+  
+  .toast-error {
+    @apply bg-destructive text-white border-l-4 border-destructive/80;
   }
 
   /* Input styles */
   input, textarea, select {
-    @apply rounded-xl border border-charcoal-300 px-4 py-3 placeholder-charcoal-500 
-    focus:border-sophera-500 focus:ring focus:ring-sophera-500/25 focus:ring-opacity-50;
+    @apply rounded-md border border-input px-4 py-3 placeholder-text_subtle
+    focus:border-primary focus:ring focus:ring-primary-focusRing;
+    border-radius: 10px; /* Matches design spec */
+  }
+  
+  /* Tabs/Segmented Controls */
+  .tabs {
+    @apply flex border-b border-border;
+  }
+  
+  .tab {
+    @apply px-[18px] py-[10px] text-text_body font-medium transition-colors;
+  }
+  
+  .tab-active {
+    @apply text-primary font-bold border-b-3 border-primary;
+  }
+  
+  /* Empty States */
+  .empty-state {
+    @apply py-10 flex flex-col items-center justify-center text-center;
+  }
+  
+  .empty-state-icon {
+    @apply text-primary w-12 h-12 mb-4;
+  }
+  
+  .empty-state-title {
+    @apply text-xl font-semibold mb-2 text-text_headings;
+  }
+  
+  .empty-state-message {
+    @apply text-text_body mb-6 max-w-md mx-auto;
+  }
+  
+  /* Hope-themed empty state */
+  .empty-state.hope {
+    @apply text-center;
+  }
+  
+  .empty-state.hope .empty-state-icon {
+    @apply text-tertiary;
+  }
+  
+  /* Micro-interactions */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:translate-y-[-2px] hover:shadow-lg;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-200;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(13, 148, 136, 0.3);
+  }
+  
+  .hover-bright {
+    @apply transition-all duration-200 hover:brightness-105;
+  }
+  
+  /* Loading animations */
+  .loading-wave {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    animation: loading-wave 1s ease-in-out infinite;
+    background-color: var(--primary);
+  }
+  
+  .loading-wave + .loading-wave {
+    animation-delay: 0.2s;
+  }
+  
+  .loading-wave + .loading-wave + .loading-wave {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes loading-wave {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-10px);
+    }
   }
 }
 

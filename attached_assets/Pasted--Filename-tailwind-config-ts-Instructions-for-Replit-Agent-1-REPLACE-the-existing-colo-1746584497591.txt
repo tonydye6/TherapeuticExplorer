@@ -1,0 +1,120 @@
+// Filename: tailwind.config.ts
+// Instructions for Replit Agent:
+// 1. REPLACE the existing `colors` object within `theme.extend` in your `tailwind.config.ts`
+//    with the `colors` object provided below.
+//    This new palette aligns with "Sophera: Detailed UI Design Specifications v3".
+// 2. ENSURE the `borderRadius` values align with the new design specs.
+// 3. AFTER updating this file, you will need to apply the gradient background globally
+//    (see separate instructions for global CSS).
+
+import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {
+      // Ensure border radius aligns with the new design (16px for cards, 10px for buttons/inputs)
+      // Tailwind's default `lg` is 0.5rem (8px), `xl` is 0.75rem (12px), `2xl` is 1rem (16px)
+      // We will use more specific values directly in components or define custom ones if needed.
+      // The existing var(--radius) might be controlled by theme.json.
+      // For now, let's ensure the design spec's border-radius values are used in components.
+      // We can add custom named radius values here if preferred for consistency.
+      borderRadius: {
+        lg: "var(--radius)", // This likely comes from theme.json or a CSS variable setup.
+                            // For Sophera, we want more pronounced rounding.
+                            // Consider this 'var(--radius)' to be equivalent to 16px for cards.
+        xl: "16px",         // Explicitly for cards as per design spec
+        md: "10px",         // Explicitly for buttons/inputs as per design spec
+        sm: "8px",          // For smaller elements if needed
+      },
+      colors: {
+        // Core Sophera Palette (aligns with sophera_detailed_design_specs_agent_v3)
+        background: '#F9FAFB', // Off-White - Primary Background (Main Content Area)
+                               // The gradient will be applied globally via CSS, not here.
+        foreground: '#1F2937', // Dark Charcoal - Default text on light backgrounds
+
+        card: {
+          DEFAULT: '#FFFFFF', // White - Card Backgrounds
+          foreground: '#2D3748', // Dark Charcoal - Text on cards
+        },
+        popover: {
+          DEFAULT: '#FFFFFF',
+          foreground: '#2D3748',
+        },
+        primary: { // Primary Brand Color - Deep Teal
+          DEFAULT: '#0D9488',
+          foreground: '#FFFFFF', // Text on primary background
+          hover: '#0A7D70',    // Hover state for primary buttons
+          light: 'rgba(13, 148, 136, 0.1)', // For secondary button hover background
+          focusRing: 'rgba(13, 148, 136, 0.25)', // For input focus ring
+        },
+        secondary: { // Secondary Accent Color - Bright Coral
+          DEFAULT: '#FF7F50',
+          foreground: '#FFFFFF', // Text on secondary background
+          hover: '#E67348',    // Hover state for secondary buttons
+        },
+        tertiary: { // Tertiary Accent Color - Sunny Yellow
+          DEFAULT: '#FFC107',
+          foreground: '#2D3748', // Text on tertiary background (if used as a bg)
+        },
+        muted: {
+          DEFAULT: '#EFF2F5', // Very Light Cool Gray - Subtle Background Accent
+          foreground: '#718096', // Cool Gray - Muted text
+        },
+        accent: { // Can be an alias for secondary or tertiary if needed by shadcn/ui structure
+          DEFAULT: "hsl(var(--accent))", // Keep if shadcn uses it, ensure --accent maps to a Sophera color
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: { // Standard destructive color
+          DEFAULT: '#EF4444', // Example: Tailwind Red-500
+          foreground: '#FFFFFF',
+        },
+        border: '#CBD5E0', // Light Gray - Border Color (Cards, Inputs)
+        input: '#CBD5E0',  // Border color for inputs, can be same as general border
+        ring: '#0D9488',   // Primary Brand Color for focus rings (can be overridden by primary.focusRing)
+
+        // Text Colors
+        text_headings: '#2D3748', // Dark Charcoal
+        text_body: '#4A5568',     // Medium Gray
+        text_subtle: '#718096',   // Cool Gray
+
+        // Gradient Colors (for reference, applied via global CSS)
+        gradient_start_aqua: '#E6FFFA',
+        gradient_end_peach: '#FFF0E9',
+
+        // Specific UI Elements if not covered by semantic names
+        sidebar_background: '#FFFFFF',
+        sidebar_foreground: '#4A5568',
+        sidebar_active_background: 'rgba(13, 148, 136, 0.1)', // primary.light
+        sidebar_active_foreground: '#0D9488', // primary.DEFAULT
+        sidebar_border: '#EFF2F5',
+
+        // Chart Colors (can be expanded)
+        chart: {
+          "1": '#0D9488', // Primary Brand
+          "2": '#FF7F50', // Secondary Accent
+          "3": '#FFC107', // Tertiary Accent
+          "4": '#3B82F6', // Example: Blue
+          "5": '#8B5CF6', // Example: Purple
+        },
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;
+

@@ -5,63 +5,85 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      // Ensure border radius aligns with the new design (16px for cards, 10px for buttons/inputs)
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius)", // This likely comes from theme.json
+        xl: "16px",         // Explicitly for cards as per design spec
+        md: "10px",         // Explicitly for buttons/inputs as per design spec
+        sm: "8px",          // For smaller elements if needed
       },
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // Core Sophera Palette (aligns with design specifications)
+        background: '#F9FAFB', // Off-White - Primary Background (Main Content Area)
+                               // The gradient will be applied globally via CSS, not here.
+        foreground: '#1F2937', // Dark Charcoal - Default text on light backgrounds
+
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: '#FFFFFF', // White - Card Backgrounds
+          foreground: '#2D3748', // Dark Charcoal - Text on cards
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: '#FFFFFF',
+          foreground: '#2D3748',
         },
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+        primary: { // Primary Brand Color - Deep Teal
+          DEFAULT: '#0D9488',
+          foreground: '#FFFFFF', // Text on primary background
+          hover: '#0A7D70',    // Hover state for primary buttons
+          light: 'rgba(13, 148, 136, 0.1)', // For secondary button hover background
+          focusRing: 'rgba(13, 148, 136, 0.25)', // For input focus ring
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        secondary: { // Secondary Accent Color - Bright Coral
+          DEFAULT: '#FF7F50',
+          foreground: '#FFFFFF', // Text on secondary background
+          hover: '#E67348',    // Hover state for secondary buttons
+        },
+        tertiary: { // Tertiary Accent Color - Sunny Yellow
+          DEFAULT: '#FFC107',
+          foreground: '#2D3748', // Text on tertiary background (if used as a bg)
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: '#EFF2F5', // Very Light Cool Gray - Subtle Background Accent
+          foreground: '#718096', // Cool Gray - Muted text
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+        accent: { 
+          DEFAULT: '#FF7F50', // Match to secondary for compatibility with shadcn/ui
+          foreground: '#FFFFFF',
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        destructive: { // Standard destructive color
+          DEFAULT: '#EF4444', // Tailwind Red-500
+          foreground: '#FFFFFF',
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        border: '#CBD5E0', // Light Gray - Border Color (Cards, Inputs)
+        input: '#CBD5E0',  // Border color for inputs, can be same as general border
+        ring: '#0D9488',   // Primary Brand Color for focus rings
+
+        // Text Colors
+        text_headings: '#2D3748', // Dark Charcoal
+        text_body: '#4A5568',     // Medium Gray
+        text_subtle: '#718096',   // Cool Gray
+
+        // Gradient Colors (for reference, applied via global CSS)
+        gradient_start_aqua: '#E6FFFA',
+        gradient_end_peach: '#FFF0E9',
+
+        // Specific UI Elements if not covered by semantic names
+        sidebar_background: '#FFFFFF',
+        sidebar_foreground: '#4A5568',
+        sidebar_active_background: 'rgba(13, 148, 136, 0.1)', // primary.light
+        sidebar_active_foreground: '#0D9488', // primary.DEFAULT
+        sidebar_border: '#EFF2F5',
+
+        // Chart Colors
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+          "1": '#0D9488', // Primary Brand
+          "2": '#FF7F50', // Secondary Accent
+          "3": '#FFC107', // Tertiary Accent
+          "4": '#3B82F6', // Blue
+          "5": '#8B5CF6', // Purple
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
-        // Sophera custom colors
+        
+        // Keep our existing color scales for compatibility
         sophera: {
           50: "#E6FFFA",  // Very Light Aqua - Gradient start color
           100: "#FFF0E9", // Soft Peach - Gradient end color
