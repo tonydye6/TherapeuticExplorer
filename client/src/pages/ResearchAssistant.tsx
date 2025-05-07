@@ -27,6 +27,7 @@ import {
   Save,
   Edit,
   Bookmark,
+  Check,
   X,
   SendIcon,
   Lightbulb,
@@ -37,6 +38,11 @@ import {
   Trash2,
   Download,
   Share2,
+  FileText,
+  Tag,
+  Filter,
+  Star,
+  StarOff
 } from "lucide-react";
 import { format } from 'date-fns';
 
@@ -56,6 +62,27 @@ interface ResearchItem {
   tags?: string[];
   isFavorite?: boolean;
 }
+
+// Source type colors for vertical indicators
+const sourceTypeColors: Record<string, string> = {
+  'research': '#3db4ab',
+  'treatment': '#3db4ab',
+  'side effects': '#fb9678',
+  'symptoms': '#fb9678',
+  'questions': '#7e57c2',
+  'doctor': '#4a88db',
+  'default': '#4a88db'
+};
+
+const getSourceTypeColor = (sourceType: string): string => {
+  const type = sourceType.toLowerCase();
+  for (const [key, value] of Object.entries(sourceTypeColors)) {
+    if (type.includes(key)) {
+      return value;
+    }
+  }
+  return sourceTypeColors.default;
+};
 
 const suggestedPrompts = [
   {
@@ -162,6 +189,23 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
     }
   });
   
+  // Toggle favorite status mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async ({id, isFavorite}: {id: string, isFavorite: boolean}) => {
+      return await apiRequest("PATCH", `/api/research/${id}`, { isFavorite });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/research"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update",
+        description: "There was an error updating the favorite status.",
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Sample research items when API fails or returns empty
   const sampleResearchItems: ResearchItem[] = [
     {
@@ -192,7 +236,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
     }
   ];
   
-  const displayedResearchItems = researchItems && researchItems.length > 0 ? researchItems : sampleResearchItems;
+  const displayedResearchItems = researchItems?.length ? researchItems : sampleResearchItems;
   
   const filteredResearchItems = displayedResearchItems.filter(item => {
     const matchesSearch = searchQuery === "" || 
@@ -308,25 +352,51 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
     }
   };
   
+  const handleToggleFavorite = (id: string, currentStatus: boolean = false) => {
+    toggleFavoriteMutation.mutate({
+      id,
+      isFavorite: !currentStatus
+    });
+  };
+  
+  const handleExportResearch = () => {
+    toast({
+      title: "Export Started",
+      description: "Preparing your research library for export...",
+    });
+    
+    // In a real implementation, you would call your backend API
+    // For now, simulate the process
+    setTimeout(() => {
+      toast({
+        title: "Export Complete",
+        description: "Your research library has been exported successfully.",
+      });
+    }, 1500);
+  };
+  
   return (
-    <div className="flex h-full">
+    <div className="flex h-full max-h-screen overflow-hidden p-4 gap-4">
       {/* Left Panel - Chat Interface */}
-      <div className="w-[60%] border-r-4 border-black relative flex flex-col h-full">
+      <div className="w-[65%] flex flex-col h-full overflow-hidden">
         {/* Header */}
         <div 
-          className="bg-[#3db4ab] px-6 py-4 border-b-4 border-black"
+          className="bg-[#3db4ab] border-4 border-black rounded-xl p-6 shadow-[0.3rem_0.3rem_0_#000000] mb-4 relative"
           style={{
             clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
           }}
         >
-          <h1 className="text-2xl font-extrabold text-white tracking-wide">GUIDED RESEARCH</h1>
-          <p className="text-white text-opacity-90 font-medium">Get clear answers from trusted medical sources tailored to your needs</p>
+          <div className="absolute left-0 top-0 w-10 h-10 bg-[#2a8f87] border-r-4 border-b-4 border-black"></div>
+          <h1 className="text-2xl font-extrabold text-white tracking-wide ml-8">GUIDED RESEARCH</h1>
+          <p className="text-white text-opacity-90 font-medium ml-8">
+            Get clear answers from trusted medical sources tailored to your needs
+          </p>
         </div>
         
         {/* Main Chat Area */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 flex flex-col h-full overflow-hidden border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white">
           {/* Info Banner */}
-          <div className="mx-6 mt-4 mb-4">
+          <div className="p-4">
             <Alert className="border-3 border-black bg-amber-50 rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000]">
               <Info className="h-5 w-5 text-[#3db4ab]" />
               <AlertTitle className="font-extrabold text-black">HUMAN-FRIENDLY EXPLANATIONS</AlertTitle>
@@ -337,138 +407,139 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
           </div>
           
           {/* Message Area */}
-          <ScrollArea className="flex-1 px-6 pb-4">
-            <div className="space-y-6">
-              {messages.map((message) => (
-                <div 
-                  key={message.id} 
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {message.role === 'assistant' && (
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full px-4 pb-4">
+              <div className="space-y-6">
+                {messages.map((message) => (
+                  <div 
+                    key={message.id} 
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div 
+                      className={`relative max-w-[85%] ${
+                        message.role === 'user' 
+                          ? 'bg-blue-50 border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]' 
+                          : 'bg-white border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12'
+                      }`}
+                    >
+                      {message.role === 'assistant' && (
+                        <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-4 border-black"></div>
+                      )}
+                      
+                      {message.role === 'user' && (
+                        <div className="flex-shrink-0 ml-3 absolute -right-14 top-0">
+                          <Avatar className="h-10 w-10 border-3 border-black shadow-[0.15rem_0.15rem_0_#000]">
+                            <AvatarFallback className="bg-amber-200 text-amber-800 font-bold">U</AvatarFallback>
+                          </Avatar>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        {message.role === 'assistant' && (
+                          <div className="font-extrabold text-black uppercase">
+                            {message.content.split("\n")[0].length > 50 
+                              ? message.content.split("\n")[0].substring(0, 50) + "..." 
+                              : message.content.split("\n")[0]}
+                          </div>
+                        )}
+                        
+                        <div className="whitespace-pre-wrap text-gray-800">
+                          {message.role === 'assistant' 
+                            ? message.content.split("\n").slice(message.content.includes("\n\n") ? 2 : 1).join("\n")
+                            : message.content}
+                        </div>
+                        
+                        <div className="pt-2 mt-2 border-t-2 border-dashed border-gray-300 flex justify-between items-center">
+                          <div className="text-xs text-gray-500 font-medium">
+                            {format(message.timestamp, 'MMM d, yyyy · h:mm a')}
+                          </div>
+                          
+                          {message.role === 'assistant' && (
+                            <div className="flex gap-2">
+                              <NeoButton
+                                buttonText="COPY"
+                                size="sm"
+                                color="white"
+                                icon={<Copy className="h-4 w-4" />}
+                                className="border-2 border-black text-gray-700"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(message.content);
+                                  toast({
+                                    title: "Copied!",
+                                    description: "Text copied to clipboard.",
+                                  });
+                                }}
+                              />
+                              
+                              <NeoButton
+                                buttonText="SAVE"
+                                size="sm"
+                                color="primary"
+                                icon={<Save className="h-4 w-4" />}
+                                onClick={() => handleSaveResearch(message)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {isProcessing && (
+                  <div className="flex justify-start">
                     <div className="flex-shrink-0 mr-3">
                       <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
                         <BookOpen className="h-5 w-5 text-white" />
                       </div>
                     </div>
-                  )}
-                  
-                  <div 
-                    className={`relative max-w-[85%] ${
-                      message.role === 'user' 
-                        ? 'bg-blue-50 border-3 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000]' 
-                        : 'bg-white border-3 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] pl-12'
-                    }`}
-                  >
-                    {message.role === 'assistant' && (
-                      <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-3 border-black"></div>
-                    )}
                     
-                    {message.role === 'user' && (
-                      <div className="flex-shrink-0 ml-3 absolute -right-14 top-0">
-                        <Avatar className="h-10 w-10 border-3 border-black shadow-[0.15rem_0.15rem_0_#000]">
-                          <AvatarFallback className="bg-amber-200 text-amber-800 font-bold">U</AvatarFallback>
-                        </Avatar>
-                      </div>
-                    )}
-                    
-                    <div className="space-y-2">
-                      {message.role === 'assistant' && (
-                        <div className="font-extrabold text-black uppercase">
-                          {message.content.split("\n")[0].length > 50 
-                            ? message.content.split("\n")[0].substring(0, 50) + "..." 
-                            : message.content.split("\n")[0]}
-                        </div>
-                      )}
+                    <div className="relative bg-white border-4 border-black rounded-xl p-5 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12 max-w-[85%]">
+                      <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-4 border-black"></div>
                       
-                      <div className="whitespace-pre-wrap text-gray-800">
-                        {message.role === 'assistant' 
-                          ? message.content.split("\n").slice(message.content.includes("\n\n") ? 2 : 1).join("\n")
-                          : message.content}
-                      </div>
-                      
-                      <div className="pt-2 mt-2 border-t-2 border-dashed border-gray-300 flex justify-between items-center">
-                        <div className="text-xs text-gray-500 font-medium">
-                          {format(message.timestamp, 'MMM d, yyyy · h:mm a')}
-                        </div>
-                        
-                        {message.role === 'assistant' && (
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="border-2 border-black h-9 px-3 rounded-lg shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
-                              onClick={() => {
-                                navigator.clipboard.writeText(message.content);
-                                toast({
-                                  title: "Copied!",
-                                  description: "Text copied to clipboard.",
-                                });
-                              }}
-                            >
-                              <Copy className="h-4 w-4 mr-1" />
-                              <span className="font-bold">COPY</span>
-                            </Button>
-                            
-                            <Button 
-                              className="bg-[#3db4ab] hover:bg-[#35a095] border-2 border-black h-9 px-3 rounded-lg shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
-                              size="sm"
-                              onClick={() => handleSaveResearch(message)}
-                            >
-                              <Save className="h-4 w-4 mr-1 text-white" />
-                              <span className="font-bold text-white">SAVE</span>
-                            </Button>
-                          </div>
-                        )}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        <span className="font-bold text-gray-400 ml-1">Researching...</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {isProcessing && (
-                <div className="flex justify-start">
-                  <div className="flex-shrink-0 mr-3">
-                    <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white border-3 border-black rounded-xl p-5 shadow-[0.3rem_0.3rem_0_#000] pl-12 max-w-[85%] relative">
-                    <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-3 border-black"></div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
-                      <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                      <span className="font-bold text-gray-400 ml-1">Researching...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
           
           {/* Input Area */}
-          <div className="px-6 pb-4">
-            <div className="border-3 border-black rounded-xl p-4 bg-white shadow-[0.3rem_0.3rem_0_#000]">
+          <div className="border-t-4 border-black p-4 bg-gray-50">
+            <div className="relative border-4 border-black rounded-xl p-4 bg-white shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]">
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <div className="relative">
                   <Input
-                    className="border-3 border-black rounded-lg pl-4 pr-12 py-6 text-base shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#3db4ab] focus-visible:ring-offset-2"
+                    className="border-3 border-black rounded-lg pl-4 pr-12 py-3 h-16 text-base shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-offset-2 focus-visible:ring-[#3db4ab]"
                     placeholder="Ask about treatments, side effects, or research..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     disabled={isProcessing}
                   />
-                  <Button 
-                    type="submit" 
-                    className="absolute right-1 top-1 bottom-1 bg-[#3db4ab] hover:bg-[#35a095] rounded-lg w-10 border-2 border-black shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all disabled:opacity-50"
+                  <NeoButton
+                    type="submit"
+                    size="sm"
+                    color="primary"
+                    className="absolute right-2 top-2"
+                    icon={<SendIcon className="h-5 w-5" />}
                     disabled={!inputValue.trim() || isProcessing}
-                  >
-                    <SendIcon className="h-5 w-5 text-white" />
-                  </Button>
+                  />
                 </div>
                 
                 <div className="flex items-center gap-2 py-1">
@@ -481,7 +552,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                             <button
                               key={i}
                               onClick={() => handleSelectPrompt(prompt)}
-                              className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
+                              className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
                             >
                               {prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt}
                             </button>
@@ -490,7 +561,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                           <button
                             key={idx}
                             onClick={() => setActiveCategory(category.category)}
-                            className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
+                            className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
                           >
                             <span className="flex items-center gap-1">
                               {category.icon}
@@ -503,7 +574,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                     {activeCategory && (
                       <button
                         onClick={() => setActiveCategory(null)}
-                        className="flex-shrink-0 bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
+                        className="flex-shrink-0 bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
                       >
                         <X className="h-3 w-3 text-gray-700" />
                       </button>
@@ -517,21 +588,24 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
       </div>
       
       {/* Right Panel - Research Library */}
-      <div className="w-[40%] flex flex-col h-full">
+      <div className="w-[35%] flex flex-col h-full overflow-hidden">
         {/* Header */}
         <div 
-          className="bg-[#4a88db] px-6 py-4 border-b-4 border-black"
+          className="bg-[#4a88db] border-4 border-black rounded-xl p-6 shadow-[0.3rem_0.3rem_0_#000000] mb-4 relative"
           style={{
             clipPath: "polygon(0 0, 100% 0, 100% 0, 100% 40px, calc(100% - 40px) 40px, calc(100% - 40px) 0, 100% 0, 100% 100%, 0 100%)"
           }}
         >
+          <div className="absolute right-0 top-0 w-10 h-10 bg-[#3b79cc] border-l-4 border-b-4 border-black"></div>
           <h1 className="text-2xl font-extrabold text-white tracking-wide">RESEARCH LIBRARY</h1>
-          <p className="text-white text-opacity-90 font-medium">Save and reference important information for your cancer journey</p>
+          <p className="text-white text-opacity-90 font-medium">
+            Save and reference important information for your cancer journey
+          </p>
         </div>
         
-        {/* Search */}
-        <div className="px-6 py-4">
-          <div className="relative">
+        {/* Search and Filter Area */}
+        <div className="border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white p-4 mb-4">
+          <div className="relative mb-3">
             <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
               placeholder="Search saved research..."
@@ -540,164 +614,154 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
               className="pl-10 h-12 border-3 border-black rounded-lg shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#4a88db] focus-visible:ring-offset-2"
             />
           </div>
-        </div>
-        
-        {/* Category Tabs */}
-        <div className="px-6 pb-3">
-          <div className="border-3 border-black rounded-xl overflow-hidden bg-white shadow-[0.3rem_0.3rem_0_#000]">
-            <div className="flex">
-              <button
-                onClick={() => setFilter("all")}
-                className={`flex-1 py-3 text-center font-bold ${
-                  filter === "all" 
-                    ? "bg-[#4a88db] text-white" 
-                    : "bg-white text-gray-700 hover:bg-blue-50"
-                }`}
-              >
-                ALL
-              </button>
-              <button
-                onClick={() => setFilter("treatment")}
-                className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
-                  filter === "treatment" 
-                    ? "bg-[#4a88db] text-white" 
-                    : "bg-white text-gray-700 hover:bg-blue-50"
-                }`}
-              >
-                TREATMENTS
-              </button>
-              <button
-                onClick={() => setFilter("side effects")}
-                className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
-                  filter === "side effects" 
-                    ? "bg-[#4a88db] text-white" 
-                    : "bg-white text-gray-700 hover:bg-blue-50"
-                }`}
-              >
-                SIDE EFFECTS
-              </button>
-            </div>
+          
+          {/* Filter tabs */}
+          <div className="flex border-3 border-black rounded-xl overflow-hidden">
+            <button
+              onClick={() => setFilter("all")}
+              className={`flex-1 py-3 text-center font-bold ${
+                filter === "all" 
+                  ? "bg-[#4a88db] text-white" 
+                  : "bg-white text-gray-700 hover:bg-blue-50"
+              }`}
+            >
+              ALL
+            </button>
+            <button
+              onClick={() => setFilter("treatment")}
+              className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
+                filter === "treatment" 
+                  ? "bg-[#4a88db] text-white" 
+                  : "bg-white text-gray-700 hover:bg-blue-50"
+              }`}
+            >
+              TREATMENTS
+            </button>
+            <button
+              onClick={() => setFilter("favorites")}
+              className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
+                filter === "favorites" 
+                  ? "bg-[#4a88db] text-white" 
+                  : "bg-white text-gray-700 hover:bg-blue-50"
+              }`}
+            >
+              <Star className="h-4 w-4 inline-block mr-1" />
+              FAVORITES
+            </button>
           </div>
         </div>
         
         {/* Research Items */}
-        <ScrollArea className="flex-1 px-6 pb-6">
-          {filteredResearchItems.length === 0 ? (
-            <div className="p-6 text-center bg-white border-3 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000] mt-4">
-              <BookmarkPlus className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-extrabold text-gray-800 mb-2">NO SAVED RESEARCH</h3>
-              <p className="text-gray-600 mb-6">
-                Save important information from your research sessions here for easy reference.
-              </p>
-              <Button 
-                onClick={() => setActiveTab("chat")} 
-                className="bg-[#4a88db] hover:bg-[#3f7bcb] border-3 border-black rounded-lg shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.3rem_0.3rem_0_#000] transition-all px-6 py-2 h-auto font-bold text-base"
-              >
-                START RESEARCHING
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-5 pt-1">
-              {filteredResearchItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="bg-white border-3 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000] overflow-hidden relative"
-                >
-                  {/* Colored indicator based on source type */}
+        <div className="flex-1 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white overflow-hidden">
+          <ScrollArea className="h-full p-4">
+            {filteredResearchItems.length === 0 ? (
+              <div className="text-center p-8 mt-4">
+                <BookmarkPlus className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-extrabold text-gray-800 mb-2">NO SAVED RESEARCH</h3>
+                <p className="text-gray-600 mb-6">
+                  Save important information from your research sessions here for easy reference.
+                </p>
+                <NeoButton 
+                  buttonText="START RESEARCHING"
+                  color="cyan"
+                  className="bg-[#4a88db]"
+                  onClick={() => {
+                    toast({
+                      title: "Research Assistant",
+                      description: "Let's start researching! Ask a question to get started.",
+                    });
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {filteredResearchItems.map((item) => (
                   <div 
-                    className={`absolute left-0 top-0 bottom-0 w-3 ${
-                      item.sourceType.toLowerCase().includes("treatment") ? "bg-[#3db4ab]" : 
-                      item.sourceType.toLowerCase().includes("side effect") ? "bg-amber-400" :
-                      item.sourceType.toLowerCase().includes("question") ? "bg-purple-500" :
-                      "bg-[#4a88db]"
-                    }`}
-                  ></div>
-                  
-                  <div className="p-5 pl-6">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-extrabold text-gray-900 pr-8">
-                        {item.title}
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
-                        onClick={() => {
-                          // Toggle favorite status in a real implementation
-                          toast({
-                            title: item.isFavorite ? "Removed from favorites" : "Added to favorites",
-                            description: "Your research library has been updated."
-                          });
-                        }}
-                      >
-                        <Bookmark className={`h-5 w-5 ${item.isFavorite ? "fill-amber-400 text-amber-400" : "text-gray-400"}`} />
-                      </Button>
-                    </div>
+                    key={item.id} 
+                    className="relative bg-white border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] overflow-hidden mb-6"
+                  >
+                    {/* Colored indicator based on source type */}
+                    <div 
+                      className="absolute left-0 top-0 bottom-0 w-3"
+                      style={{ backgroundColor: getSourceTypeColor(item.sourceType) }}
+                    ></div>
                     
-                    <p className="text-gray-700 mt-3 line-clamp-3">
-                      {item.content}
-                    </p>
-                    
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t-2 border-dashed border-gray-200">
-                      <div className="flex items-center gap-2">
-                        <Badge className="px-3 py-1 font-medium border-2 border-black rounded-full bg-blue-50 text-[#4a88db] shadow-[0.1rem_0.1rem_0_#000]">
-                          {item.sourceType}
-                        </Badge>
-                        <span className="flex items-center text-xs font-medium text-gray-500">
-                          <Clock className="h-3.5 w-3.5 mr-1" />
-                          {new Date(item.dateCreated).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
+                    <div className="p-5 pl-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-extrabold text-gray-900 pr-8">
+                          {item.title}
+                        </h3>
+                        <button 
+                          className={`h-8 w-8 flex items-center justify-center rounded-full border-2 border-black ${item.isFavorite ? 'bg-amber-200' : 'bg-gray-100'} hover:translate-y-[-2px] transition-all`}
+                          onClick={() => handleToggleFavorite(item.id, item.isFavorite)}
+                        >
+                          {item.isFavorite ? (
+                            <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                          ) : (
+                            <StarOff className="h-5 w-5 text-gray-400" />
+                          )}
+                        </button>
                       </div>
                       
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-8 border-2 border-black rounded-lg shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
-                          onClick={() => handleDeleteResearch(item.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                        </Button>
+                      <p className="text-gray-700 line-clamp-3">
+                        {item.content}
+                      </p>
+                      
+                      <div className="flex justify-between items-center mt-4 pt-3 border-t-2 border-dashed border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <Badge className="px-3 py-1 font-medium border-2 border-black rounded-full bg-blue-50 text-[#4a88db] shadow-[0.1rem_0.1rem_0_#000]">
+                            {item.sourceType}
+                          </Badge>
+                          <span className="flex items-center text-xs font-medium text-gray-500">
+                            <Clock className="h-3.5 w-3.5 mr-1" />
+                            {new Date(item.dateCreated).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
                         
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-8 border-2 border-black rounded-lg shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-1px] hover:shadow-[0.15rem_0.15rem_0_#000] transition-all"
-                          onClick={() => {
-                            setInputValue(`Tell me more about ${item.title.replace(/\.\.\.$/, '')}`);
-                            setActiveTab("chat");
-                          }}
-                        >
-                          <MessageSquare className="h-3.5 w-3.5 mr-1 text-[#4a88db]" />
-                          <span className="font-bold text-[#4a88db]">ASK</span>
-                        </Button>
+                        <div className="flex gap-2">
+                          <NeoButton 
+                            buttonText=""
+                            size="icon"
+                            color="red"
+                            className="h-9 w-9"
+                            icon={<Trash2 className="h-4 w-4" />}
+                            onClick={() => handleDeleteResearch(item.id)}
+                          />
+                          
+                          <NeoButton 
+                            buttonText="ASK"
+                            size="sm"
+                            color="cyan"
+                            className="bg-[#4a88db]"
+                            icon={<MessageSquare className="h-4 w-4" />}
+                            onClick={() => {
+                              setInputValue(`Tell me more about ${item.title.replace(/\.\.\.$/, '')}`);
+                              setActiveTab("chat");
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
         
         {/* Export Button */}
-        <div className="px-6 pb-4 pt-2 border-t-3 border-black">
-          <Button
-            onClick={() => {
-              toast({
-                title: "Research Export",
-                description: "Your research library has been exported as a PDF.",
-              });
-            }}
-            className="w-full bg-[#4a88db] hover:bg-[#3f7bcb] border-3 border-black rounded-lg shadow-[0.2rem_0.2rem_0_#000] hover:translate-y-[-2px] hover:shadow-[0.3rem_0.3rem_0_#000] transition-all py-3 h-auto font-bold text-base"
-          >
-            <Download className="h-5 w-5 mr-2 text-white" />
-            <span>EXPORT RESEARCH LIBRARY</span>
-          </Button>
+        <div className="mt-4">
+          <NeoButton
+            buttonText="EXPORT RESEARCH LIBRARY"
+            color="cyan"
+            className="w-full bg-[#4a88db]"
+            icon={<Download className="h-5 w-5" />}
+            onClick={handleExportResearch}
+          />
         </div>
       </div>
     </div>
