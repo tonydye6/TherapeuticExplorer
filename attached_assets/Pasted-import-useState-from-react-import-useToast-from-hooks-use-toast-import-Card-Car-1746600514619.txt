@@ -1,0 +1,650 @@
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import MedicalTimeline, { MedicalEvent, MedicalEventType } from "@/components/MedicalTimeline";
+import AddTreatmentDialog from "@/components/AddTreatmentDialog";
+import TreatmentCard from "@/components/TreatmentCard";
+import { useTreatments } from "@/hooks/use-treatments";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
+import { 
+  Calendar as CalendarIcon, 
+  Plus, 
+  Filter, 
+  PlusCircle,
+  Activity,
+  Pill,
+  Stethoscope,
+  Clock,
+  History,
+  HeartPulse,
+  Award,
+  InfoIcon,
+  CalendarDays
+} from "lucide-react";
+
+import { Treatment } from "@shared/schema";
+
+// Sample data for the effectiveness chart
+const sampleEffectivenessData = [
+  { date: '2023-10-15', tumorMarker: 42, energyLevel: 5, notes: "Started new treatment" },
+  { date: '2023-11-01', tumorMarker: 38, energyLevel: 4, notes: "Mild side effects" },
+  { date: '2023-11-15', tumorMarker: 35, energyLevel: 3, notes: "Increased fatigue" },
+  { date: '2023-12-01', tumorMarker: 30, energyLevel: 4, notes: "Feeling better" },
+  { date: '2023-12-15', tumorMarker: 28, energyLevel: 6, notes: "Good response to treatment" },
+  { date: '2024-01-01', tumorMarker: 25, energyLevel: 7, notes: "Continuing improvement" },
+  { date: '2024-01-15', tumorMarker: 24, energyLevel: 7, notes: "Stable" },
+  { date: '2024-02-01', tumorMarker: 22, energyLevel: 8, notes: "Feeling great" },
+];
+
+// Sample side effect data
+const sampleSideEffectData = [
+  { date: '2023-10-15', nausea: 1, fatigue: 2, pain: 0 },
+  { date: '2023-11-01', nausea: 3, fatigue: 4, pain: 1 },
+  { date: '2023-11-15', nausea: 2, fatigue: 5, pain: 2 },
+  { date: '2023-12-01', nausea: 1, fatigue: 3, pain: 1 },
+  { date: '2023-12-15', nausea: 0, fatigue: 3, pain: 0 },
+  { date: '2024-01-01', nausea: 0, fatigue: 2, pain: 0 },
+  { date: '2024-01-15', nausea: 1, fatigue: 2, pain: 0 },
+  { date: '2024-02-01', nausea: 0, fatigue: 1, pain: 0 },
+];
+
+interface TreatmentTrackerProps {
+  inTabView?: boolean;
+}
+
+export default function TreatmentTracker({ inTabView = false }: TreatmentTrackerProps) {
+  const { toast } = useToast();
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedTreatmentId, setSelectedTreatmentId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("current");
+
+  // Use our custom hook for treatments
+  const {
+    treatments,
+    activeTreatments,
+    inactiveTreatments,
+    isLoading,
+    error,
+    addTreatment,
+    updateTreatment,
+    toggleActive,
+    deleteTreatment,
+    addSideEffect,
+    addEffectiveness,
+    isAddingSideEffect,
+    isAddingEffectiveness
+  } = useTreatments();
+
+  // Format dates for charts
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
+  // Sample medical events for the timeline
+  const sampleMedicalEvents: MedicalEvent[] = [
+    {
+      id: "event1",
+      date: new Date("2023-10-01"),
+      eventType: "diagnosis" as MedicalEventType,
+      title: "Initial Diagnosis",
+      description: "Stage IV esophageal cancer with liver metastasis",
+      provider: "Dr. Sarah Johnson",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event2",
+      date: new Date("2023-10-15"),
+      eventType: "treatment" as MedicalEventType,
+      title: "Started Chemotherapy",
+      description: "FOLFOX regimen initiated",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event3",
+      date: new Date("2023-11-05"),
+      eventType: "test" as MedicalEventType,
+      title: "CT Scan",
+      description: "Follow-up imaging to assess treatment response",
+      result: "10% reduction in primary tumor size, stable liver metastases",
+      provider: "Radiology Department",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event4",
+      date: new Date("2023-11-15"),
+      eventType: "symptom",
+      title: "Increased Fatigue",
+      description: "Patient reporting significant fatigue and some difficulty with daily activities",
+      severity: 4,
+    },
+    {
+      id: "event5",
+      date: new Date("2023-12-01"),
+      eventType: "medication",
+      title: "Medication Adjustment",
+      description: "Added Ondansetron for nausea management",
+      provider: "Dr. Michael Chen",
+    },
+    {
+      id: "event6",
+      date: new Date("2023-12-15"),
+      eventType: "test",
+      title: "Blood Work",
+      description: "Comprehensive metabolic panel and tumor markers",
+      result: "CA 19-9 decreased from 42 to 30",
+      provider: "Metro Cancer Center Lab",
+      labValues: [
+        {
+          name: "CA 19-9",
+          value: 30,
+          unit: "U/mL",
+          normalRange: "0-37 U/mL",
+          isAbnormal: false
+        },
+        {
+          name: "CEA",
+          value: 4.2,
+          unit: "ng/mL",
+          normalRange: "0-3.0 ng/mL",
+          isAbnormal: true
+        },
+        {
+          name: "Hemoglobin",
+          value: 11.5,
+          unit: "g/dL",
+          normalRange: "13.5-17.5 g/dL",
+          isAbnormal: true
+        }
+      ]
+    },
+    {
+      id: "event7",
+      date: new Date("2024-01-05"),
+      eventType: "scan",
+      title: "PET/CT Scan",
+      description: "3-month assessment of treatment response",
+      result: "Partial response. Primary tumor decreased by 30%, liver metastases decreased by 15%",
+      provider: "Dr. Lisa Wong",
+      location: "Advanced Imaging Center"
+    },
+    {
+      id: "event8",
+      date: new Date("2024-01-20"),
+      eventType: "appointment",
+      title: "Oncology Follow-up",
+      description: "Discussion of scan results and treatment plan adjustments",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    },
+    {
+      id: "event9",
+      date: new Date("2024-02-01"),
+      eventType: "treatment",
+      title: "Started Immunotherapy",
+      description: "Added pembrolizumab (Keytruda) to treatment regimen",
+      provider: "Dr. Michael Chen",
+      location: "Metro Cancer Center"
+    }
+  ];
+
+  // Handle event click in the timeline
+  const handleEventClick = (event: MedicalEvent) => {
+    console.log("Event clicked:", event);
+    // In a real app, you might show a modal with details or navigate to a detail page
+  };
+
+  // Open add treatment dialog
+  const openAddTreatmentDialog = () => {
+    setIsAddDialogOpen(true);
+  };
+
+  // Close add treatment dialog
+  const closeAddTreatmentDialog = () => {
+    setIsAddDialogOpen(false);
+  };
+  
+  // Open edit treatment dialog
+  const handleEditTreatment = (treatmentId: number) => {
+    setSelectedTreatmentId(treatmentId);
+    // In a real app, you would open an edit dialog here
+    toast({
+      title: "Edit Treatment",
+      description: `Edit functionality would open for treatment ${treatmentId}`,
+    });
+  };
+
+  return (
+    <div className="container max-w-7xl mx-auto py-8 md:py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-8">
+        {!inTabView && (
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading tracking-tight flex items-center gap-3 mb-2">
+                <Stethoscope className="h-8 w-8 text-sophera-brand-primary" />
+                Treatment Guides
+              </h1>
+              <p className="text-lg text-sophera-text-body">
+                Track your treatments and see how they're working for you over time
+              </p>
+            </div>
+            <div className="flex gap-3 mt-2 md:mt-0">
+              <Button 
+                variant="outline"
+                className="rounded-sophera-button border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light h-12 px-5"
+              >
+                <CalendarDays className="h-5 w-5 mr-2" />
+                View Calendar
+              </Button>
+              <Button 
+                onClick={openAddTreatmentDialog}
+                className="rounded-sophera-button bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white shadow-md h-12 px-5"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Add Treatment
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Treatments Section */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid max-w-md grid-cols-2 p-1.5 bg-sophera-gradient-start rounded-sophera-button mb-6 gap-1.5">
+            <TabsTrigger 
+              value="current" 
+              className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-12 flex items-center justify-center gap-2 px-3"
+            >
+              <Pill className="h-5 w-5" />
+              Current Treatments
+            </TabsTrigger>
+            <TabsTrigger 
+              value="past" 
+              className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-12 flex items-center justify-center gap-2 px-3"
+            >
+              <History className="h-5 w-5" />
+              Past Treatments
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="current" className="mt-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center p-16">
+                <div className="h-10 w-10 rounded-full border-4 border-sophera-brand-primary/30 border-t-sophera-brand-primary animate-spin"></div>
+                <p className="ml-4 text-sophera-text-body font-medium">Loading treatments...</p>
+              </div>
+            ) : error ? (
+              <Card className="rounded-sophera-card border-sophera-accent-primary/30 bg-sophera-accent-primary/5 shadow-md overflow-hidden">
+                <CardContent className="p-8 text-center">
+                  <AlertCircle className="h-12 w-12 text-sophera-accent-primary mx-auto mb-4" />
+                  <p className="text-lg font-medium text-sophera-text-heading mb-2">Error loading treatments</p>
+                  <p className="text-sophera-text-body">Please try again or contact support if the problem persists.</p>
+                </CardContent>
+              </Card>
+            ) : activeTreatments.length === 0 ? (
+              <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-md overflow-hidden">
+                <CardContent className="flex flex-col items-center justify-center text-center py-16 px-6">
+                  <div className="w-20 h-20 rounded-full bg-sophera-gradient-start/20 flex items-center justify-center mb-6">
+                    <Pill className="h-10 w-10 text-sophera-brand-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-sophera-text-heading mb-3">No active treatments found</h3>
+                  <p className="text-sophera-text-body max-w-md mb-6">
+                    Track your treatments to easily monitor their effectiveness and keep your healthcare team informed.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={openAddTreatmentDialog}
+                    className="rounded-sophera-button border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light h-12 px-6"
+                  >
+                    <PlusCircle className="h-5 w-5 mr-2" />
+                    Add Your First Treatment
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {activeTreatments.map((treatment) => (
+                  <TreatmentCard 
+                    key={treatment.id}
+                    treatment={treatment}
+                    onEdit={handleEditTreatment}
+                    onDelete={deleteTreatment}
+                    onToggleActive={toggleActive}
+                    onAddSideEffect={addSideEffect}
+                    onAddEffectiveness={addEffectiveness}
+                    isSubmittingSideEffect={isAddingSideEffect}
+                    isSubmittingEffectiveness={isAddingEffectiveness}
+                  />
+                ))}
+                <div className="flex items-center justify-center border-2 border-dashed rounded-sophera-card p-6 border-sophera-border-soft h-full min-h-[240px]">
+                  <Button 
+                    variant="ghost" 
+                    className="flex flex-col h-auto py-8 rounded-sophera-card hover:bg-sophera-brand-primary/5" 
+                    onClick={openAddTreatmentDialog}
+                  >
+                    <PlusCircle className="h-10 w-10 mb-3 text-sophera-brand-primary" />
+                    <span className="text-base text-sophera-text-body">Add Treatment</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="past" className="mt-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center p-16">
+                <div className="h-10 w-10 rounded-full border-4 border-sophera-brand-primary/30 border-t-sophera-brand-primary animate-spin"></div>
+                <p className="ml-4 text-sophera-text-body font-medium">Loading treatments...</p>
+              </div>
+            ) : inactiveTreatments.length === 0 ? (
+              <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-md overflow-hidden">
+                <CardContent className="flex flex-col items-center justify-center text-center py-16 px-6">
+                  <div className="w-20 h-20 rounded-full bg-sophera-gradient-start/20 flex items-center justify-center mb-6">
+                    <History className="h-10 w-10 text-sophera-brand-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-sophera-text-heading mb-3">No past treatments found</h3>
+                  <p className="text-sophera-text-body max-w-md">
+                    When you mark treatments as completed or inactive, they'll appear here for your reference.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {inactiveTreatments.map((treatment) => (
+                  <TreatmentCard 
+                    key={treatment.id}
+                    treatment={treatment}
+                    onEdit={handleEditTreatment}
+                    onDelete={deleteTreatment}
+                    onToggleActive={toggleActive}
+                    onAddSideEffect={addSideEffect}
+                    onAddEffectiveness={addEffectiveness}
+                    isSubmittingSideEffect={isAddingSideEffect}
+                    isSubmittingEffectiveness={isAddingEffectiveness}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        <Separator className="bg-sophera-border-soft my-2" />
+        
+        {/* Treatment Journey Overview */}
+        <Card className="border-sophera-brand-primary/20 shadow-lg rounded-sophera-card bg-gradient-to-br from-sophera-gradient-start/40 to-sophera-gradient-end/30 overflow-hidden">
+          <CardHeader className="pb-3 border-b border-sophera-border-soft bg-white/50 px-6 pt-6">
+            <CardTitle className="text-xl font-bold text-sophera-text-heading flex items-center">
+              <HeartPulse className="h-6 w-6 mr-3 text-sophera-brand-primary" />
+              Your Treatment Journey
+            </CardTitle>
+            <CardDescription className="text-sophera-text-body mt-1">
+              Everyone's treatment journey is unique. This overview helps you and your care team track progress and stay informed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="p-5 rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-sophera-brand-primary/10 flex items-center justify-center mb-3">
+                  <Award className="h-6 w-6 text-sophera-brand-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 text-sophera-text-heading">Current Progress</h3>
+                <p className="text-sophera-text-body">
+                  Stay motivated by tracking how far you've come - both physically and emotionally.
+                </p>
+              </div>
+              <div className="p-5 rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-sophera-accent-secondary/10 flex items-center justify-center mb-3">
+                  <Stethoscope className="h-6 w-6 text-sophera-accent-secondary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 text-sophera-text-heading">Expert Interpretation</h3>
+                <p className="text-sophera-text-body">
+                  Medical data is shown in ways that help you understand what's happening with your treatment.
+                </p>
+              </div>
+              <div className="p-5 rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-sophera-accent-tertiary/10 flex items-center justify-center mb-3">
+                  <InfoIcon className="h-6 w-6 text-sophera-accent-tertiary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 text-sophera-text-heading">Share with Your Team</h3>
+                <p className="text-sophera-text-body">
+                  All charts and timelines can be shared with your healthcare team for better informed discussions.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Separator className="bg-sophera-border-soft my-2" />
+        
+        {/* Medical Timeline */}
+        <div className="space-y-5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-sophera-text-heading flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-sophera-brand-primary rounded-full"></span>
+              Medical Timeline
+            </h2>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-sophera-button border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light h-10"
+            >
+              Export Timeline
+            </Button>
+          </div>
+
+          <Card className="rounded-sophera-card border-sophera-border-primary shadow-lg bg-sophera-bg-card overflow-hidden">
+            <CardContent className="p-0">
+              <MedicalTimeline events={sampleMedicalEvents} onEventClick={handleEventClick} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts and Metrics */}
+        <div className="space-y-6">
+          <Tabs defaultValue="effectiveness" className="w-full">
+            <TabsList className="bg-sophera-gradient-start rounded-sophera-button p-1.5 mb-6 gap-1.5">
+              <TabsTrigger 
+                value="effectiveness" 
+                className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-12 flex items-center justify-center gap-2 px-4"
+              >
+                Effectiveness Metrics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sideEffects" 
+                className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-12 flex items-center justify-center gap-2 px-4"
+              >
+                Side Effect Tracker
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="effectiveness" className="pt-4">
+              <Card className="rounded-sophera-card border-sophera-border-primary shadow-lg bg-sophera-bg-card overflow-hidden">
+                <CardHeader className="pb-3 border-b border-sophera-border-soft px-6 pt-6">
+                  <CardTitle className="text-xl font-bold text-sophera-text-heading flex items-center">
+                    <Activity className="h-6 w-6 mr-3 text-sophera-brand-primary" />
+                    Treatment Effectiveness
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-80 bg-white p-4 rounded-sophera-card shadow-inner">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={sampleEffectivenessData.map(d => ({
+                          ...d,
+                          date: formatDate(d.date)
+                        }))}
+                        margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                        <XAxis dataKey="date" stroke="#64748B" />
+                        <YAxis yAxisId="left" stroke="#0D9488" />
+                        <YAxis yAxisId="right" orientation="right" domain={[0, 10]} stroke="#3B82F6" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            borderRadius: '12px', 
+                            border: '1px solid #E2E8F0',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
+                          }} 
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '15px' }} />
+                        <Line 
+                          yAxisId="left"
+                          type="monotone" 
+                          dataKey="tumorMarker" 
+                          name="Tumor Marker (CA 19-9)"
+                          stroke="#0D9488" 
+                          strokeWidth={3}
+                          dot={{ r: 6, strokeWidth: 2 }}
+                          activeDot={{ r: 8 }} 
+                        />
+                        <Line 
+                          yAxisId="right"
+                          type="monotone" 
+                          dataKey="energyLevel" 
+                          name="Energy Level (1-10)"
+                          stroke="#3B82F6" 
+                          strokeWidth={3}
+                          dot={{ r: 6, strokeWidth: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+                    <div className="rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft p-5 text-center">
+                      <p className="text-sophera-text-subtle font-medium mb-2">Tumor Marker Change</p>
+                      <p className="text-3xl font-bold text-emerald-600">-47.6%</p>
+                      <p className="text-sophera-text-subtle text-sm mt-1">Since treatment start</p>
+                    </div>
+                    <div className="rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft p-5 text-center">
+                      <p className="text-sophera-text-subtle font-medium mb-2">Latest CA 19-9</p>
+                      <p className="text-3xl font-bold text-sophera-text-heading">22 U/mL</p>
+                      <p className="text-sophera-text-subtle text-sm mt-1">Feb 1, 2024</p>
+                    </div>
+                    <div className="rounded-sophera-card bg-white shadow-sm border border-sophera-border-soft p-5 text-center">
+                      <p className="text-sophera-text-subtle font-medium mb-2">Energy Level Trend</p>
+                      <p className="text-3xl font-bold text-emerald-600">+60%</p>
+                      <p className="text-sophera-text-subtle text-sm mt-1">Since treatment start</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="sideEffects" className="pt-4">
+              <Card className="rounded-sophera-card border-sophera-border-primary shadow-lg bg-sophera-bg-card overflow-hidden">
+                <CardHeader className="pb-3 border-b border-sophera-border-soft px-6 pt-6">
+                  <CardTitle className="text-xl font-bold text-sophera-text-heading flex items-center">
+                    <Stethoscope className="h-6 w-6 mr-3 text-sophera-accent-secondary" />
+                    Side Effect Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-80 bg-white p-4 rounded-sophera-card shadow-inner">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={sampleSideEffectData.map(d => ({
+                          ...d,
+                          date: formatDate(d.date)
+                        }))}
+                        margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                        <XAxis dataKey="date" stroke="#64748B" />
+                        <YAxis domain={[0, 5]} stroke="#64748B" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            borderRadius: '12px', 
+                            border: '1px solid #E2E8F0',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
+                          }} 
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '15px' }} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="nausea" 
+                          name="Nausea (0-5)"
+                          stroke="#FF7F50" 
+                          strokeWidth={3}
+                          dot={{ r: 6, strokeWidth: 2 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="fatigue" 
+                          name="Fatigue (0-5)"
+                          stroke="#FFC107" 
+                          strokeWidth={3}
+                          dot={{ r: 6, strokeWidth: 2 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="pain" 
+                          name="Pain (0-5)"
+                          stroke="#9064FF" 
+                          strokeWidth={3}
+                          dot={{ r: 6, strokeWidth: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold text-sophera-text-heading mb-4">Management Recommendations</h3>
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-sophera-card bg-sophera-accent-tertiary/10 border border-sophera-accent-tertiary/30">
+                        <h4 className="font-semibold text-lg text-sophera-text-heading flex items-center">
+                          <span className="w-1 h-5 bg-sophera-accent-tertiary rounded-full mr-2.5"></span>
+                          For Fatigue:
+                        </h4>
+                        <ul className="list-disc pl-6 text-sophera-text-body mt-2 space-y-1.5">
+                          <li>Schedule rest periods throughout the day</li>
+                          <li>Light exercise like walking when energy permits</li>
+                          <li>Stay hydrated and maintain balanced nutrition</li>
+                        </ul>
+                      </div>
+
+                      <div className="p-4 rounded-sophera-card bg-sophera-accent-primary/10 border border-sophera-accent-primary/30">
+                        <h4 className="font-semibold text-lg text-sophera-text-heading flex items-center">
+                          <span className="w-1 h-5 bg-sophera-accent-primary rounded-full mr-2.5"></span>
+                          For Nausea:
+                        </h4>
+                        <ul className="list-disc pl-6 text-sophera-text-body mt-2 space-y-1.5">
+                          <li>Take anti-nausea medication as prescribed</li>
+                          <li>Eat small, frequent meals instead of large ones</li>
+                          <li>Avoid strong smells and greasy foods</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Add Treatment Dialog */}
+      <AddTreatmentDialog 
+        isOpen={isAddDialogOpen}
+        onClose={closeAddTreatmentDialog}
+      />
+    </div>
+  );
+}
