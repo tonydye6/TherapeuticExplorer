@@ -76,61 +76,61 @@ function Router() {
         {/* My Journey Section */}
         <Route path="/my-journey/plan" component={MyPlanPageWrapper} />
         <Route path="/my-plan" component={() => <RedirectWithMessage to="/my-journey/plan" />} />
-        
+
         <Route path="/my-journey/journal" component={JournalLogsPageWrapper} />
         <Route path="/journal-logs" component={() => <RedirectWithMessage to="/my-journey/journal" />} />
-        
+
         <Route path="/my-journey/diet" component={DietLogsPageWrapper} />
         <Route path="/diet-logs" component={() => <RedirectWithMessage to="/my-journey/diet" />} />
-        
+
         <Route path="/my-journey/metrics" component={() => <div>My Metrics - Coming Soon</div>} />
         <Route path="/my-journey/trends" component={() => <div>Trends - Coming Soon</div>} />
-        
+
         {/* Understand Section */}
         <Route path="/understand/explainer" component={SemanticSearchWrapper} />
         <Route path="/semantic-search" component={() => <RedirectWithMessage to="/understand/explainer" />} />
-        
+
         <Route path="/understand/treatments" component={TreatmentTrackerWrapper} />
         <Route path="/treatment-tracker" component={() => <RedirectWithMessage to="/understand/treatments" />} />
-        
+
         <Route path="/understand/interactions" component={SideEffectAnalyzerWrapper} />
         <Route path="/side-effect-analyzer" component={() => <RedirectWithMessage to="/understand/interactions" />} />
-        
+
         <Route path="/understand/documents" component={DocumentsPageWrapper} />
         <Route path="/documents" component={() => <RedirectWithMessage to="/understand/documents" />} />
-        
+
         {/* Explore Section */}
         <Route path="/explore/search" component={ResearchAssistantWrapper} />
         <Route path="/saved-research" component={() => <RedirectWithMessage to="/explore/search" />} />
-        
+
         <Route path="/explore/trials" component={ClinicalTrialsWrapper} />
         <Route path="/clinical-trials" component={() => <RedirectWithMessage to="/explore/trials" />} />
-        
+
         <Route path="/explore/creative" component={MultimodalChatPageWrapper} />
         <Route path="/multimodal-chat" component={() => <RedirectWithMessage to="/explore/creative" />} />
-        
+
         {/* Connect & Hope Section */}
         <Route path="/connect/stories" component={SurvivorStoriesPageWrapper} />
         <Route path="/connect/mindfulness" component={HopeSnippetsPageWrapper} />
         <Route path="/connect/resources" component={ResourceHubPageWrapper} />
         <Route path="/connect/caregivers" component={CaregiverConnectPageWrapper} />
         <Route path="/hope-snippets" component={() => <RedirectWithMessage to="/connect/mindfulness" />} />
-        
+
         {/* Settings Section */}
         <Route path="/settings/profile" component={Preferences} />
         <Route path="/preferences" component={() => <RedirectWithMessage to="/settings/profile" />} />
         <Route path="/help" component={Help} />
-        
+
         {/* Handle old routes that don't fit in new structure */}
         <Route path="/alternative-treatments" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         <Route path="/treatment-predictor" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         <Route path="/treatment-timeline" component={() => <RedirectWithMessage to="/understand/treatments" />} />
-        
+
         {/* Design System Routes */}
         <Route path="/design" component={DesignSystemAccess} />
         <Route path="/design/neo-brutalism" component={NeoBrutalismDemo} />
         <Route path="/neo-brutalism-direct" component={DirectAccessDemo} />
-        
+
         {/* 404 route */}
         <Route component={NotFound} />
       </Switch>

@@ -208,12 +208,17 @@ export function SidebarNavigation() {
 
   return (
     <>
+      {/* Hamburger menu button - positioned relative to sidebar in desktop */}
       <button 
         onClick={toggleSidebar}
         className={cn(
-          "fixed top-4 left-4 z-50 p-2 rounded-md transition-all duration-300 border-2 border-black bg-white",
+          "fixed z-50 p-2 rounded-md transition-all duration-300 border-2 border-black bg-white",
           "shadow-[0.15rem_0.15rem_0_#05060f] hover:translate-y-[-2px]",
-          isOpen && isMobile ? "left-[calc(65vw-2.5rem)]" : "left-4"
+          isMobile ? (
+            isOpen ? "left-[calc(65vw-2.5rem)] top-4" : "left-4 top-4"
+          ) : (
+            isOpen ? "left-[270px] top-6" : "left-6 top-6"
+          )
         )}
       >
         <Menu className="h-5 w-5" />
