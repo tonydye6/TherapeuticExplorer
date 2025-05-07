@@ -1,54 +1,71 @@
+
+// client/src/pages/DietLogsPage.tsx
+
 import { useState } from "react";
-import { useDietLogs } from "@/hooks/use-diet-logs";
+import { useDietLogs } from "@/hooks/use-diet-logs"; // Assuming this hook is set up
 import { DietLog } from "@shared/schema";
-import { DietLogCard } from "@/components/diet/DietLogCard";
-import { DietLogDialog } from "@/components/diet/DietLogDialog";
+import { DietLogCard } from "@/components/diet/DietLogCard"; // This component will need its own styling review
+import { DietLogDialog } from "@/components/diet/DietLogDialog"; // This component will need its own styling review
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Search, Utensils } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Loader2, Plus, Search, Utensils, AppleIcon } from "lucide-react"; // Changed Utensils to AppleIcon for empty state
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Assumes shadcn/ui dialogs will pick up theme
 
 interface DietLogsPageProps {
   inTabView?: boolean;
 }
 
 export default function DietLogsPage({ inTabView = false }: DietLogsPageProps) {
-  const { dietLogs, isLoading, createDietLog, updateDietLog, deleteDietLog, isCreating, isUpdating, isDeleting } = useDietLogs();
-  
+  const {
+    dietLogs,
+    isLoading,
+    createDietLog,
+    updateDietLog,
+    deleteDietLog,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useDietLogs();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDietLog, setEditingDietLog] = useState<DietLog | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState<number | null>(null);
 
-  // Handle creating a new diet log
-  const handleCreateLog = (data: any) => {
+  const handleCreateLog = (data: Omit<DietLog, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => { // More specific type
     createDietLog(data);
     setIsDialogOpen(false);
+    setEditingDietLog(null); // Clear editing state
   };
 
-  // Handle updating an existing diet log
-  const handleUpdateLog = (data: any) => {
+  const handleUpdateLog = (data: Partial<Omit<DietLog, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>) => { // More specific type
     if (editingDietLog) {
-      updateDietLog({ id: editingDietLog.id, data });
+      updateDietLog({ id: editingDietLog.id, ...data }); // Spread data for update
       setEditingDietLog(null);
       setIsDialogOpen(false);
     }
   };
 
-  // Handle opening the edit dialog
   const handleEdit = (dietLog: DietLog) => {
     setEditingDietLog(dietLog);
     setIsDialogOpen(true);
   };
 
-  // Handle initiating the delete process
   const handleDeleteInitiate = (id: number) => {
     setLogToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
-  // Handle confirming the delete
   const handleDeleteConfirm = () => {
     if (logToDelete !== null) {
       deleteDietLog(logToDelete);
@@ -57,115 +74,148 @@ export default function DietLogsPage({ inTabView = false }: DietLogsPageProps) {
     }
   };
 
-  // Filter diet logs based on search query
   const filteredLogs = !dietLogs ? [] : dietLogs.filter((log) => {
     const lowerCaseQuery = searchQuery.toLowerCase();
+    // Ensure foods array exists and is an array of strings before calling some
+    const foodsMatch = Array.isArray(log.foods) && log.foods.some(item => typeof item === 'string' && item.toLowerCase().includes(lowerCaseQuery));
+    
     return (
-      log.mealType.toLowerCase().includes(lowerCaseQuery) ||
+      (log.mealType && log.mealType.toLowerCase().includes(lowerCaseQuery)) ||
       (log.notes && log.notes.toLowerCase().includes(lowerCaseQuery)) ||
-      (log.foods && log.foods.some(item => item.toLowerCase().includes(lowerCaseQuery)))
+      foodsMatch
     );
   });
 
+  const pageTitle = "My Diet Log";
+  const pageDescription = "Track your meals, nutrition, and discover how food impacts your well-being.";
+
   return (
-    <div className={inTabView ? "" : "container py-6 space-y-6"}>
+    // Applied Sophera v5 page padding and overall structure
+    <div className={inTabView ? "py-6" : "container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-8"}>
       {!inTabView && (
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Diet Logs</h1>
-            <p className="text-gray-500">
-              Track your meals, nutrition, and how different foods affect your health.
-            </p>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading">{pageTitle}</h1>
+            <p className="text-lg text-sophera-text-body mt-1">{pageDescription}</p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Meal
+          <Button 
+            onClick={() => { setEditingDietLog(null); setIsDialogOpen(true); }} 
+            className="w-full sm:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Log New Meal
           </Button>
         </div>
       )}
-      
+
       {inTabView && (
-        <div className="flex justify-end mb-4">
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+        <div className="flex justify-end mb-6">
+           <Button 
+            onClick={() => { setEditingDietLog(null); setIsDialogOpen(true); }}
+            size="sm" // Smaller button for in-tab view
+            className="bg-sophera-accent-secondary text-white rounded-sophera-button py-2 px-4 text-sm font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+          >
+            <Plus className="mr-1.5 h-4 w-4" />
             New Meal
           </Button>
         </div>
       )}
 
+      {/* Search Bar with Sophera v5 styling */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
         <Input
-          placeholder="Search meals, food items, or notes..."
+          type="search"
+          placeholder="Search by meal type, food items, or notes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="pl-11 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
         />
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-gray-500">Loading diet logs...</p>
+        <div className="flex flex-col items-center justify-center min-h-[30vh] p-4">
+          <Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary mb-4" />
+          <h3 className="text-lg font-semibold text-sophera-text-heading">Loading your diet logs...</h3>
+          <p className="text-sophera-text-body">Just a moment.</p>
         </div>
       ) : filteredLogs.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredLogs.map((log) => (
+            // DietLogCard will need its own Sophera v5 styling
             <DietLogCard
               key={log.id}
               dietLog={log}
-              onEdit={handleEdit}
-              onDelete={handleDeleteInitiate}
+              onEdit={() => handleEdit(log)} // Pass the log object
+              onDelete={() => handleDeleteInitiate(log.id)} // Pass the id
             />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <Utensils className="h-10 w-10 text-gray-400" />
+        // Empty state card with Sophera v5 styling
+        <div className="text-center py-16 md:py-24 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6 md:p-10">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+              <AppleIcon className="h-12 w-12 text-sophera-brand-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-sophera-text-heading">
+              {searchQuery ? "No Matching Meal Entries Found" : "No Meals Logged Yet"}
+            </h3>
+            <p className="text-sophera-text-body mt-1 max-w-md">
+              {searchQuery
+                ? "Try adjusting your search terms to find specific entries."
+                : "Start tracking your meals to see how nutrition plays a role in your journey."}
+            </p>
+            {searchQuery ? (
+              <Button variant="outline" className="mt-6 rounded-sophera-button border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light" onClick={() => setSearchQuery("")}>
+                Clear Search
+              </Button>
+            ) : (
+              <Button 
+                className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+                onClick={() => { setEditingDietLog(null); setIsDialogOpen(true); }}
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Log Your First Meal
+              </Button>
+            )}
           </div>
-          <h3 className="text-lg font-medium">
-            {searchQuery ? "No matching meal entries found" : "No meal entries yet"}
-          </h3>
-          <p className="text-gray-500 mt-1 max-w-md">
-            {searchQuery
-              ? "Try adjusting your search terms or clear the search to see all entries."
-              : "Start tracking your meals, nutrition information, and how different foods affect your health."}
-          </p>
-          {searchQuery ? (
-            <Button variant="outline" className="mt-4" onClick={() => setSearchQuery("")}>Clear Search</Button>
-          ) : (
-            <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Log Your First Meal
-            </Button>
-          )}
         </div>
       )}
 
       {/* Diet Log Dialog for Create/Edit */}
+      {/* Ensure DietLogDialog component is styled with Sophera v5 (rounded-sophera-modal-outer, etc.) */}
       <DietLogDialog
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingDietLog(null); // Clear editing state when dialog closes
+        }}
         onSave={editingDietLog ? handleUpdateLog : handleCreateLog}
-        initialData={editingDietLog || undefined}
+        initialData={editingDietLog || undefined} // Pass undefined if not editing
         isLoading={isCreating || isUpdating}
       />
 
       {/* Delete Confirmation Dialog */}
+      {/* Ensure AlertDialogContent is styled with Sophera v5 (rounded-sophera-modal-outer, etc.) */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-sophera-modal-outer bg-sophera-bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this meal entry
-              and remove it from our servers.
+            <AlertDialogTitle className="text-xl font-bold text-sophera-text-heading">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sophera-text-body pt-2">
+              This action cannot be undone. This will permanently delete this meal entry.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isDeleting}>
-              {isDeleting ? "Deleting..." : "Delete"}
+          <AlertDialogFooter className="pt-4">
+            <AlertDialogCancel className="rounded-sophera-button">Cancel</AlertDialogCancel>
+            {/* Destructive action button styling */}
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm} 
+              disabled={isDeleting}
+              className="bg-sophera-destructive text-white rounded-sophera-button hover:bg-red-700"
+            >
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isDeleting ? "Deleting..." : "Yes, Delete Meal"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
