@@ -47,7 +47,20 @@ class OpenAIService {
         response_format: options.responseFormat === 'json' ? { type: 'json_object' } : undefined
       });
       
-      return response.choices[0].message.content || '';
+      const content = response.choices[0].message.content || '';
+      
+      // Validate JSON response if expected
+      if (options.responseFormat === 'json') {
+        try {
+          // Make sure it's valid JSON by parsing it
+          JSON.parse(content);
+        } catch (jsonError) {
+          console.error('OpenAI returned invalid JSON:', jsonError);
+          return this.getDevelopmentCompletion(true);
+        }
+      }
+      
+      return content;
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       return this.getDevelopmentCompletion(options.responseFormat === 'json');
