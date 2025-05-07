@@ -228,13 +228,10 @@ export function SidebarNavigation() {
           "bg-[url('/grid-pattern.svg')] bg-repeat"
         )}
       >
-        {/* Only 4 shapes total, placed exactly like in the screenshot, with -z-10 to send them backwards */}
+        {/* Only 3 shapes total, removed the red square behind Dashboard, with -z-10 to send them backwards */}
         
         {/* Diamond shape - yellow diamond at top */}
         <div className="absolute top-[12%] right-3 w-6 h-6 bg-yellow-400 transform rotate-45 border border-yellow-500 shadow-neo-sm -z-10"></div>
-        
-        {/* Small square shape - red square near Dashboard */}
-        <div className="absolute top-[20%] right-16 w-4 h-4 bg-red-400 transform -rotate-12 border border-red-500 shadow-neo-sm -z-10"></div>
         
         {/* Pink circle near bottom */}
         <div className="absolute bottom-[15%] left-3 w-6 h-6 rounded-full bg-pink-300 border border-pink-400 shadow-neo-sm -z-10"></div>
