@@ -25,7 +25,7 @@ export function AnalyzeAndAct() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch action steps from the API
-  const { data: actionSteps, isLoading, error } = useQuery<ActionStep[]>({
+  const { data: actionSteps, isLoading, error } = useQuery({
     queryKey: ['/api/action-steps'],
     refetchOnWindowFocus: false
   });
@@ -80,10 +80,22 @@ export function AnalyzeAndAct() {
         throw new Error(errorText || 'Failed to generate action steps');
       }
       
-      return await response.json();
+      const responseData = await response.json();
+      console.log('Generated action steps from API:', responseData);
+      return responseData;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/action-steps'] });
+    onSuccess: (data) => {
+      console.log('Successfully generated action steps:', data);
+      // Fetch the action steps immediately after generation
+      fetch('/api/action-steps')
+        .then(res => res.json())
+        .then(fetchedSteps => {
+          console.log('Current action steps after generation:', fetchedSteps);
+          // Manually update the cache with the fetched data
+          queryClient.setQueryData(['/api/action-steps'], fetchedSteps);
+        })
+        .catch(err => console.error('Failed to fetch updated action steps:', err));
+      
       setRefreshing(false);
       toast({
         title: 'Action Steps Updated',
@@ -91,6 +103,7 @@ export function AnalyzeAndAct() {
       });
     },
     onError: (error: any) => {
+      console.error('Error generating action steps:', error);
       setRefreshing(false);
       toast({
         title: 'Error',
@@ -168,7 +181,7 @@ export function AnalyzeAndAct() {
 
   // Get development data if no action steps are available
   useEffect(() => {
-    if (!isLoading && (!actionSteps || actionSteps.length === 0)) {
+    if (!isLoading && (!actionSteps || !Array.isArray(actionSteps) || actionSteps.length === 0)) {
       handleRefresh();
     }
   }, [isLoading, actionSteps]);
@@ -200,7 +213,7 @@ export function AnalyzeAndAct() {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-auto">
-        {actionSteps && actionSteps.length > 0 ? (
+        {Array.isArray(actionSteps) && actionSteps.length > 0 ? (
           <ul className="space-y-4">
             {actionSteps.map((step: ActionStep) => (
               <li key={step.id} className="flex items-start gap-3 group">
