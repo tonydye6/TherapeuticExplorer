@@ -1,8 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BookOpenIcon } from 'lucide-react';
-import { Link } from 'wouter';
+import { FileText } from 'lucide-react';
 
 const PROMPTS = [
   "How are you feeling today?",
@@ -25,22 +22,12 @@ export function JournalPrompt() {
   };
 
   return (
-    <Card className="mb-6 bg-primary-50 border-primary-100">
-      <CardContent className="pt-6">
-        <div className="flex flex-col items-center text-center">
-          <BookOpenIcon className="h-8 w-8 text-primary mb-3" />
-          <h3 className="text-lg font-medium mb-2 text-primary-900">{getTodaysPrompt()}</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Taking a moment to reflect can help track your healing journey.
-          </p>
-          <Link href="/journal-logs">
-            <Button className="gap-2">
-              <BookOpenIcon className="h-4 w-4" />
-              Add Journal Entry
-            </Button>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center text-center">
+      <FileText className="h-8 w-8 text-sophera-brand-primary mb-3" />
+      <h3 className="text-lg font-medium mb-2 text-sophera-text-heading">{getTodaysPrompt()}</h3>
+      <p className="text-sm text-sophera-text-body mb-4">
+        Taking a moment to reflect can help track your healing journey.
+      </p>
+    </div>
   );
 }
