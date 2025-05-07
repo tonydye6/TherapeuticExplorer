@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TabsLayout } from '@/components/ui/tabs-layout';
 import Preferences from './Preferences';
@@ -15,18 +16,20 @@ const SettingsProfilePage = () => {
     {
       id: 'profile',
       label: 'User Profile',
-      icon: <Settings className="h-4 w-4" />,
+      icon: <Settings className="h-4 w-4 text-sophera-brand-primary" />,
       content: <Preferences inTabView />
     },
     {
       id: 'caregivers',
       label: 'Manage Caregivers',
-      icon: <Users className="h-4 w-4" />,
+      icon: <Users className="h-4 w-4 text-sophera-accent-secondary" />,
       content: (
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <Users className="h-16 w-16 text-primary/30 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Manage Caregivers</h3>
-          <p className="text-muted-foreground max-w-md">
+        <div className="flex flex-col items-center justify-center p-16 text-center">
+          <div className="h-20 w-20 bg-sophera-gradient-start/20 rounded-full flex items-center justify-center mb-6">
+            <Users className="h-10 w-10 text-sophera-accent-secondary" />
+          </div>
+          <h3 className="text-2xl font-semibold mb-4 text-sophera-text-heading">Manage Caregivers</h3>
+          <p className="text-sophera-text-body max-w-lg text-lg">
             View, add, or remove caregivers and manage their permissions. This feature is coming soon.
           </p>
         </div>
@@ -35,12 +38,14 @@ const SettingsProfilePage = () => {
     {
       id: 'notifications',
       label: 'Notifications',
-      icon: <Bell className="h-4 w-4" />,
+      icon: <Bell className="h-4 w-4 text-sophera-accent-tertiary" />,
       content: (
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <Bell className="h-16 w-16 text-primary/30 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Notification Settings</h3>
-          <p className="text-muted-foreground max-w-md">
+        <div className="flex flex-col items-center justify-center p-16 text-center">
+          <div className="h-20 w-20 bg-sophera-gradient-start/20 rounded-full flex items-center justify-center mb-6">
+            <Bell className="h-10 w-10 text-sophera-accent-tertiary" />
+          </div>
+          <h3 className="text-2xl font-semibold mb-4 text-sophera-text-heading">Notification Settings</h3>
+          <p className="text-sophera-text-body max-w-lg text-lg">
             Customize your notification preferences to stay informed about your care. This feature is coming soon.
           </p>
         </div>
@@ -49,12 +54,14 @@ const SettingsProfilePage = () => {
     {
       id: 'privacy',
       label: 'Privacy & Data',
-      icon: <Shield className="h-4 w-4" />,
+      icon: <Shield className="h-4 w-4 text-sophera-brand-primary" />,
       content: (
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <Shield className="h-16 w-16 text-primary/30 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Privacy & Data Management</h3>
-          <p className="text-muted-foreground max-w-md">
+        <div className="flex flex-col items-center justify-center p-16 text-center">
+          <div className="h-20 w-20 bg-sophera-gradient-start/20 rounded-full flex items-center justify-center mb-6">
+            <Shield className="h-10 w-10 text-sophera-brand-primary" />
+          </div>
+          <h3 className="text-2xl font-semibold mb-4 text-sophera-text-heading">Privacy & Data Management</h3>
+          <p className="text-sophera-text-body max-w-lg text-lg">
             Manage your data privacy settings and export or delete your information. This feature is coming soon.
           </p>
         </div>
@@ -63,17 +70,33 @@ const SettingsProfilePage = () => {
     {
       id: 'help',
       label: 'Help & Support',
-      icon: <HelpCircle className="h-4 w-4" />,
+      icon: <HelpCircle className="h-4 w-4 text-sophera-accent-secondary" />,
       content: <Help inTabView />
     },
   ];
 
   return (
-    <TabsLayout 
-      title="Settings & Profile" 
-      description="Manage your account, preferences, and privacy settings"
-      tabs={tabs}
-    />
+    <div className="container max-w-7xl mx-auto py-8 px-4 md:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-sophera-text-heading flex items-center">
+          <Settings className="h-8 w-8 mr-3 text-sophera-brand-primary" />
+          Settings & Profile
+        </h1>
+        <p className="mt-3 text-lg text-sophera-text-body">
+          Manage your account, preferences, and privacy settings
+        </p>
+      </div>
+      
+      <div className="bg-white border border-sophera-border-primary rounded-sophera-card shadow-lg">
+        <TabsLayout 
+          tabs={tabs}
+          className="p-1 md:p-2"
+          tabsListClassName="bg-sophera-gradient-start p-1.5 rounded-sophera-button gap-1.5"
+          tabsTriggerClassName="text-base data-[state=active]:bg-white data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11 flex items-center gap-1.5"
+          tabsContentClassName="p-4 md:p-6 lg:p-8"
+        />
+      </div>
+    </div>
   );
 };
 
