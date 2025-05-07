@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TabsLayout } from '@/components/ui/tabs-layout';
 import AIExplainerPage from './AIExplainerPage';
@@ -16,35 +17,44 @@ const UnderstandPage = () => {
     {
       id: 'explainer',
       label: 'AI Medical Explainer',
-      icon: <BrainCircuit className="h-4 w-4" />,
+      icon: <BrainCircuit className="h-5 w-5 text-sophera-brand-primary" />,
       content: <AIExplainerPage inTabView />
     },
     {
       id: 'treatments',
       label: 'Treatment Guides',
-      icon: <Stethoscope className="h-4 w-4" />,
+      icon: <Stethoscope className="h-5 w-5 text-sophera-accent-secondary" />,
       content: <TreatmentTracker inTabView />
     },
     {
       id: 'interactions',
       label: 'Interaction Checker',
-      icon: <Activity className="h-4 w-4" />,
+      icon: <Activity className="h-5 w-5 text-sophera-accent-tertiary" />,
       content: <SideEffectAnalyzer inTabView />
     },
     {
       id: 'documents',
       label: 'Document Summarizer',
-      icon: <FileText className="h-4 w-4" />,
+      icon: <FileText className="h-5 w-5 text-sophera-accent-quaternary" />,
       content: <DocumentsPage inTabView />
     }
   ];
 
   return (
-    <TabsLayout 
-      title="Understand" 
-      description="Simplify complex medical information and get clear explanations of your treatments, medications, and documents"
-      tabs={tabs}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-sophera-gradient-start to-sophera-gradient-end">
+      <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
+        <TabsLayout 
+          title="Understand" 
+          description="Simplify complex medical information and get clear explanations of your treatments, medications, and documents"
+          tabs={tabs}
+          titleClassName="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading mb-2 text-center md:text-left"
+          descriptionClassName="text-lg text-sophera-text-body mb-8 text-center md:text-left max-w-3xl"
+          tabsListClassName="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1.5 bg-sophera-gradient-start rounded-sophera-button mb-6 md:mb-8 gap-1.5"
+          tabsTriggerClassName="text-sm md:text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11 md:h-12 flex items-center justify-center gap-1.5 px-3"
+          tabsContentClassName="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6 md:p-8"
+        />
+      </div>
+    </div>
   );
 };
 
