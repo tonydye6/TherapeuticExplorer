@@ -46,9 +46,29 @@ export default function JournalLogsPage({ inTabView = false }: JournalLogsPagePr
   const [logToDelete, setLogToDelete] = useState<number | null>(null);
 
   const handleCreateLog = (data: JournalLogFormData) => {
+    // Safely handle the date conversion
+    let isoDate;
+    try {
+      if (data.date instanceof Date) {
+        isoDate = data.date.toISOString();
+      } else if (data.date && typeof data.date === 'string') {
+        const dateObj = new Date(data.date);
+        if (!isNaN(dateObj.getTime())) { // Check if date is valid
+          isoDate = dateObj.toISOString();
+        } else {
+          isoDate = new Date().toISOString(); // Fallback to current date if invalid
+        }
+      } else {
+        isoDate = new Date().toISOString(); // Default to current date
+      }
+    } catch (e) {
+      console.error("Error processing date:", e);
+      isoDate = new Date().toISOString(); // Fallback to current date on error
+    }
+    
     createJournalLog({
       ...data,
-      date: data.date instanceof Date ? data.date.toISOString() : new Date(data.date).toISOString(),
+      date: isoDate,
     } as any);
     setIsDialogOpen(false);
     setEditingJournalLog(null);
@@ -56,9 +76,32 @@ export default function JournalLogsPage({ inTabView = false }: JournalLogsPagePr
 
   const handleUpdateLog = (data: Partial<JournalLogFormData>) => {
     if (editingJournalLog) {
+      // Process date using the same safe conversion method
+      let dateValue = undefined;
+      
+      if (data.date) {
+        try {
+          if (data.date instanceof Date) {
+            dateValue = data.date.toISOString();
+          } else if (typeof data.date === 'string') {
+            const dateObj = new Date(data.date);
+            if (!isNaN(dateObj.getTime())) { // Check if date is valid
+              dateValue = dateObj.toISOString();
+            } else {
+              dateValue = new Date().toISOString(); // Fallback to current date
+            }
+          } else {
+            dateValue = new Date().toISOString(); // Default fallback
+          }
+        } catch (e) {
+          console.error("Error processing date in update:", e);
+          dateValue = new Date().toISOString(); // Fallback on error
+        }
+      }
+      
       updateJournalLog({ 
         id: editingJournalLog.id, 
-        ...(data.date && { date: data.date instanceof Date ? data.date.toISOString() : new Date(data.date).toISOString() }),
+        ...(dateValue && { date: dateValue }),
         ...data 
       } as any);
       setEditingJournalLog(null);
