@@ -28,6 +28,7 @@ import {
   HeartPulse,
   TrendingUp,
   FileQuestion,
+  Palette,
   LogOut,
   Map
 } from "lucide-react";
@@ -194,6 +195,13 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       icon: <HelpCircle className="h-5 w-5" />,
       section: "6. Settings & Profile",
       ariaLabel: "Get help and support"
+    },
+    { 
+      href: "/design/neo-brutalism", 
+      label: "Neo Brutalism Design", 
+      icon: <Palette className="h-5 w-5" />,
+      section: "6. Settings & Profile",
+      ariaLabel: "View Neo Brutalism design system"
     },
   ];
 
