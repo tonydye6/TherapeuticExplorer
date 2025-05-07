@@ -7,10 +7,18 @@ let firestore: Firestore;
 // Initialize Firestore with credentials
 export const initializeFirestore = () => {
   try {
-    // Initialize using service account credentials (From environment variables)
-    // In production, these would be securely stored environment variables
-    firestore = new Firestore();
-    console.log('Firestore initialized successfully');
+    // Check for GOOGLE_APPLICATION_CREDENTIALS and other required env vars
+    if (!process.env.GOOGLE_PROJECT_ID) {
+      console.error('GOOGLE_PROJECT_ID environment variable is missing');
+      throw new Error('Missing required Google Cloud credentials. GOOGLE_PROJECT_ID must be provided.');
+    }
+    
+    // Initialize with explicit project ID from environment variable
+    firestore = new Firestore({
+      projectId: process.env.GOOGLE_PROJECT_ID
+    });
+    
+    console.log('Firestore initialized successfully with project ID:', process.env.GOOGLE_PROJECT_ID);
     return firestore;
   } catch (error) {
     console.error('Error initializing Firestore:', error);

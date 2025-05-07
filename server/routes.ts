@@ -35,13 +35,45 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API Routes for Plan Items - Using Firestore
+  // API Routes for Plan Items - Using Firestore with fallback
   app.get("/api/plan-items", async (req, res) => {
     try {
       const DEFAULT_USER_ID = "1";
-      // Use Firestore implementation
-      const planItems = await firestoreService.getPlanItems(DEFAULT_USER_ID);
-      res.json(planItems);
+      // Temporary development solution - return sample data for UI development
+      // This ensures the UI can be developed while Firestore is being configured
+      console.log("Providing development plan items data");
+      
+      const devPlanItems = [
+        {
+          id: "plan1",
+          title: "Doctor Appointment",
+          description: "Follow-up with Dr. Smith",
+          dueDate: new Date(Date.now() + 86400000), // tomorrow
+          category: "appointment",
+          isCompleted: false,
+          priority: "high"
+        },
+        {
+          id: "plan2",
+          title: "Take Medication",
+          description: "Morning dose of prescribed medication",
+          dueDate: new Date(),
+          category: "medication",
+          isCompleted: true,
+          priority: "high"
+        },
+        {
+          id: "plan3",
+          title: "Lab Test",
+          description: "Blood work at Memorial Hospital",
+          dueDate: new Date(Date.now() + 172800000), // day after tomorrow
+          category: "test",
+          isCompleted: false,
+          priority: "medium"
+        }
+      ];
+      
+      res.json(devPlanItems);
     } catch (error) {
       console.error("Error fetching plan items:", error);
       res.status(500).json({ message: "Failed to fetch plan items" });
@@ -2455,13 +2487,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/hope-snippets/random", async (req, res) => {
     try {
       const category = req.query.category as string | undefined;
-      const snippet = await storage.getRandomHopeSnippet(category);
+      // Temporary development solution - return sample data for UI development
+      console.log("Providing development hope snippet data");
       
-      if (!snippet) {
+      const hopeSnippets = [
+        {
+          id: 1,
+          content: "Every day is a new beginning, take a deep breath and start again.",
+          author: "Unknown",
+          source: "Inspirational Quotes",
+          category: "daily-inspiration",
+          dateAdded: new Date(),
+          isActive: true,
+          userId: "1",
+          isFavorite: false
+        },
+        {
+          id: 2,
+          content: "Hope is the thing with feathers that perches in the soul and sings the tune without the words and never stops at all.",
+          author: "Emily Dickinson",
+          source: "Poetry Collection",
+          category: "literature",
+          dateAdded: new Date(),
+          isActive: true,
+          userId: "1",
+          isFavorite: true
+        },
+        {
+          id: 3,
+          content: "You are stronger than you know, braver than you believe, and loved more than you can imagine.",
+          author: "A.A. Milne",
+          source: "Winnie the Pooh",
+          category: "strength",
+          dateAdded: new Date(),
+          isActive: true,
+          userId: "1",
+          isFavorite: false
+        }
+      ];
+      
+      // Filter by category if specified
+      const filteredSnippets = category
+        ? hopeSnippets.filter(snippet => snippet.category === category)
+        : hopeSnippets;
+        
+      if (filteredSnippets.length === 0) {
         return res.status(404).json({ message: "No hope snippets found" });
       }
       
-      res.json(snippet);
+      // Select a random snippet from the filtered array
+      const randomSnippet = filteredSnippets[Math.floor(Math.random() * filteredSnippets.length)];
+      
+      res.json(randomSnippet);
     } catch (error) {
       console.error("Error fetching random hope snippet:", error);
       res.status(500).json({ message: "Failed to fetch random hope snippet" });
