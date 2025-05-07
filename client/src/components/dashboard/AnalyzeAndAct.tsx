@@ -25,9 +25,13 @@ export function AnalyzeAndAct() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch action steps from the API
-  const { data: actionSteps, isLoading, error } = useQuery({
+  const { data: actionSteps, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/action-steps'],
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    retry: 2,
+    onError: (err) => {
+      console.error("Error fetching action steps:", err);
+    }
   });
 
   // Mutation to toggle the completed status of an action step

@@ -2208,8 +2208,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/journal-logs", async (req, res) => {
     try {
       const DEFAULT_USER_ID = "1";
-      // Use Firestore implementation
-      const journalLogs = await firestoreService.getJournalLogs(DEFAULT_USER_ID);
+      // Use storage interface instead of direct Firestore access
+      const journalLogs = await storage.getJournalLogs(DEFAULT_USER_ID);
       res.json(journalLogs);
     } catch (error) {
       console.error("Error fetching journal logs:", error);
@@ -2219,15 +2219,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/journal-logs/:id", async (req, res) => {
     try {
-      const DEFAULT_USER_ID = "1";
-      const journalLogId = req.params.id;
+      const journalLogId = parseInt(req.params.id, 10);
       
-      if (!journalLogId) {
+      if (isNaN(journalLogId)) {
         return res.status(400).json({ message: "Invalid journal log ID" });
       }
       
-      // Use Firestore implementation
-      const journalLog = await firestoreService.getJournalLogById(DEFAULT_USER_ID, journalLogId);
+      // Use storage interface
+      const journalLog = await storage.getJournalLogById(journalLogId);
       
       if (!journalLog) {
         return res.status(404).json({ message: "Journal log not found" });
