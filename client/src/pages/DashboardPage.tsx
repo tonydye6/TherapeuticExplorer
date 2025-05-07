@@ -109,12 +109,14 @@ export default function DashboardPage() {
             <NeoCardContent>
               <JournalPrompt />
             </NeoCardContent>
-            </NeoCard>
-          <div className="mt-4 flex justify-end">
-            <Link href="/my-journey/journal">
-              <NeoButton variant="outline" size="sm">View Journal</NeoButton>
-            </Link>
-          </div>
+            <NeoCardFooter>
+              <div className="flex justify-end">
+                <Link href="/my-journey/journal">
+                  <NeoButton buttonText="View Journal" size="sm" />
+                </Link>
+              </div>
+            </NeoCardFooter>
+          </NeoCard>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:gap-8">
@@ -133,12 +135,13 @@ export default function DashboardPage() {
             <NeoCardContent>
               <HopeSnippet />
             </NeoCardContent>
-            </NeoCard>
-            <div className="mt-4 flex justify-end">
-              <Link href="/connect/mindfulness">
-                <NeoButton variant="outline" size="sm">More Snippets</NeoButton>
-              </Link>
-            </div>
+            <NeoCardFooter>
+              <div className="flex justify-end">
+                <Link href="/connect/mindfulness">
+                  <NeoButton variant="outline" size="sm">More Snippets</NeoButton>
+                </Link>
+              </div>
+            </NeoCardFooter>
           </NeoCard>
           
           {/* AI Chat Assistant Card */}
