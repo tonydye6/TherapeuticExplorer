@@ -1,13 +1,14 @@
 import { 
   users, documents, messages, researchItems, 
   savedTrials, treatments, vectorEmbeddings, alternativeTreatments,
-  hopeSnippets, planItems, journalLogs, dietLogs,
+  hopeSnippets, planItems, journalLogs, dietLogs, actionSteps,
   User, InsertUser, UpsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
   SavedTrial, InsertSavedTrial, Document, InsertDocument,
   VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment,
   HopeSnippet, InsertHopeSnippet, PlanItem, InsertPlanItem,
-  JournalLog, InsertJournalLog, DietLog, InsertDietLog
+  JournalLog, InsertJournalLog, DietLog, InsertDietLog,
+  ActionStep, InsertActionStep
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -467,5 +468,63 @@ export class DatabaseStorage implements IStorage {
     if (!result) {
       throw new Error(`Diet log with ID ${id} not found`);
     }
+  }
+
+  // Action steps methods
+  async getActionSteps(userId: string): Promise<ActionStep[]> {
+    return db
+      .select()
+      .from(actionSteps)
+      .where(eq(actionSteps.userId, userId))
+      .orderBy(actionSteps.createdAt, { direction: 'desc' });
+  }
+
+  async getActionStepById(id: number): Promise<ActionStep | undefined> {
+    const [step] = await db
+      .select()
+      .from(actionSteps)
+      .where(eq(actionSteps.id, id));
+    return step;
+  }
+
+  async createActionStep(insertStep: InsertActionStep): Promise<ActionStep> {
+    const [step] = await db
+      .insert(actionSteps)
+      .values(insertStep)
+      .returning();
+    return step;
+  }
+
+  async updateActionStep(id: number, stepData: Partial<ActionStep>): Promise<ActionStep> {
+    const [updatedStep] = await db
+      .update(actionSteps)
+      .set({
+        ...stepData,
+        updatedAt: new Date()
+      })
+      .where(eq(actionSteps.id, id))
+      .returning();
+    
+    if (!updatedStep) {
+      throw new Error(`Action step with ID ${id} not found`);
+    }
+    
+    return updatedStep;
+  }
+
+  async getCompletedActionSteps(userId: string): Promise<ActionStep[]> {
+    return db
+      .select()
+      .from(actionSteps)
+      .where(eq(actionSteps.userId, userId))
+      .where(eq(actionSteps.isCompleted, true))
+      .orderBy(actionSteps.completedDate, { direction: 'desc' });
+  }
+
+  async deleteIncompleteActionSteps(userId: string): Promise<void> {
+    await db
+      .delete(actionSteps)
+      .where(eq(actionSteps.userId, userId))
+      .where(eq(actionSteps.isCompleted, false));
   }
 }
