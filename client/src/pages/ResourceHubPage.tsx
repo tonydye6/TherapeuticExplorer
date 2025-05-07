@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -7,390 +8,541 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SearchIcon, ExternalLinkIcon, BookmarkIcon, StarIcon, HeartIcon } from 'lucide-react';
+import { Search, ExternalLink, Bookmark, Star, Heart, BookOpen, Users, Building, Globe, PenSquare, Newspaper, Download, Link2, Filter } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Mock resource categories
+const RESOURCE_CATEGORIES = [
+  {
+    id: "support-groups",
+    name: "Support Groups",
+    icon: <Users className="h-5 w-5 text-sophera-brand-primary" />,
+    description: "Connect with others facing similar challenges"
+  },
+  {
+    id: "organizations",
+    name: "Organizations",
+    icon: <Building className="h-5 w-5 text-sophera-accent-secondary" />,
+    description: "Cancer research and advocacy organizations"
+  },
+  {
+    id: "websites",
+    name: "Websites",
+    icon: <Globe className="h-5 w-5 text-sophera-brand-primary" />,
+    description: "Reliable information sources and tools"
+  },
+  {
+    id: "books",
+    name: "Books",
+    icon: <BookOpen className="h-5 w-5 text-sophera-accent-tertiary" />,
+    description: "Recommended reading for patients and caregivers"
+  },
+  {
+    id: "blogs",
+    name: "Blogs & Personal Stories",
+    icon: <PenSquare className="h-5 w-5 text-sophera-accent-secondary" />,
+    description: "First-hand experiences and perspectives"
+  },
+  {
+    id: "news",
+    name: "News & Research",
+    icon: <Newspaper className="h-5 w-5 text-sophera-brand-primary" />,
+    description: "Latest developments in cancer research"
+  }
+];
+
+// Mock resources
+const MOCK_RESOURCES = [
+  {
+    id: 1,
+    title: "Esophageal Cancer Awareness Association",
+    description: "Nonprofit organization dedicated to increasing awareness about esophageal cancer, supporting patients, and funding research.",
+    url: "https://www.ecaware.org",
+    category: "organizations",
+    rating: 4.9,
+    reviewCount: 124,
+    isFeatured: true,
+    tags: ["support", "research", "community"]
+  },
+  {
+    id: 2,
+    title: "Esophageal Cancer Support Group",
+    description: "Online community for patients, survivors, and caregivers affected by esophageal cancer to share experiences and support.",
+    url: "https://www.cancerforums.net/forums/esophageal-cancer.78/",
+    category: "support-groups",
+    rating: 4.7,
+    reviewCount: 89,
+    isFeatured: true,
+    tags: ["community", "online", "discussion"]
+  },
+  {
+    id: 3,
+    title: "MD Anderson Cancer Center - Esophageal Cancer",
+    description: "Comprehensive information about esophageal cancer diagnosis, treatment options, and clinical trials from a leading cancer center.",
+    url: "https://www.mdanderson.org/cancer-types/esophageal-cancer.html",
+    category: "websites",
+    rating: 4.8,
+    reviewCount: 156,
+    isFeatured: true,
+    tags: ["medical", "treatment", "clinical trials"]
+  },
+  {
+    id: 4,
+    title: "The Middle of It: Surviving Esophageal Cancer",
+    description: "Personal memoir by a stage IV esophageal cancer survivor sharing insights, challenges, and hope.",
+    url: "https://www.amazon.com/example-surviving-esophageal-cancer",
+    category: "books",
+    rating: 4.6,
+    reviewCount: 72,
+    isFeatured: false,
+    tags: ["memoir", "survivor", "inspiration"]
+  },
+  {
+    id: 5,
+    title: "Cancer.Net - Esophageal Cancer",
+    description: "Doctor-approved patient information from the American Society of Clinical Oncology (ASCO).",
+    url: "https://www.cancer.net/cancer-types/esophageal-cancer",
+    category: "websites",
+    rating: 4.7,
+    reviewCount: 103,
+    isFeatured: false,
+    tags: ["medical", "education", "trusted"]
+  },
+  {
+    id: 6,
+    title: "Nutrition for Esophageal Cancer Patients",
+    description: "Practical guide for managing nutrition challenges during and after esophageal cancer treatment.",
+    url: "https://www.cancerresearchuk.org/about-cancer/esophageal-cancer/living-with/diet-problems",
+    category: "websites",
+    rating: 4.5,
+    reviewCount: 68,
+    isFeatured: false,
+    tags: ["nutrition", "practical", "lifestyle"]
+  }
+];
 
 interface ResourceHubPageProps {
   inTabView?: boolean;
 }
 
-// Resource categories
-const RESOURCE_CATEGORIES = [
-  "Financial Support",
-  "Advocacy & Support Groups",
-  "Nutrition Resources",
-  "Mental Health",
-  "Medical Equipment",
-  "Transportation",
-  "Legal Resources"
-];
+export default function ResourceHubPage({ inTabView = false }: ResourceHubPageProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
 
-// Resource interface
-interface Resource {
-  id: number;
-  title: string;
-  description: string;
-  url: string;
-  category: string;
-  tags: string[];
-  phoneNumber?: string;
-  isVerified: boolean;
-  rating: number; // 1-5
-  logoUrl?: string;
-}
-
-// Sample resource data
-const RESOURCES: Resource[] = [
-  {
-    id: 1,
-    title: "Cancer Financial Assistance Coalition",
-    description: "A coalition of financial assistance organizations helping cancer patients manage costs during treatment.",
-    url: "https://www.cancerfac.org",
-    category: "Financial Support",
-    tags: ["Financial Aid", "Cost Management", "Treatment Expenses"],
-    isVerified: true,
-    rating: 5
-  },
-  {
-    id: 2,
-    title: "Esophageal Cancer Support Network",
-    description: "Connecting patients and families with others who understand esophageal cancer for emotional and practical support.",
-    url: "https://ecaware.org",
-    category: "Advocacy & Support Groups",
-    tags: ["Peer Support", "Community", "Esophageal Cancer"],
-    phoneNumber: "1-800-555-1234",
-    isVerified: true,
-    rating: 5
-  },
-  {
-    id: 3,
-    title: "CancerCare",
-    description: "Professional support services for cancer patients, including counseling, support groups, education, and financial assistance.",
-    url: "https://www.cancercare.org",
-    category: "Mental Health",
-    tags: ["Counseling", "Support Groups", "Education", "Financial Aid"],
-    phoneNumber: "1-800-813-4673",
-    isVerified: true,
-    rating: 5
-  },
-  {
-    id: 4,
-    title: "Patient Advocate Foundation",
-    description: "Case management services and financial aid for patients with chronic, life-threatening and debilitating diseases.",
-    url: "https://www.patientadvocate.org",
-    category: "Legal Resources",
-    tags: ["Patient Rights", "Insurance Issues", "Medical Debt"],
-    phoneNumber: "1-800-532-5274",
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 5,
-    title: "American Cancer Society Road To Recovery",
-    description: "Transportation assistance program providing rides to cancer-related medical appointments.",
-    url: "https://www.cancer.org/support-programs-and-services/road-to-recovery.html",
-    category: "Transportation",
-    tags: ["Transportation", "Medical Appointments"],
-    phoneNumber: "1-800-227-2345",
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 6,
-    title: "Cancer Nutrition Resources",
-    description: "Resources for managing nutrition during and after cancer treatment, including expert advice and recipes.",
-    url: "https://www.aicr.org/cancer-survival/treatment-tips/during-treatment/",
-    category: "Nutrition Resources",
-    tags: ["Nutrition", "Diet", "Recipes", "Expert Advice"],
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 7,
-    title: "NeedyMeds",
-    description: "Information on programs that help patients who can't afford medications and healthcare costs.",
-    url: "https://www.needymeds.org",
-    category: "Financial Support",
-    tags: ["Medication Assistance", "Healthcare Costs"],
-    phoneNumber: "1-800-503-6897",
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 8,
-    title: "Cancer Legal Resource Center",
-    description: "Free information and resources on cancer-related legal issues to cancer survivors, caregivers, and healthcare professionals.",
-    url: "https://thedrlc.org/cancer/",
-    category: "Legal Resources",
-    tags: ["Legal Assistance", "Employment Rights", "Insurance"],
-    phoneNumber: "1-866-843-2572",
-    isVerified: true,
-    rating: 5
-  },
-  {
-    id: 9,
-    title: "Cancer and Careers",
-    description: "Helping cancer patients and survivors navigate employment challenges and thrive in the workplace.",
-    url: "https://www.cancerandcareers.org",
-    category: "Legal Resources",
-    tags: ["Employment", "Career", "Workplace Rights"],
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 10,
-    title: "Triage Cancer",
-    description: "National nonprofit organization providing free education on the legal and practical issues that may impact individuals diagnosed with cancer.",
-    url: "https://triagecancer.org",
-    category: "Legal Resources",
-    tags: ["Legal", "Insurance", "Employment", "Education"],
-    isVerified: true,
-    rating: 4
-  },
-  {
-    id: 11,
-    title: "Healthcare Equipment Loan Program (HELP)",
-    description: "Providing free loans of home health equipment and supplies to those in need.",
-    url: "https://www.helpmed.org",
-    category: "Medical Equipment",
-    tags: ["Medical Equipment", "Home Care"],
-    phoneNumber: "1-800-555-4357",
-    isVerified: false,
-    rating: 3
-  },
-  {
-    id: 12,
-    title: "Mental Health America",
-    description: "Resources for mental health screening, finding therapy, and help with depression and anxiety during cancer treatment.",
-    url: "https://mhanational.org",
-    category: "Mental Health",
-    tags: ["Mental Health", "Depression", "Anxiety", "Therapy"],
-    phoneNumber: "1-800-273-8255",
-    isVerified: true,
-    rating: 4
-  }
-];
-
-// Resource card component
-const ResourceCard = ({ resource }: { resource: Resource }) => {
-  return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-semibold flex items-center gap-1">
-              {resource.title}
-              {resource.isVerified && (
-                <Badge variant="secondary" className="ml-1 bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400">
-                  Verified
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription className="pt-1">
-              {resource.category}
-            </CardDescription>
-          </div>
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <StarIcon 
-                key={i} 
-                className={`h-3.5 w-3.5 ${i < resource.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
-              />
-            ))}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <p className="text-sm line-clamp-3 text-muted-foreground">{resource.description}</p>
-        <div className="flex flex-wrap gap-1 mt-3">
-          {resource.tags.slice(0, 3).map(tag => (
-            <Badge variant="outline" key={tag} className="text-xs bg-primary/5">
-              {tag}
-            </Badge>
-          ))}
-          {resource.tags.length > 3 && (
-            <span className="text-xs text-muted-foreground">+{resource.tags.length - 3} more</span>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="pt-2 border-t flex justify-between items-center">
-        <div>
-          {resource.phoneNumber && (
-            <p className="text-xs text-muted-foreground">{resource.phoneNumber}</p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <BookmarkIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" className="h-8" asChild>
-            <a href={resource.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-              <span>Visit</span>
-              <ExternalLinkIcon className="h-3.5 w-3.5" />
-            </a>
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
-  );
-};
-
-export default function ResourceHubPage({ inTabView }: ResourceHubPageProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-  
-  // In a real implementation, this would fetch from the backend
+  // Mock API call for resources
   const { data: resources, isLoading } = useQuery({
-    queryKey: ["/api/resources"],
-    // This is a placeholder since we're using static data
+    queryKey: ['/api/resources', selectedCategory, searchQuery],
     queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return RESOURCES;
-    },
-    refetchOnWindowFocus: false,
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Filter resources based on search and category
+      return MOCK_RESOURCES.filter(resource => {
+        const matchesSearch = searchQuery === "" || 
+          resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resource.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const matchesCategory = !selectedCategory || resource.category === selectedCategory;
+        
+        const matchesTab = activeTab === "all" || 
+          (activeTab === "featured" && resource.isFeatured) ||
+          (activeTab === "favorites" && resource.rating > 4.7);  // Mock for favorites
+        
+        return matchesSearch && matchesCategory && matchesTab;
+      });
+    }
   });
 
-  // Filter resources based on search term and selected category
-  const filteredResources = resources?.filter(resource => {
-    const matchesSearch = searchTerm
-      ? resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      : true;
-    
-    const matchesCategory = activeTab === 'all' || 
-      activeTab === resource.category.toLowerCase().replace(/\s+/g, '-');
-    
-    return matchesSearch && matchesCategory;
-  });
+  // Filtered categories based on what has results
+  const activeCategories = resources 
+    ? [...new Set(resources.map(r => r.category))]
+    : [];
 
-  const categorizedResources = RESOURCE_CATEGORIES.reduce((acc, category) => {
-    const categoryKey = category.toLowerCase().replace(/\s+/g, '-');
-    acc[categoryKey] = filteredResources?.filter(r => r.category === category) || [];
-    return acc;
-  }, {} as Record<string, Resource[]>);
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+  };
+
+  const handleSaveResource = (resourceId: number) => {
+    // Implementation would save to user's account
+    console.log("Saving resource:", resourceId);
+  };
 
   return (
-    <div className={`space-y-6 ${!inTabView ? 'container py-6' : ''}`}>
-      {!inTabView && (
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resource Hub</h1>
-          <p className="text-muted-foreground">
-            Find helpful resources for every aspect of your cancer journey.
-          </p>
-        </div>
-      )}
-      
-      {/* Search */}
-      <div className="relative">
-        <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Search for resources..." 
-          className="pl-8"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* Categories */}
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <ScrollArea className="w-full">
-          <TabsList className="w-full h-auto flex flex-nowrap py-2 px-1">
-            <TabsTrigger value="all" className="flex-shrink-0">
-              All Resources
-            </TabsTrigger>
-            {RESOURCE_CATEGORIES.map(category => (
-              <TabsTrigger 
-                key={category} 
-                value={category.toLowerCase().replace(/\s+/g, '-')}
-                className="flex-shrink-0"
-              >
-                {category}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </ScrollArea>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="h-[250px]">
-                <CardHeader>
-                  <Skeleton className="h-4 w-2/3 mb-2" />
-                  <Skeleton className="h-3 w-1/3" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-3 w-full mb-2" />
-                  <Skeleton className="h-3 w-full mb-2" />
-                  <Skeleton className="h-3 w-3/4 mb-4" />
-                  <div className="flex gap-1">
-                    <Skeleton className="h-5 w-12" />
-                    <Skeleton className="h-5 w-12" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : filteredResources?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              No resources found matching your search criteria.
+    <div className={`${inTabView ? "" : "container py-8 md:py-10"} max-w-6xl mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className="flex flex-col gap-6 md:gap-8">
+        {!inTabView && (
+          <div>
+            <h1 className="text-3xl font-extrabold text-sophera-text-heading">Resource Hub</h1>
+            <p className="text-sophera-text-body text-lg mt-2">
+              Discover trusted resources, support communities, and educational materials for your journey
             </p>
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setActiveTab('all');
-            }}>
-              Clear search
+          </div>
+        )}
+        
+        {/* Search and Filter Section */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sophera-text-subtle" />
+            <Input
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-sophera-input border-sophera-border-primary focus:border-sophera-brand-primary"
+            />
+          </div>
+          
+          <div className="flex gap-3 items-center">
+            <Select value={selectedCategory || ""} onValueChange={(value) => handleCategoryChange(value || null)}>
+              <SelectTrigger className="w-[180px] rounded-sophera-input border-sophera-border-primary">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-sophera-brand-primary" />
+                  <SelectValue placeholder="All Categories" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-sophera-input border-sophera-border-primary">
+                <SelectItem value="">All Categories</SelectItem>
+                {RESOURCE_CATEGORIES.map(category => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      {category.icon}
+                      <span>{category.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button hidden md:flex"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory(null);
+              }}
+            >
+              Clear Filters
             </Button>
           </div>
-        ) : (
-          <>
-            <TabsContent value="all" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredResources?.map(resource => (
-                  <ResourceCard key={resource.id} resource={resource} />
+        </div>
+        
+        {/* Category Cards - Desktop Only */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {RESOURCE_CATEGORIES.map(category => (
+            <Card 
+              key={category.id}
+              className={`cursor-pointer hover:shadow-md transition-shadow border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card ${
+                selectedCategory === category.id ? 'border-sophera-brand-primary bg-sophera-brand-primary-light/20' : ''
+              }`}
+              onClick={() => handleCategoryChange(selectedCategory === category.id ? null : category.id)}
+            >
+              <CardContent className="p-4 md:p-5 flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  selectedCategory === category.id ? 'bg-sophera-brand-primary/20' : 'bg-sophera-gradient-start'
+                }`}>
+                  {category.icon}
+                </div>
+                <div>
+                  <h3 className="font-medium text-sophera-text-heading">{category.name}</h3>
+                  <p className="text-xs text-sophera-text-subtle mt-1">{category.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Tabs and Resources */}
+        <div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6 p-1.5 bg-sophera-gradient-start rounded-sophera-button gap-1.5 grid grid-cols-3">
+              <TabsTrigger 
+                value="all" 
+                className="flex items-center gap-2 text-sm md:text-base rounded-sophera-input h-11 data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md"
+              >
+                All Resources
+              </TabsTrigger>
+              <TabsTrigger 
+                value="featured" 
+                className="flex items-center gap-2 text-sm md:text-base rounded-sophera-input h-11 data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md"
+              >
+                <Star className="h-4 w-4" />
+                Featured
+              </TabsTrigger>
+              <TabsTrigger 
+                value="favorites" 
+                className="flex items-center gap-2 text-sm md:text-base rounded-sophera-input h-11 data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md"
+              >
+                <Heart className="h-4 w-4" />
+                My Favorites
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-sophera-text-heading">
+                {activeTab === "all" ? "All Resources" : 
+                 activeTab === "featured" ? "Featured Resources" : 
+                 "My Favorites"}
+                {selectedCategory && (
+                  <span className="font-normal text-sophera-text-subtle text-lg ml-2">
+                    • {RESOURCE_CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                  </span>
+                )}
+              </h2>
+              
+              {(searchQuery || selectedCategory) && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button md:hidden"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory(null);
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+            
+            {isLoading ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i} className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm">
+                    <CardHeader className="pb-4">
+                      <Skeleton className="h-5 w-2/3 mb-2" />
+                      <Skeleton className="h-4 w-1/3" />
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-5/6 mb-2" />
+                      <Skeleton className="h-4 w-4/6" />
+                    </CardContent>
+                    <CardFooter>
+                      <Skeleton className="h-9 w-24 mr-2" />
+                      <Skeleton className="h-9 w-32" />
+                    </CardFooter>
+                  </Card>
                 ))}
               </div>
-            </TabsContent>
-            
-            {RESOURCE_CATEGORIES.map(category => {
-              const categoryKey = category.toLowerCase().replace(/\s+/g, '-');
-              const categoryResources = categorizedResources[categoryKey];
-              
-              return (
-                <TabsContent key={categoryKey} value={categoryKey} className="mt-6">
-                  {categoryResources.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <p className="text-muted-foreground mb-4">
-                        No {category.toLowerCase()} resources found matching your search.
-                      </p>
-                      <Button variant="outline" onClick={() => setSearchTerm('')}>
-                        Clear search
+            ) : resources && resources.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {resources.map(resource => (
+                  <Card 
+                    key={resource.id} 
+                    className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <CardTitle className="text-xl text-sophera-text-heading">{resource.title}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge className="bg-sophera-gradient-start text-sophera-brand-primary border-sophera-border-subtle rounded-full px-2.5 py-0.5">
+                              {RESOURCE_CATEGORIES.find(c => c.id === resource.category)?.name}
+                            </Badge>
+                            {resource.isFeatured && (
+                              <Badge className="bg-sophera-accent-tertiary/20 text-sophera-accent-tertiary border-sophera-border-subtle rounded-full px-2.5 py-0.5">
+                                <Star className="h-3 w-3 mr-1" fill="currentColor" />
+                                Featured
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-sophera-text-subtle text-sm mr-1">{resource.rating}</span>
+                          <Star className="h-4 w-4 text-sophera-accent-tertiary" fill="currentColor" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <p className="text-sophera-text-body">{resource.description}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-4">
+                        {resource.tags.map(tag => (
+                          <Badge key={tag} variant="outline" className="text-xs text-sophera-text-subtle border-sophera-border-subtle rounded-full">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-2 border-t border-sophera-border-subtle flex justify-between">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                        onClick={() => handleSaveResource(resource.id)}
+                      >
+                        <Bookmark className="h-4 w-4 mr-1" />
+                        Save
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {categoryResources.map(resource => (
-                        <ResourceCard key={resource.id} resource={resource} />
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              );
-            })}
-          </>
-        )}
-      </Tabs>
-
-      {/* Action buttons */}
-      <div className="flex justify-center pt-4">
-        <Button className="mr-2">
-          Suggest a Resource
-        </Button>
-        <Button variant="outline">
-          Download Resource List
-        </Button>
+                      <Button 
+                        size="sm"
+                        className="bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white rounded-sophera-button shadow-sm"
+                        onClick={() => window.open(resource.url, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Visit Resource
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 md:p-12 text-center rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm">
+                <div className="flex flex-col items-center max-w-md mx-auto">
+                  <Search className="h-12 w-12 text-sophera-text-subtle mb-4" />
+                  <h3 className="text-xl font-semibold text-sophera-text-heading mb-2">No resources found</h3>
+                  <p className="text-sophera-text-body mb-6">
+                    {searchQuery 
+                      ? `No resources match "${searchQuery}"${selectedCategory ? ' in this category' : ''}.` 
+                      : selectedCategory 
+                        ? "No resources found in this category." 
+                        : "No resources are currently available."}
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory(null);
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </Card>
+            )}
+          </Tabs>
+        </div>
+        
+        {/* Download Resources Section */}
+        <Card className="mt-8 md:mt-10 rounded-sophera-card bg-sophera-gradient-start/30 border-sophera-brand-primary/20 shadow-md">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl text-sophera-text-heading">Downloadable Resources</CardTitle>
+            <CardDescription className="text-sophera-text-subtle pt-1">
+              Helpful materials you can download and share with your healthcare team or loved ones.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 md:p-5 flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-full bg-sophera-brand-primary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-sophera-brand-primary" />
+                  </div>
+                  <h3 className="font-medium text-sophera-text-heading">Doctor Discussion Guide</h3>
+                </div>
+                <p className="text-sm text-sophera-text-body mb-4 flex-grow">
+                  A printable guide with questions to ask your doctor about esophageal cancer treatment options.
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Download PDF
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 md:p-5 flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-full bg-sophera-accent-secondary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-sophera-accent-secondary" />
+                  </div>
+                  <h3 className="font-medium text-sophera-text-heading">Treatment Tracker</h3>
+                </div>
+                <p className="text-sm text-sophera-text-body mb-4 flex-grow">
+                  A printable calendar to track appointments, medications, and symptoms throughout your treatment.
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Download PDF
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 md:p-5 flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-full bg-sophera-accent-tertiary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-sophera-accent-tertiary" />
+                  </div>
+                  <h3 className="font-medium text-sophera-text-heading">Nutrition Guide</h3>
+                </div>
+                <p className="text-sm text-sophera-text-body mb-4 flex-grow">
+                  Helpful nutrition tips and recipes specially designed for esophageal cancer patients.
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Download PDF
+                </Button>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+        
+        {/* Additional Resources Section */}
+        <div className="mt-4 md:mt-6">
+          <h2 className="text-xl font-semibold text-sophera-text-heading mb-4">Additional Resources</h2>
+          <p className="text-sophera-text-body mb-6">
+            Can't find what you're looking for? Try these options:
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 md:p-5 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-sophera-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Search className="h-6 w-6 text-sophera-brand-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-sophera-text-heading mb-1">Ask the AI Research Assistant</h3>
+                  <p className="text-sm text-sophera-text-body">
+                    Use our AI to search medical literature and find specific information about your condition.
+                  </p>
+                  <Button 
+                    className="mt-3 bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white rounded-sophera-button shadow-sm"
+                    size="sm"
+                  >
+                    Go to Research Assistant
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="rounded-sophera-card border-sophera-border-primary bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 md:p-5 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-sophera-accent-secondary/10 flex items-center justify-center flex-shrink-0">
+                  <Link2 className="h-6 w-6 text-sophera-accent-secondary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-sophera-text-heading mb-1">Suggest a Resource</h3>
+                  <p className="text-sm text-sophera-text-body">
+                    Know a helpful resource that's not listed here? Submit it for our review.
+                  </p>
+                  <Button 
+                    variant="outline"
+                    className="mt-3 border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                    size="sm"
+                  >
+                    Suggest Resource
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
