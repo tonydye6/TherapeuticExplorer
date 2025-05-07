@@ -39,12 +39,11 @@ class OpenAIService {
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a medical AI assistant helping cancer patients.' },
+          { role: 'system', content: 'You are a medical AI assistant helping cancer patients. Always return responses in the exact format requested. If JSON is requested, ensure it is valid and matches the specified structure exactly.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-        response_format: options.responseFormat === 'json' ? { type: 'json_object' } : undefined
+        temperature: options.temperature || 0.7
       });
       
       const content = response.choices[0].message.content || '';
