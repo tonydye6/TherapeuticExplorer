@@ -50,15 +50,23 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
       <div className="fixed bottom-20 left-40 w-32 h-32 bg-teal-200 rounded-full opacity-40 z-0 hidden sm:block"></div>
       <div className="fixed top-1/3 right-1/4 w-16 h-16 bg-pink-200 rounded-full opacity-30 z-0 hidden sm:block"></div>
       
-      {/* Sidebar Toggle Button for Mobile */}
+      {/* Neo Brutalism Toggle Switch for Mobile */}
       {isMobile && (
-        <button 
-          onClick={toggleSidebar} 
-          className="fixed top-4 left-4 z-50 bg-white p-2 rounded-lg border-3 border-sophera-text-heading shadow-[0.2rem_0.2rem_0_#000000] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#000000] transition-all"
-          aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+        <div 
+          className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#000000] transition-all"
         >
-          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+          <span className="text-sm font-semibold text-sophera-text-heading">{sidebarOpen ? "Hide Menu" : "Show Menu"}</span>
+          <label className="switch">
+            <input
+              type="checkbox"
+              className="toggle"
+              checked={sidebarOpen}
+              onChange={toggleSidebar}
+              aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+            />
+            <span className="slider"></span>
+          </label>
+        </div>
       )}
       
       {/* Overlay for mobile when sidebar is open */}
@@ -107,6 +115,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             <NeoNavigationItem 
               href="/my-journey/plan" 
               active={location.startsWith('/my-journey/plan')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               My Plan
             </NeoNavigationItem>
@@ -114,12 +123,14 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/my-journey/journal" 
               active={location.startsWith('/my-journey/journal')}
               badge={3}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Journal
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/my-journey/diet" 
               active={location.startsWith('/my-journey/diet')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Diet Tracker
             </NeoNavigationItem>
