@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { NeoCard, NeoCardHeader, NeoCardContent, NeoCardTitle, NeoCardDescription, NeoCardFooter, NeoCardDecoration } from "@/components/ui/neo-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { NeoButton } from "@/components/ui/neo-button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -169,56 +168,65 @@ const ALL_STORIES = [...FEATURED_STORIES, ...RECENT_STORIES];
 
 const StoryCard = ({ story }: { story: Story }) => {
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-all duration-200 border-sophera-border-soft rounded-sophera-card bg-sophera-bg-card overflow-hidden">
-      <CardHeader className="pb-2 pt-5 px-5">
+    <NeoCard className="h-full flex flex-col">
+      <NeoCardDecoration />
+      <NeoCardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl font-semibold line-clamp-2 text-sophera-text-heading">{story.title}</CardTitle>
+          <NeoCardTitle>{story.title}</NeoCardTitle>
           {story.featured && (
-            <Badge variant="secondary" className="bg-sophera-accent-primary/15 text-sophera-accent-primary border-none">
-              Featured
+            <Badge className="bg-white text-sophera-text-heading border-2 border-sophera-text-heading rounded-md shadow-[0.1rem_0.1rem_0_#05060f] font-bold">
+              FEATURED
             </Badge>
           )}
         </div>
-        <CardDescription className="flex items-center gap-2 pt-1.5">
-          <Avatar className="h-7 w-7 border border-sophera-border-soft">
+        <div className="flex items-center gap-2 pt-2">
+          <Avatar className="h-8 w-8 border-2 border-sophera-text-heading">
             <AvatarImage src={story.authorAvatar} />
-            <AvatarFallback className="bg-sophera-gradient-start text-sophera-brand-primary font-medium">{story.authorName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-sophera-gradient-start text-sophera-brand-primary font-bold">{story.authorName.charAt(0)}</AvatarFallback>
           </Avatar>
-          <span className="text-sm text-sophera-text-subtle">{story.authorName} · {new Date(story.datePosted).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow px-5">
+          <span className="text-sm text-sophera-text-body">{story.authorName} · {new Date(story.datePosted).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+        </div>
+      </NeoCardHeader>
+      <NeoCardContent>
         <p className="text-base line-clamp-4 text-sophera-text-body">{story.content}</p>
         <div className="flex flex-wrap gap-1.5 mt-4">
           {story.tags.slice(0, 3).map(tag => (
-            <Badge key={tag} className="text-xs px-2.5 py-1 bg-sophera-bg-secondary text-sophera-text-body border-sophera-border-soft rounded-full">
+            <Badge key={tag} className="text-xs px-2.5 py-1 bg-white text-sophera-text-heading border-2 border-sophera-text-heading rounded-md shadow-[0.1rem_0.1rem_0_#05060f] font-bold">
               {tag}
             </Badge>
           ))}
           {story.tags.length > 3 && <span className="text-xs text-sophera-text-subtle">+{story.tags.length - 3} more</span>}
         </div>
-      </CardContent>
-      <CardFooter className="pt-3 border-t border-sophera-border-soft flex justify-between items-center text-sm text-sophera-text-subtle px-5 py-4">
-        <div className="flex items-center gap-5">
-          <span className="flex items-center gap-1.5">
-            <ThumbsUpIcon className="h-4 w-4 text-sophera-accent-tertiary" />
-            {story.likesCount}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MessageSquareIcon className="h-4 w-4 text-sophera-accent-secondary" />
-            {story.commentsCount}
-          </span>
+      </NeoCardContent>
+      <NeoCardFooter className="border-t-2 border-dashed border-sophera-text-heading pt-3">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-5">
+            <span className="flex items-center gap-1.5">
+              <ThumbsUpIcon className="h-4 w-4 text-sophera-accent-tertiary" />
+              {story.likesCount}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MessageSquareIcon className="h-4 w-4 text-sophera-accent-secondary" />
+              {story.commentsCount}
+            </span>
+          </div>
+          <div className="flex gap-3">
+            <NeoButton 
+              buttonText="Save" 
+              size="sm" 
+              icon={<BookmarkIcon className="h-4 w-4" />}
+              color="pink"
+            />
+            <NeoButton 
+              buttonText="Like" 
+              size="sm" 
+              icon={<HeartIcon className="h-4 w-4" />}
+              color="primary"
+            />
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-sophera-accent-tertiary/10 hover:text-sophera-accent-tertiary">
-            <BookmarkIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-sophera-accent-primary/10 hover:text-sophera-accent-primary">
-            <HeartIcon className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+      </NeoCardFooter>
+    </NeoCard>
   );
 };
 
@@ -278,55 +286,62 @@ export default function SurvivorStoriesPage({ inTabView }: SurvivorStoriesPagePr
       )}
       
       {/* Search and filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end">
-        <div className="relative flex-grow">
-          <SearchIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sophera-text-subtle" />
-          <Input 
-            placeholder="Search stories..." 
-            className="pl-10 h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[180px] h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent className="border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card">
-              {CATEGORIES.map(category => (
-                <SelectItem key={category} value={category} className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-full sm:w-[180px] h-12 border-sophera-border-primary rounded-sophera-input focus-visible:ring-sophera-brand-primary text-sophera-text-body bg-sophera-bg-input">
-              <SelectValue placeholder="Filter by tag" />
-            </SelectTrigger>
-            <SelectContent className="border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card">
-              <SelectItem value="All" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">All Tags</SelectItem>
-              {TAGS.map(tag => (
-                <SelectItem key={tag} value={tag} className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">
-                  {tag}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <NeoCard className="h-auto">
+        <NeoCardHeader>
+          <NeoCardTitle>FIND STORIES</NeoCardTitle>
+        </NeoCardHeader>
+        <NeoCardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="relative flex-grow">
+              <SearchIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sophera-text-subtle" />
+              <Input 
+                placeholder="Search stories..." 
+                className="pl-10 h-12 border-3 border-sophera-text-heading rounded-lg"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[180px] h-12 border-3 border-sophera-text-heading rounded-lg">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent className="border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
+                  {CATEGORIES.map(category => (
+                    <SelectItem key={category} value={category} className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-full sm:w-[180px] h-12 border-3 border-sophera-text-heading rounded-lg">
+                  <SelectValue placeholder="Filter by tag" />
+                </SelectTrigger>
+                <SelectContent className="border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
+                  <SelectItem value="All" className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">All Tags</SelectItem>
+                  {TAGS.map(tag => (
+                    <SelectItem key={tag} value={tag} className="text-sophera-text-body focus:text-sophera-text-heading focus:bg-sophera-brand-primary/10">
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </NeoCardContent>
+      </NeoCard>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="h-[320px] rounded-sophera-card border-sophera-border-soft bg-sophera-bg-card">
-              <CardHeader className="pb-2 pt-5 px-5">
+            <NeoCard key={i} className="h-[320px]">
+              <NeoCardHeader>
                 <Skeleton className="h-6 w-2/3 mb-2 bg-sophera-gradient-start/30 rounded-md" />
                 <Skeleton className="h-4 w-1/3 bg-sophera-gradient-start/20 rounded-md" />
-              </CardHeader>
-              <CardContent className="px-5">
+              </NeoCardHeader>
+              <NeoCardContent>
                 <Skeleton className="h-4 w-full mb-2 bg-sophera-gradient-start/20 rounded-md" />
                 <Skeleton className="h-4 w-full mb-2 bg-sophera-gradient-start/20 rounded-md" />
                 <Skeleton className="h-4 w-3/4 mb-4 bg-sophera-gradient-start/20 rounded-md" />
@@ -334,44 +349,42 @@ export default function SurvivorStoriesPage({ inTabView }: SurvivorStoriesPagePr
                   <Skeleton className="h-6 w-16 bg-sophera-gradient-start/30 rounded-full" />
                   <Skeleton className="h-6 w-16 bg-sophera-gradient-start/30 rounded-full" />
                 </div>
-              </CardContent>
-            </Card>
+              </NeoCardContent>
+            </NeoCard>
           ))}
         </div>
       ) : filteredStories?.length === 0 ? (
-        <Card className="py-12 text-center border-sophera-border-primary rounded-sophera-card bg-sophera-bg-card/70">
-          <div className="flex flex-col items-center justify-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-sophera-gradient-start/20 flex items-center justify-center mb-1">
-              <SearchIcon className="h-7 w-7 text-sophera-brand-primary" />
+        <NeoCard className="h-auto">
+          <NeoCardContent className="py-12 text-center">
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-sophera-gradient-start/20 flex items-center justify-center mb-1">
+                <SearchIcon className="h-7 w-7 text-sophera-brand-primary" />
+              </div>
+              <h3 className="text-xl font-extrabold text-sophera-text-heading">NO STORIES FOUND</h3>
+              <p className="text-sophera-text-body mt-2 max-w-md mx-auto">
+                {searchTerm || selectedCategory !== 'All Stories' || selectedTag !== 'All'
+                  ? "No stories found matching your search criteria. Try adjusting your filters."
+                  : "There are no stories yet. Be the first to share your experience."}
+              </p>
+              <NeoButton 
+                buttonText="Clear Filters"
+                color="primary"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('All Stories');
+                  setSelectedTag('All');
+                }}
+                className="mt-4"
+              />
             </div>
-            <CardTitle className="text-xl text-sophera-text-heading">No stories found</CardTitle>
-            <CardDescription className="text-sophera-text-subtle max-w-md mx-auto">
-              {searchTerm || selectedCategory !== 'All Stories' || selectedTag !== 'All'
-                ? "No stories found matching your search criteria. Try adjusting your filters."
-                : "There are no stories yet. Be the first to share your experience."}
-            </CardDescription>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('All Stories');
-                setSelectedTag('All');
-              }}
-              className="mt-4 border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light rounded-sophera-button"
-            >
-              Clear filters
-            </Button>
-          </div>
-        </Card>
+          </NeoCardContent>
+        </NeoCard>
       ) : (
         <>
-          {/* Featured stories */}
+          {/* Featured stories section */}
           {featuredStories && featuredStories.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-sophera-text-heading flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-sophera-accent-primary rounded-full block"></span>
-                Featured Stories
-              </h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-sophera-text-heading">FEATURED STORIES</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredStories.map(story => (
                   <StoryCard key={story.id} story={story} />
@@ -380,13 +393,10 @@ export default function SurvivorStoriesPage({ inTabView }: SurvivorStoriesPagePr
             </div>
           )}
           
-          {/* Recent stories */}
+          {/* Recent stories section */}
           {otherStories && otherStories.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-sophera-text-heading flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-sophera-accent-secondary rounded-full block"></span>
-                Community Stories
-              </h2>
+              <h2 className="text-2xl font-extrabold tracking-tight text-sophera-text-heading">RECENT STORIES</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {otherStories.map(story => (
                   <StoryCard key={story.id} story={story} />
@@ -395,19 +405,13 @@ export default function SurvivorStoriesPage({ inTabView }: SurvivorStoriesPagePr
             </div>
           )}
           
-          {/* Action buttons */}
-          <div className="flex justify-center pt-6">
-            <Button 
-              className="mr-4 bg-sophera-brand-primary hover:bg-sophera-brand-primary-dark text-white rounded-sophera-button shadow-md px-6 h-12 font-medium"
-            >
-              Share Your Story
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light rounded-sophera-button px-6 h-12 font-medium"
-            >
-              Browse All Stories
-            </Button>
+          {/* Share your story button - at the bottom */}
+          <div className="flex justify-center mt-8">
+            <NeoButton 
+              buttonText="Share Your Story" 
+              color="primary" 
+              size="lg"
+            />
           </div>
         </>
       )}

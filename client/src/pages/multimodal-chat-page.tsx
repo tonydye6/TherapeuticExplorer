@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { NeoCard, NeoCardHeader, NeoCardContent, NeoCardTitle, NeoCardDescription, NeoCardFooter, NeoCardDecoration } from '@/components/ui/neo-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { MultimodalChat } from '@/components/MultimodalChat';
@@ -8,7 +8,7 @@ import { MessageCircle, Image as ImageIcon, Info, Lightbulb, AlertCircle, FileDo
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ModelBadge from '@/components/ModelBadge';
-import { Button } from '@/components/ui/button';
+import { NeoButton } from '@/components/ui/neo-button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -127,23 +127,23 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
     <div className="container py-6 max-w-6xl">
       {/* Disclaimer Dialog */}
       <Dialog open={isDisclaimerOpen} onOpenChange={setIsDisclaimerOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md border-3 border-sophera-text-heading rounded-xl bg-sophera-bg-card">
           <DialogHeader>
-            <DialogTitle>Creative Exploration Disclaimer</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-extrabold text-xl text-sophera-text-heading">CREATIVE EXPLORATION DISCLAIMER</DialogTitle>
+            <DialogDescription className="text-sophera-text-body">
               Before using the Creative Exploration Sandbox, please read and acknowledge the following:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 text-sm">
             <div className="space-y-2">
-              <h4 className="font-medium">What is Creative Exploration?</h4>
-              <p className="text-muted-foreground">
+              <h4 className="font-bold mb-1 text-sophera-text-heading">What is Creative Exploration?</h4>
+              <p className="text-sophera-text-body">
                 The Creative Exploration Sandbox allows you to explore unconventional or experimental approaches to cancer care that may not be part of standard medical practice.
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium">Important Disclaimer</h4>
-              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+              <h4 className="font-bold mb-1 text-sophera-text-heading">Important Disclaimer</h4>
+              <ul className="list-disc pl-5 space-y-1 text-sophera-text-body">
                 <li>Ideas and suggestions provided in this section are <strong>not medical advice</strong>.</li>
                 <li>Always consult with your healthcare team before trying any new treatments or approaches.</li>
                 <li>Information here may include approaches not supported by traditional clinical evidence.</li>
@@ -155,115 +155,111 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
                 if (checked) {
                   handleDisclaimerAccept();
                 }
-              }} />
-              <Label htmlFor="disclaimer-checkbox" className="text-sm">
+              }} className="border-2 border-sophera-text-heading data-[state=checked]:bg-sophera-brand-primary data-[state=checked]:text-white" />
+              <Label htmlFor="disclaimer-checkbox" className="text-sm text-sophera-text-heading">
                 I understand this is for exploratory purposes only and not medical advice
               </Label>
             </div>
           </div>
           <DialogFooter className="sm:justify-start">
-            <Button variant="ghost" onClick={() => setIsDisclaimerOpen(false)}>Cancel</Button>
+            <NeoButton 
+              buttonText="Cancel" 
+              size="sm" 
+              color="red" 
+              onClick={() => setIsDisclaimerOpen(false)} 
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-6">
         <div className="pb-2 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Creative Exploration</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-sophera-text-heading">CREATIVE EXPLORATION</h1>
+            <p className="text-sophera-text-body mt-2">
               Explore innovative approaches and ideas for your cancer journey in a safe space.
             </p>
           </div>
           {responses.length > 0 && (
-            <Button 
-              onClick={handleExportDoctorBrief}
+            <NeoButton 
+              buttonText={isExporting ? "Preparing Document..." : "Export Doctor Discussion Brief"}
+              color="primary"
               disabled={isExporting || !isDisclaimerAccepted}
-              className="flex items-center gap-2"
-            >
-              {isExporting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Preparing Document...
-                </>
-              ) : (
-                <>
-                  <FileDown className="h-4 w-4" />
-                  Export Doctor Discussion Brief
-                </>
-              )}
-            </Button>
+              icon={isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              onClick={handleExportDoctorBrief}
+            />
           )}
         </div>
         
-        <Card className="w-full bg-blue-50 border-blue-200 mb-2">
-          <CardContent className="pt-4 pb-2">
+        <NeoCard className="h-auto border-orange-300">
+          <NeoCardContent className="pt-4 pb-2">
             <div className="flex gap-2">
-              <AlertCircle className="h-5 w-5 text-blue-700 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-sophera-accent-secondary mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-medium text-blue-900 text-sm">Important Privacy Information</h3>
-                <p className="text-blue-700 text-xs mt-1">
+                <h3 className="font-bold text-sophera-text-heading text-sm">IMPORTANT PRIVACY INFORMATION</h3>
+                <p className="text-sophera-text-body text-xs mt-1">
                   Before uploading any medical images, please ensure they contain no personal identifying information. 
                   This tool is for informational purposes only and should not replace professional medical advice.
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </NeoCardContent>
+        </NeoCard>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-secondary/30 rounded-lg p-3 flex items-start gap-2">
-            <div className="bg-primary/10 rounded-full p-1.5">
-              <ImageIcon className="h-4 w-4 text-primary" />
+          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
+            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
+              <ImageIcon className="h-4 w-4 text-sophera-brand-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-medium">Upload Images</h3>
+              <h3 className="text-sm font-bold text-sophera-text-heading">UPLOAD IMAGES</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Add up to 5 medical images for analysis</p>
             </div>
           </div>
           
-          <div className="bg-secondary/30 rounded-lg p-3 flex items-start gap-2">
-            <div className="bg-primary/10 rounded-full p-1.5">
-              <MessageCircle className="h-4 w-4 text-primary" />
+          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
+            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
+              <MessageCircle className="h-4 w-4 text-sophera-brand-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-medium">Add Context</h3>
+              <h3 className="text-sm font-bold text-sophera-text-heading">ADD CONTEXT</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Describe what you'd like to learn about</p>
             </div>
           </div>
           
-          <div className="bg-secondary/30 rounded-lg p-3 flex items-start gap-2">
-            <div className="bg-primary/10 rounded-full p-1.5">
-              <Lightbulb className="h-4 w-4 text-primary" />
+          <div className="bg-white rounded-xl p-3 flex items-start gap-2 border-3 border-sophera-text-heading shadow-[0.3rem_0.3rem_0_#05060f]">
+            <div className="bg-sophera-brand-primary/10 rounded-full p-1.5">
+              <Lightbulb className="h-4 w-4 text-sophera-brand-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-medium">Receive Insights</h3>
+              <h3 className="text-sm font-bold text-sophera-text-heading">RECEIVE INSIGHTS</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Get AI analysis of your medical images</p>
             </div>
           </div>
         </div>
 
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Upload & Analyze</CardTitle>
-            <CardDescription>
+        <NeoCard className="h-auto">
+          <NeoCardDecoration />
+          <NeoCardHeader>
+            <NeoCardTitle>UPLOAD & ANALYZE</NeoCardTitle>
+            <NeoCardDescription>
               Share medical images with AI for professional analysis and explanations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </NeoCardDescription>
+          </NeoCardHeader>
+          <NeoCardContent>
             <MultimodalChat onSend={handleResponseReceived} />
-          </CardContent>
-        </Card>
+          </NeoCardContent>
+        </NeoCard>
 
         {responses.length > 0 && (
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Analysis Results</CardTitle>
-              <CardDescription>
+          <NeoCard className="h-auto">
+            <NeoCardHeader>
+              <NeoCardTitle>ANALYSIS RESULTS</NeoCardTitle>
+              <NeoCardDescription>
                 Recent AI analyses of your uploads and messages.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </NeoCardDescription>
+            </NeoCardHeader>
+            <NeoCardContent>
               <ScrollArea className="h-[500px] pr-4">
                 <div className="space-y-6">
                   {responses.map((response, index) => (
@@ -271,44 +267,44 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <ModelBadge model={response.modelUsed as ModelType} showText />
-                          <span className="text-sm font-medium">Response #{responses.length - index}</span>
+                          <span className="text-sm font-bold text-sophera-text-heading">Response #{responses.length - index}</span>
                         </div>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge variant="outline" className="flex items-center gap-1 h-7 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 cursor-help">
+                              <Badge variant="outline" className="flex items-center gap-1 h-7 px-2 bg-white text-sophera-brand-primary cursor-help border-2 border-sophera-text-heading rounded-md">
                                 <Info className="h-3.5 w-3.5" />
-                                <span className="text-xs">Multimodal Analysis</span>
+                                <span className="text-xs font-bold">MULTIMODAL ANALYSIS</span>
                               </Badge>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
+                            <TooltipContent className="max-w-xs border-2 border-sophera-text-heading rounded-lg">
                               <p>This analysis was generated from both text and image inputs using advanced AI vision capabilities.</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
                       
-                      <div className="bg-secondary/40 rounded-lg p-4">
+                      <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
                         <div className="flex items-start gap-2">
-                          <MessageCircle className="h-5 w-5 mt-1 text-primary" />
+                          <MessageCircle className="h-5 w-5 mt-1 text-sophera-brand-primary" />
                           <div className="flex-1">
-                            <div className="font-medium mb-1">Analysis</div>
-                            <div className="text-sm whitespace-pre-wrap">{response.content}</div>
+                            <div className="font-bold mb-1 text-sophera-text-heading">Analysis</div>
+                            <div className="text-sm whitespace-pre-wrap text-sophera-text-body">{response.content}</div>
                           </div>
                         </div>
                       </div>
                       
                       {response.imageAnalysis && response.imageAnalysis.length > 0 && (
-                        <div className="bg-secondary/40 rounded-lg p-4">
+                        <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
                           <div className="flex items-start gap-2">
-                            <ImageIcon className="h-5 w-5 mt-1 text-primary" />
+                            <ImageIcon className="h-5 w-5 mt-1 text-sophera-brand-primary" />
                             <div className="flex-1">
-                              <div className="font-medium mb-1">Image Analysis</div>
+                              <div className="font-bold mb-1 text-sophera-text-heading">Image Analysis</div>
                               <div className="space-y-2">
                                 {response.imageAnalysis.map((analysis, i) => (
                                   <div key={i} className="text-sm">
                                     <div className="font-medium text-xs text-muted-foreground mb-1">Image {i + 1}</div>
-                                    <div className="whitespace-pre-wrap">{analysis.description}</div>
+                                    <div className="whitespace-pre-wrap text-sophera-text-body">{analysis.description}</div>
                                   </div>
                                 ))}
                               </div>
@@ -318,16 +314,16 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
                       )}
                       
                       {response.contextualInsights && response.contextualInsights.length > 0 && (
-                        <div className="bg-secondary/40 rounded-lg p-4">
+                        <div className="bg-sophera-gradient-start/20 rounded-lg p-4 border-2 border-sophera-text-heading">
                           <div className="flex items-start gap-2">
-                            <Lightbulb className="h-5 w-5 mt-1 text-amber-500" />
+                            <Lightbulb className="h-5 w-5 mt-1 text-sophera-accent-tertiary" />
                             <div className="flex-1">
-                              <div className="font-medium mb-1">Contextual Insights</div>
+                              <div className="font-bold mb-1 text-sophera-text-heading">Contextual Insights</div>
                               <div className="space-y-2">
                                 {response.contextualInsights.map((insight, i) => (
                                   <div key={i} className="flex items-start gap-2">
                                     <span className="text-sm text-muted-foreground mt-0.5">•</span>
-                                    <p className="text-sm flex-1">{insight}</p>
+                                    <p className="text-sm text-sophera-text-body flex-1">{insight}</p>
                                   </div>
                                 ))}
                               </div>
@@ -336,16 +332,18 @@ export default function MultimodalChatPage({ inTabView = false }: MultimodalChat
                         </div>
                       )}
                       
-                      {index < responses.length - 1 && <Separator className="my-4" />}
+                      {index < responses.length - 1 && <Separator className="my-4 border-t-2 border-dashed border-sophera-text-heading/30" />}
                     </div>
                   ))}
                 </div>
               </ScrollArea>
-            </CardContent>
-            <CardFooter className="text-xs text-muted-foreground">
-              Analysis results are not stored permanently and will be lost on page refresh.
-            </CardFooter>
-          </Card>
+            </NeoCardContent>
+            <NeoCardFooter>
+              <p className="text-xs text-muted-foreground">
+                Analysis results are not stored permanently and will be lost on page refresh.
+              </p>
+            </NeoCardFooter>
+          </NeoCard>
         )}
       </div>
     </div>

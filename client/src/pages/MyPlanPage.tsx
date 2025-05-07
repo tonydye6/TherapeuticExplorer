@@ -1,11 +1,9 @@
-
 // client/src/pages/MyPlanPage.tsx
 
 import React, { useState, useMemo } from "react";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { PlanItemCard } from "@/components/PlanItemCard";
 import { AddPlanItemDialog } from "@/components/AddPlanItemDialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +20,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarIcon, ListFilter, Search, AlertTriangle, PlusIcon, CheckCircle2, CircleDotDashed, SlidersHorizontal, SortAscIcon } from "lucide-react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { PlanItem } from "@shared/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { NeoButton } from "@/components/ui/neo-button";
+import { NeoCard, NeoCardHeader, NeoCardContent, NeoCardTitle, NeoCardDescription, NeoCardFooter, NeoCardDecoration } from "@/components/ui/neo-card";
 
 type FilterOptions = {
   search: string;
@@ -99,7 +98,7 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
   const activeItems = filteredAndSortedItems.filter((item: PlanItem) => !item.isCompleted);
   const completedItems = filteredAndSortedItems.filter((item: PlanItem) => item.isCompleted);
 
-  const pageTitle = "My Wellness Plan";
+  const pageTitle = "MY WELLNESS PLAN";
   const pageDescription = "Organize your treatments, appointments, self-care, and more.";
 
   const renderPlanItems = (items: PlanItem[]) => {
@@ -114,22 +113,27 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
       }
       
       return (
-        <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-xl p-6 md:p-10 col-span-full">
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="p-4 bg-sophera-brand-primary-light rounded-full">
-              <CalendarIcon className="h-12 w-12 text-sophera-brand-primary" />
-            </div>
-            <h3 className="text-xl lg:text-2xl font-semibold text-sophera-text-heading">{message.includes("clear!") ? "Plan Looks Clear!" : "No Items Found"}</h3>
-            <p className="text-sophera-text-body mt-1 max-w-md text-base">{message}</p>
-            {(!filters.search && filters.category === "all" && (filters.status === "all" || filters.status === "active")) && (
+        <NeoCard className="h-auto text-center py-16">
+          <NeoCardContent>
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="p-4 bg-sophera-brand-primary/10 rounded-full shadow-[0.2rem_0.2rem_0_#05060f] border-3 border-sophera-text-heading">
+                <CalendarIcon className="h-12 w-12 text-sophera-brand-primary" />
+              </div>
+              <h3 className="text-xl lg:text-2xl font-extrabold text-sophera-text-heading mt-2">{message.includes("clear!") ? "PLAN LOOKS CLEAR!" : "NO ITEMS FOUND"}</h3>
+              <p className="text-sophera-text-body mt-1 max-w-md text-base">{message}</p>
+              {(!filters.search && filters.category === "all" && (filters.status === "all" || filters.status === "active")) && (
                 <AddPlanItemDialog trigger={
-                    <Button className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
-                        <PlusIcon className="mr-2 h-5 w-5" /> Add First Plan Item
-                    </Button>
+                  <NeoButton 
+                    buttonText="Add First Plan Item"
+                    color="primary"
+                    icon={<PlusIcon className="h-5 w-5" />}
+                    className="mt-6"
+                  />
                 }/>
-            )}
-          </div>
-        </Card>
+              )}
+            </div>
+          </NeoCardContent>
+        </NeoCard>
       );
     }
     return (
@@ -154,105 +158,149 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
           </div>
           <div className="mt-4 sm:mt-0">
             <AddPlanItemDialog trigger={
-              <Button className="w-full sm:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-5 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
-                <PlusIcon className="mr-2 h-5 w-5" /> Add Plan Item
-              </Button>
+              <NeoButton 
+                buttonText="Add Plan Item"
+                color="primary"
+                icon={<PlusIcon className="h-5 w-5" />}
+              />
             }/>
           </div>
         </div>
       )}
       {inTabView && (
         <div className="flex justify-end mb-6">
-           <AddPlanItemDialog trigger={
-            <Button size="sm" className="bg-sophera-accent-secondary text-white rounded-sophera-button py-2.5 px-4 text-sm font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
-              <PlusIcon className="mr-1.5 h-4 w-4" /> New Item
-            </Button>
-           }/>
+          <AddPlanItemDialog trigger={
+            <NeoButton 
+              buttonText="New Item"
+              color="primary"
+              size="sm"
+              icon={<PlusIcon className="h-4 w-4" />}
+            />
+          }/>
         </div>
       )}
 
-      <Card className="p-4 sm:p-6 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-xl">
-        <div className="flex flex-col lg:flex-row gap-4 items-end">
-          <div className="relative flex-grow w-full lg:w-auto">
-            <Label htmlFor="planSearch" className="block text-sm font-medium text-sophera-text-body mb-1.5">Search Plan</Label>
-            <Search className="absolute left-3.5 top-[calc(50%+8px)] transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
-            <Input
-              id="planSearch"
-              type="search"
-              placeholder="Search by title or description..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="pl-11 pr-4 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-2 border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
-            <div className="flex-grow sm:w-auto">
-                <Label htmlFor="categoryFilter" className="block text-sm font-medium text-sophera-text-body mb-1.5">Category</Label>
+      <NeoCard className="h-auto">
+        <NeoCardDecoration />
+        <NeoCardHeader>
+          <NeoCardTitle>FILTER & SORT</NeoCardTitle>
+          <NeoCardDescription>
+            Manage your wellness plan items with custom filters
+          </NeoCardDescription>
+        </NeoCardHeader>
+        <NeoCardContent>
+          <div className="flex flex-col lg:flex-row gap-4 items-end">
+            <div className="relative flex-grow w-full lg:w-auto">
+              <Label htmlFor="planSearch" className="block text-sm font-bold text-sophera-text-heading mb-1.5">Search Plan</Label>
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
+                <Input
+                  id="planSearch"
+                  type="search"
+                  placeholder="Search by title or description..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  className="pl-11 pr-4 h-12 border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
+              <div className="flex-grow sm:w-auto">
+                <Label htmlFor="categoryFilter" className="block text-sm font-bold text-sophera-text-heading mb-1.5">Category</Label>
                 <Select
-                value={filters.category}
-                onValueChange={(value) => handleFilterChange("category", value)}
+                  value={filters.category}
+                  onValueChange={(value) => handleFilterChange("category", value)}
                 >
-                <SelectTrigger id="categoryFilter" className="w-full sm:w-[200px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing">
+                  <SelectTrigger id="categoryFilter" className="w-full sm:w-[200px] h-12 border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
                     <ListFilter className="h-5 w-5 mr-2 text-sophera-text-subtle" />
                     <SelectValue placeholder="Filter by Category" />
-                </SelectTrigger>
-                <SelectContent className="rounded-sophera-input bg-sophera-bg-card border-sophera-border-primary shadow-xl">
+                  </SelectTrigger>
+                  <SelectContent className="border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
                     <SelectGroup>
-                    {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value} className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">
-                        {category.label}
+                      {categories.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
                         </SelectItem>
-                    ))}
+                      ))}
                     </SelectGroup>
-                </SelectContent>
+                  </SelectContent>
                 </Select>
-            </div>
-            <div className="flex-grow sm:w-auto">
-                <Label htmlFor="sortFilter" className="block text-sm font-medium text-sophera-text-body mb-1.5">Sort By</Label>
+              </div>
+              <div className="flex-grow sm:w-auto">
+                <Label htmlFor="sortFilter" className="block text-sm font-bold text-sophera-text-heading mb-1.5">Sort By</Label>
                 <Select
-                value={filters.sortBy}
-                onValueChange={(value) => handleFilterChange("sortBy", value)}
+                  value={filters.sortBy}
+                  onValueChange={(value) => handleFilterChange("sortBy", value)}
                 >
-                <SelectTrigger id="sortFilter" className="w-full sm:w-[180px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing">
+                  <SelectTrigger id="sortFilter" className="w-full sm:w-[180px] h-12 border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
                     <SortAscIcon className="h-5 w-5 mr-2 text-sophera-text-subtle" />
                     <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="rounded-sophera-input bg-sophera-bg-card border-sophera-border-primary shadow-xl">
+                  </SelectTrigger>
+                  <SelectContent className="border-3 border-sophera-text-heading rounded-lg bg-sophera-bg-card">
                     <SelectGroup>
-                    <SelectItem value="date" className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">Date (Soonest First)</SelectItem>
-                    <SelectItem value="priority" className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">Priority</SelectItem>
+                      <SelectItem value="date">Date (Soonest First)</SelectItem>
+                      <SelectItem value="priority">Priority</SelectItem>
                     </SelectGroup>
-                </SelectContent>
+                  </SelectContent>
                 </Select>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </NeoCardContent>
+      </NeoCard>
 
       <Tabs defaultValue="active" className="w-full" onValueChange={(value) => handleFilterChange("status", value)}>
-        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-sophera-gradient-start rounded-xl shadow-md gap-1.5 mb-8 md:mb-10">
-          <TabsTrigger value="active" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 border-3 border-sophera-text-heading rounded-xl gap-1.5 mb-8 md:mb-10 bg-white">
+          <TabsTrigger 
+            value="active" 
+            className="text-base data-[state=active]:bg-sophera-brand-primary data-[state=active]:text-white data-[state=active]:border-sophera-text-heading rounded-lg h-12 flex items-center justify-center gap-2 font-bold"
+          >
             <CircleDotDashed className="h-5 w-5"/>
             Active 
-            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-accent-secondary text-white text-xs">{activeItems.length}</Badge>
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-white text-sophera-text-heading border-2 border-sophera-text-heading shadow-[0.1rem_0.1rem_0_#05060f] font-bold">{activeItems.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="completed" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+          <TabsTrigger 
+            value="completed" 
+            className="text-base data-[state=active]:bg-sophera-brand-primary data-[state=active]:text-white data-[state=active]:border-sophera-text-heading rounded-lg h-12 flex items-center justify-center gap-2 font-bold"
+          >
             <CheckCircle2 className="h-5 w-5"/>
             Completed
-            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-brand-primary text-white text-xs">{completedItems.length}</Badge>
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-white text-sophera-text-heading border-2 border-sophera-text-heading shadow-[0.1rem_0.1rem_0_#05060f] font-bold">{completedItems.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="all" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+          <TabsTrigger 
+            value="all" 
+            className="text-base data-[state=active]:bg-sophera-brand-primary data-[state=active]:text-white data-[state=active]:border-sophera-text-heading rounded-lg h-12 flex items-center justify-center gap-2 font-bold"
+          >
             <ListFilter className="h-5 w-5"/>
             All Items
-            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-text-subtle text-white text-xs">{filteredAndSortedItems.length}</Badge>
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-white text-sophera-text-heading border-2 border-sophera-text-heading shadow-[0.1rem_0.1rem_0_#05060f] font-bold">{filteredAndSortedItems.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="mt-0">
           {isLoading ? (
-             <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+            <div className="flex justify-center py-12">
+              <div className="animate-spin h-12 w-12 border-4 border-sophera-brand-primary border-t-transparent rounded-full"></div>
+            </div>
           ) : isError ? (
-            <ErrorMessage title="Unable to Load Active Plan Items" message="Please check your connection and try again." />
+            <NeoCard className="h-auto">
+              <NeoCardContent className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="p-4 rounded-full bg-red-100 border-3 border-sophera-text-heading shadow-[0.2rem_0.2rem_0_#05060f]">
+                    <AlertTriangle className="h-10 w-10 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-sophera-text-heading mt-2">UNABLE TO LOAD ACTIVE PLAN ITEMS</h3>
+                  <p className="text-sophera-text-body text-base max-w-md">
+                    Please check your connection and try again.
+                  </p>
+                  <NeoButton 
+                    buttonText="Retry"
+                    color="cyan"
+                    className="mt-4"
+                  />
+                </div>
+              </NeoCardContent>
+            </NeoCard>
           ) : (
             renderPlanItems(activeItems)
           )}
@@ -260,9 +308,28 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
 
         <TabsContent value="completed" className="mt-0">
           {isLoading ? (
-             <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+            <div className="flex justify-center py-12">
+              <div className="animate-spin h-12 w-12 border-4 border-sophera-brand-primary border-t-transparent rounded-full"></div>
+            </div>
           ) : isError ? (
-            <ErrorMessage title="Unable to Load Completed Plan Items" message="Please check your connection and try again." />
+            <NeoCard className="h-auto">
+              <NeoCardContent className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="p-4 rounded-full bg-red-100 border-3 border-sophera-text-heading shadow-[0.2rem_0.2rem_0_#05060f]">
+                    <AlertTriangle className="h-10 w-10 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-sophera-text-heading mt-2">UNABLE TO LOAD COMPLETED PLAN ITEMS</h3>
+                  <p className="text-sophera-text-body text-base max-w-md">
+                    Please check your connection and try again.
+                  </p>
+                  <NeoButton 
+                    buttonText="Retry"
+                    color="cyan"
+                    className="mt-4"
+                  />
+                </div>
+              </NeoCardContent>
+            </NeoCard>
           ) : (
             renderPlanItems(completedItems)
           )}
@@ -270,9 +337,28 @@ export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
 
         <TabsContent value="all" className="mt-0">
           {isLoading ? (
-            <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+            <div className="flex justify-center py-12">
+              <div className="animate-spin h-12 w-12 border-4 border-sophera-brand-primary border-t-transparent rounded-full"></div>
+            </div>
           ) : isError ? (
-            <ErrorMessage title="Unable to Load Plan Items" message="Please check your connection and try again." />
+            <NeoCard className="h-auto">
+              <NeoCardContent className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="p-4 rounded-full bg-red-100 border-3 border-sophera-text-heading shadow-[0.2rem_0.2rem_0_#05060f]">
+                    <AlertTriangle className="h-10 w-10 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-sophera-text-heading mt-2">UNABLE TO LOAD PLAN ITEMS</h3>
+                  <p className="text-sophera-text-body text-base max-w-md">
+                    Please check your connection and try again.
+                  </p>
+                  <NeoButton 
+                    buttonText="Retry"
+                    color="cyan"
+                    className="mt-4"
+                  />
+                </div>
+              </NeoCardContent>
+            </NeoCard>
           ) : (
             renderPlanItems(filteredAndSortedItems)
           )}
