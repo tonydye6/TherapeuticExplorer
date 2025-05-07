@@ -478,6 +478,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
                   size="sm" 
                   variant="outline"
                   className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                  onClick={() => handleDownloadPDF("Doctor Discussion Guide")}
                 >
                   <Download className="h-4 w-4 mr-1.5" />
                   Download PDF
@@ -500,6 +501,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
                   size="sm" 
                   variant="outline"
                   className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                  onClick={() => handleDownloadPDF("Treatment Tracker")}
                 >
                   <Download className="h-4 w-4 mr-1.5" />
                   Download PDF
@@ -522,6 +524,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
                   size="sm" 
                   variant="outline"
                   className="w-full justify-center border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
+                  onClick={() => handleDownloadPDF("Nutrition Guide")}
                 >
                   <Download className="h-4 w-4 mr-1.5" />
                   Download PDF
@@ -573,6 +576,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
                     variant="outline"
                     className="mt-3 border-sophera-border-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light hover:text-sophera-brand-primary-dark rounded-sophera-button"
                     size="sm"
+                    onClick={() => setIsResourceDialogOpen(true)}
                   >
                     Suggest Resource
                   </Button>
