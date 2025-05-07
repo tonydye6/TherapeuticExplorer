@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 
 /**
  * Custom hook to detect if the viewport is mobile-sized
- * @returns boolean indicating if the current viewport is mobile-sized
+ * @returns object with isMobile property indicating if the current viewport is mobile-sized
  */
-export default function useMobile(): boolean {
+export default function useMobile() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -26,5 +26,5 @@ export default function useMobile(): boolean {
     };
   }, []);
 
-  return isMobile;
+  return { isMobile };
 }
