@@ -7,6 +7,7 @@
 
 @layer base {
   :root {
+    /* These variables use HSL format for shadcn/ui compatibility */
     --background: 204 10% 97%; /* HSL for #F9FAFB */
     --foreground: 222 22% 20%; /* HSL for #2D3748 */
 
@@ -29,10 +30,10 @@
     --tertiary: 45 100% 51%; /* HSL for #FFC107 - Sunny Yellow */
     --tertiary-foreground: 222 22% 20%; /* HSL for #2D3748 */
  
-    --muted: 216 28% 95%; /* HSL for #EFF2F5 */
+    --muted: 216 28% 95%; /* HSL for #F3F4F6 */
     --muted-foreground: 216 12% 47%; /* HSL for #718096 */
  
-    --accent: 16 100% 66%; /* Same as secondary for compatibility */
+    --accent: 45 100% 51%; /* HSL for #FFC107 - Using tertiary as accent */
     --accent-foreground: 222 22% 20%; /* HSL for #2D3748 */
  
     --destructive: 0 84% 60%; /* HSL for #EF4444 */
@@ -47,13 +48,21 @@
     --text-body: 217 19% 35%; /* HSL for #4A5568 - Medium Gray */
     --text-subtle: 216 12% 47%; /* HSL for #718096 - Cool Gray */
     
-    /* Gradient colors */
-    --gradient-start-aqua: 167 100% 94%; /* HSL for #E6FFFA */
-    --gradient-end-peach: 20 100% 96%; /* HSL for #FFF0E9 */
+    /* Gradient colors - updated to exact color specs */
+    --gradient-start: #E6FFFA; /* Very Light Teal/Mint */
+    --gradient-end: #FFF3E0; /* Pale Orange/Peach */
  
-    --radius: 1rem; /* 16px for cards */
-    --radius-md: 0.625rem; /* 10px for buttons/inputs */
-    --radius-sm: 0.5rem; /* 8px for smaller elements */
+    /* Border radius values from design spec */
+    --radius: 16px; /* Card radius - exactly 16px */
+    --radius-md: 12px; /* Button radius - exactly 12px */
+    --radius-sm: 8px; /* For smaller elements */
+    
+    /* Additional Sophera specific radii */
+    --radius-button: 12px;
+    --radius-input: 12px;
+    --radius-modal-outer: 24px;
+    --radius-modal-inner: 20px;
+    --radius-tab-active: 10px;
   }
 
   * {
@@ -66,8 +75,8 @@
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #4A5568;
-    background: linear-gradient(135deg, #E6FFFA 0%, #FFF0E9 100%);
+    color: #4A5568; /* sophera-text-body */
+    background: linear-gradient(135deg, #E6FFFA 0%, #FFF3E0 100%); /* Updated to exact design colors */
     background-attachment: fixed;
     min-height: 100vh;
     line-height: 1.7;
@@ -150,7 +159,7 @@
     font-weight: 600;
     font-size: 16px;
     letter-spacing: 0.5px;
-    border-radius: 10px; /* Exactly 10px as per design spec */
+    border-radius: 12px; /* Updated to 12px per design spec */
     transition: all 0.2s ease-in-out;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: inline-flex;
@@ -260,7 +269,7 @@
     border: 1px solid #CBD5E0;
     color: #2D3748;
     padding: 0.75rem 1rem;
-    border-radius: 10px; /* Matches design spec */
+    border-radius: 12px; /* Updated to 12px per design spec */
     font-size: 16px;
     transition: all 0.2s ease;
   }
