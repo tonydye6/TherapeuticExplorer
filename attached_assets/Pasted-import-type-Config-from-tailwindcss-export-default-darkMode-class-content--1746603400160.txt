@@ -1,0 +1,167 @@
+import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        // Ensure 'Inter' is the default sans-serif font
+        sans: ['Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        // Existing theme-driven radius (likely from theme.json via --radius CSS variable)
+        // You might want to update the value of --radius in your theme setup
+        // to match one of the new standard Sophera radii.
+        lg: "var(--radius)", // Example: if --radius is 1rem, this is 16px
+        md: "calc(var(--radius) - 4px)", // Example: if --radius is 1rem, this is 12px
+        sm: "calc(var(--radius) - 8px)", // Example: if --radius is 1rem, this is 8px
+
+        // Sophera Specific Radii (from Design Spec v5)
+        'sophera-card': '16px',      // For cards
+        'sophera-button': '12px',    // For buttons
+        'sophera-input': '12px',     // For input fields
+        'sophera-modal-outer': '24px', // For outer modal container
+        'sophera-modal-inner': '20px', // For inner modal content
+        'sophera-tab-active': '10px',  // For active tabs
+      },
+      colors: {
+        // HSL variables driven by theme.json / shadcn-theme-json plugin
+        // CRITICAL: Ensure the HSL values for these CSS variables are updated
+        // in your global CSS / theme setup to match the Sophera HEX palette below.
+        background: "hsl(var(--background))", // Should map to sophera-bg-card ('#FFFFFF') for elements on gradient
+        foreground: "hsl(var(--foreground))", // Should map to sophera-text-heading ('#2D3748')
+        card: {
+          DEFAULT: "hsl(var(--card))", // Should map to sophera-bg-card ('#FFFFFF')
+          foreground: "hsl(var(--card-foreground))", // Should map to sophera-text-heading ('#2D3748')
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))", // Should map to sophera-bg-card ('#FFFFFF')
+          foreground: "hsl(var(--popover-foreground))", // Should map to sophera-text-heading ('#2D3748')
+        },
+        primary: {
+          DEFAULT: "hsl(var(--primary))", // Should map to sophera-brand-primary ('#0D9488')
+          foreground: "hsl(var(--primary-foreground))", // Should map to '#FFFFFF'
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))", // Should map to sophera-accent-secondary ('#FF7F50')
+          foreground: "hsl(var(--secondary-foreground))", // Should map to '#FFFFFF'
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))", // Can map to a light gray or subtle bg like sophera.100 from your scale
+          foreground: "hsl(var(--muted-foreground))", // Should map to sophera-text-subtle ('#718096')
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))", // Should map to sophera-accent-tertiary ('#FFC107')
+          foreground: "hsl(var(--accent-foreground))", // Should map to sophera-text-heading ('#2D3748')
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))", // Example: '#EF4444' (Red-500)
+          foreground: "hsl(var(--destructive-foreground))", // '#FFFFFF'
+        },
+        border: "hsl(var(--border))", // Should map to sophera-border-primary ('#CBD5E0')
+        input: "hsl(var(--input))",   // Should map to sophera-border-primary ('#CBD5E0') for border
+        ring: "hsl(var(--ring))",     // Should map to sophera-brand-primary-focusRing ('rgba(13, 148, 136, 0.25)')
+
+        // Sophera Detailed Palette (HEX codes for reference and direct use if HSL var update is complex)
+        'sophera-gradient-start': '#E6FFFA',      // Very Light Teal/Mint (Body Bg Start)
+        'sophera-gradient-end': '#FFF3E0',        // Pale Orange/Peach (Body Bg End)
+        'sophera-bg-card': '#FFFFFF',             // Card Backgrounds
+        'sophera-text-heading': '#2D3748',        // Dark Charcoal
+        'sophera-text-body': '#4A5568',           // Medium Gray
+        'sophera-text-subtle': '#718096',         // Cool Gray
+        'sophera-border-primary': '#CBD5E0',      // Light Gray for cards/inputs
+        'sophera-brand-primary': '#0D9488',       // Deep Teal
+        'sophera-brand-primary-hover': '#0A7D70',
+        'sophera-brand-primary-light': 'rgba(13, 148, 136, 0.1)',
+        'sophera-brand-primary-focusRing': 'rgba(13, 148, 136, 0.25)',
+        'sophera-accent-secondary': '#FF7F50',    // Bright Coral
+        'sophera-accent-secondary-hover': '#E67348',
+        'sophera-accent-tertiary': '#FFC107',     // Sunny Yellow
+        'sophera-destructive': '#EF4444',         // Red
+
+        // Sidebar specific colors (can use semantic names if HSL vars are updated)
+        'sidebar-background': '#FFFFFF',
+        'sidebar-foreground': '#4A5568', // sophera-text-body
+        'sidebar-active-background': 'rgba(13, 148, 136, 0.1)', // sophera-brand-primary-light
+        'sidebar-active-foreground': '#0D9488', // sophera-brand-primary
+        'sidebar-border': '#E5E7EB', // A light gray for sidebar border
+
+        // Chart Colors (ensure these HSL vars are defined if using them)
+        chart: {
+          "1": "hsl(var(--chart-1))", // Should map to sophera-brand-primary ('#0D9488')
+          "2": "hsl(var(--chart-2))", // Should map to sophera-accent-secondary ('#FF7F50')
+          "3": "hsl(var(--chart-3))", // Should map to sophera-accent-tertiary ('#FFC107')
+          "4": "hsl(var(--chart-4))", // Example: '#60A5FA' (Vibrant Blue)
+          "5": "hsl(var(--chart-5))", // Example: '#A78BFA' (Vibrant Purple)
+        },
+
+        // Retaining your original scales for reference and potential direct use
+        // These shades can be used to define the HSL vars above.
+        sophera: {
+          50: "#E6FFFA",
+          100: "#B2F5EA", // Lighter Teal
+          200: "#84E9DD", // Light Teal
+          300: "#56DCCF", // Medium Teal
+          400: "#28CFBF", // Bright Teal
+          500: "#0D9488", // Primary Teal (Deep Teal)
+          600: "#0A7D70", // Darker Primary
+          700: "#086F63", // Even Darker Primary
+          800: "#065F54", // Dark for text accents
+          900: "#044F45", // Darkest Teal
+        },
+        coral: {
+          50: "#FFF3E0",  // Pale Orange/Peach (Gradient End)
+          100: "#FFE0B2", // Light Peach
+          200: "#FFCC80", // Peach
+          300: "#FFB74D", // Darker Peach
+          400: "#FFA726", // Orange
+          500: "#FF7F50", // Secondary Accent Color (Bright Coral)
+          600: "#E67348", // Darker Coral (Hover)
+          700: "#CC6640", // Dark Coral
+          800: "#B35938", // Even Darker Coral
+          900: "#994D30", // Darkest Coral
+        },
+        sunny: {
+          50: "#FFFDE7",
+          100: "#FFF9C4",
+          200: "#FFF59D",
+          300: "#FFF176",
+          400: "#FFEE58",
+          500: "#FFC107", // Tertiary Accent Color (Sunny Yellow)
+          600: "#FFB300", // Darker Yellow
+          700: "#FFA000",
+          800: "#FF8F00",
+          900: "#FF6F00",
+        },
+        charcoal: { // Grays for text and borders
+          50: "#F9FAFB",  // Off-White (Alternative for card/popover bg if pure white is too stark on gradient)
+          100: "#F3F4F6", // Very Light Gray
+          200: "#E5E7EB", // Light Gray (Sidebar border)
+          300: "#D1D5DB", // Medium Gray (Primary Border for cards/inputs)
+          400: "#9CA3AF", // Cool Gray (Subtle text/placeholders)
+          500: "#718096", // Cool Gray (Muted foreground)
+          600: "#4A5568", // Medium Gray (Body text)
+          700: "#374151", // Dark Gray
+          800: "#1F2937", // Darker Gray
+          900: "#2D3748", // Dark Charcoal (Headings)
+        },
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;

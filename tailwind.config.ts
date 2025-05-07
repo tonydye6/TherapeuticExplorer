@@ -10,12 +10,14 @@ export default {
         sans: ['Inter', 'sans-serif'],
       },
       borderRadius: {
-        lg: "16px", // Card radius
-        xl: "16px", // Explicitly for cards as per design spec
-        md: "12px", // Medium radius for buttons
-        sm: "8px",  // For smaller elements if needed
-        
-        // Sophera Specific Radii
+        // Existing theme-driven radius (likely from theme.json via --radius CSS variable)
+        // You might want to update the value of --radius in your theme setup
+        // to match one of the new standard Sophera radii.
+        lg: "var(--radius)", // Example: if --radius is 1rem, this is 16px
+        md: "calc(var(--radius) - 4px)", // Example: if --radius is 1rem, this is 12px
+        sm: "calc(var(--radius) - 8px)", // Example: if --radius is 1rem, this is 8px
+
+        // Sophera Specific Radii (from Design Spec v5)
         'sophera-card': '16px',      // For cards
         'sophera-button': '12px',    // For buttons
         'sophera-input': '12px',     // For input fields
@@ -24,124 +26,120 @@ export default {
         'sophera-tab-active': '10px',  // For active tabs
       },
       colors: {
-        // Core Sophera Palette (aligns with design specifications)
-        background: '#F9FAFB', // Off-White - Primary Background (Main Content Area)
-                               // The gradient will be applied globally via CSS, not here.
-        foreground: '#2D3748', // Dark Charcoal - Default text on light backgrounds
-
+        // HSL variables driven by theme.json / shadcn-theme-json plugin
+        // CRITICAL: Ensure the HSL values for these CSS variables are updated
+        // in your global CSS / theme setup to match the Sophera HEX palette below.
+        background: "hsl(var(--background))", // Should map to sophera-bg-card ('#FFFFFF') for elements on gradient
+        foreground: "hsl(var(--foreground))", // Should map to sophera-text-heading ('#2D3748')
         card: {
-          DEFAULT: '#FFFFFF', // White - Card Backgrounds (sophera-bg-card)
-          foreground: '#2D3748', // Dark Charcoal - Text on cards (sophera-text-heading)
+          DEFAULT: "hsl(var(--card))", // Should map to sophera-bg-card ('#FFFFFF')
+          foreground: "hsl(var(--card-foreground))", // Should map to sophera-text-heading ('#2D3748')
         },
         popover: {
-          DEFAULT: '#FFFFFF', // White
-          foreground: '#2D3748', // Dark Charcoal
+          DEFAULT: "hsl(var(--popover))", // Should map to sophera-bg-card ('#FFFFFF')
+          foreground: "hsl(var(--popover-foreground))", // Should map to sophera-text-heading ('#2D3748')
         },
-        primary: { // Primary Brand Color - Deep Teal
-          DEFAULT: '#0D9488', // sophera-brand-primary
-          foreground: '#FFFFFF', // Text on primary background
-          hover: '#0A7D70',    // Hover state for primary buttons (sophera-brand-primary-hover)
-          light: 'rgba(13, 148, 136, 0.1)', // For secondary button hover background (sophera-brand-primary-light)
-          focusRing: 'rgba(13, 148, 136, 0.25)', // For input focus ring (sophera-brand-primary-focusRing)
+        primary: {
+          DEFAULT: "hsl(var(--primary))", // Should map to sophera-brand-primary ('#0D9488')
+          foreground: "hsl(var(--primary-foreground))", // Should map to '#FFFFFF'
         },
-        secondary: { // Secondary Accent Color - Bright Coral
-          DEFAULT: '#FF7F50', // sophera-accent-secondary
-          foreground: '#FFFFFF', // Text on secondary background
-          hover: '#E67348',    // Hover state for secondary buttons (sophera-accent-secondary-hover)
-        },
-        tertiary: { // Tertiary Accent Color - Sunny Yellow
-          DEFAULT: '#FFC107', // sophera-accent-tertiary
-          foreground: '#2D3748', // Text on tertiary background (sophera-text-heading)
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))", // Should map to sophera-accent-secondary ('#FF7F50')
+          foreground: "hsl(var(--secondary-foreground))", // Should map to '#FFFFFF'
         },
         muted: {
-          DEFAULT: '#F3F4F6', // Very Light Cool Gray - Subtle Background Accent (charcoal.100)
-          foreground: '#718096', // Cool Gray - Muted text (sophera-text-subtle)
+          DEFAULT: "hsl(var(--muted))", // Can map to a light gray or subtle bg like sophera.100 from your scale
+          foreground: "hsl(var(--muted-foreground))", // Should map to sophera-text-subtle ('#718096')
         },
-        accent: { 
-          DEFAULT: '#FFC107', // Sunny Yellow - alternative accent for compatibility with shadcn/ui
-          foreground: '#2D3748', // Dark Charcoal
+        accent: {
+          DEFAULT: "hsl(var(--accent))", // Should map to sophera-accent-tertiary ('#FFC107')
+          foreground: "hsl(var(--accent-foreground))", // Should map to sophera-text-heading ('#2D3748')
         },
-        destructive: { // Standard destructive color
-          DEFAULT: '#EF4444', // Tailwind Red-500 (sophera-destructive)
-          foreground: '#FFFFFF',
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))", // Example: '#EF4444' (Red-500)
+          foreground: "hsl(var(--destructive-foreground))", // '#FFFFFF'
         },
-        border: '#CBD5E0', // Light Gray - Border Color (sophera-border-primary)
-        input: '#CBD5E0',  // Border color for inputs
-        ring: '#0D9488',   // Primary Brand Color for focus rings
+        border: "hsl(var(--border))", // Should map to sophera-border-primary ('#CBD5E0')
+        input: "hsl(var(--input))",   // Should map to sophera-border-primary ('#CBD5E0') for border
+        ring: "hsl(var(--ring))",     // Should map to sophera-brand-primary-focusRing ('rgba(13, 148, 136, 0.25)')
 
-        // Text Colors
-        text_headings: '#2D3748', // Dark Charcoal (sophera-text-heading)
-        text_body: '#4A5568',     // Medium Gray (sophera-text-body)
-        text_subtle: '#718096',   // Cool Gray (sophera-text-subtle)
+        // Sophera Detailed Palette (HEX codes for reference and direct use if HSL var update is complex)
+        'sophera-gradient-start': '#E6FFFA',      // Very Light Teal/Mint (Body Bg Start)
+        'sophera-gradient-end': '#FFF3E0',        // Pale Orange/Peach (Body Bg End)
+        'sophera-bg-card': '#FFFFFF',             // Card Backgrounds
+        'sophera-text-heading': '#2D3748',        // Dark Charcoal
+        'sophera-text-body': '#4A5568',           // Medium Gray
+        'sophera-text-subtle': '#718096',         // Cool Gray
+        'sophera-border-primary': '#CBD5E0',      // Light Gray for cards/inputs
+        'sophera-border-subtle': '#E5E7EB',       // Lighter Gray for subtle separators
+        'sophera-brand-primary': '#0D9488',       // Deep Teal
+        'sophera-brand-primary-hover': '#0A7D70',
+        'sophera-brand-primary-dark': '#086F63',
+        'sophera-brand-primary-light': 'rgba(13, 148, 136, 0.1)',
+        'sophera-brand-primary-focusRing': 'rgba(13, 148, 136, 0.25)',
+        'sophera-accent-secondary': '#FF7F50',    // Bright Coral
+        'sophera-accent-secondary-hover': '#E67348',
+        'sophera-accent-tertiary': '#FFC107',     // Sunny Yellow
+        'sophera-destructive': '#EF4444',         // Red
 
-        // Gradient Colors (for reference, applied via global CSS)
-        gradient_start: '#E6FFFA', // Very Light Teal/Mint (sophera-gradient-start)
-        gradient_end: '#FFF3E0',   // Pale Orange/Peach (sophera-gradient-end)
-
-        // Specific UI Elements if not covered by semantic names
-        sidebar_background: '#FFFFFF',
-        sidebar_foreground: '#4A5568',
-        sidebar_active_background: 'rgba(13, 148, 136, 0.1)', // sophera-brand-primary-light
-        sidebar_active_foreground: '#0D9488', // sophera-brand-primary
-        sidebar_border: '#E5E7EB', // Light Gray (charcoal.200)
-
-        // Chart Colors
+        // Chart Colors (ensure these HSL vars are defined if using them)
         chart: {
-          "1": '#0D9488', // Primary - Deep Teal
-          "2": '#FF7F50', // Secondary - Bright Coral
-          "3": '#FFC107', // Tertiary - Sunny Yellow
-          "4": '#60A5FA', // Vibrant Blue
-          "5": '#A78BFA', // Vibrant Purple
+          "1": "hsl(var(--chart-1))", // Should map to sophera-brand-primary ('#0D9488')
+          "2": "hsl(var(--chart-2))", // Should map to sophera-accent-secondary ('#FF7F50')
+          "3": "hsl(var(--chart-3))", // Should map to sophera-accent-tertiary ('#FFC107')
+          "4": "hsl(var(--chart-4))", // Example: '#60A5FA' (Vibrant Blue)
+          "5": "hsl(var(--chart-5))", // Example: '#A78BFA' (Vibrant Purple)
         },
-        
-        // Detailed color scales directly from the design specifications
+
+        // Retaining your original scales for reference and potential direct use
+        // These shades can be used to define the HSL vars above.
         sophera: {
-          50: "#E6FFFA",  // Very Light Teal/Mint (sophera-gradient-start) - Body Bg Start
+          50: "#E6FFFA",
           100: "#B2F5EA", // Lighter Teal
           200: "#84E9DD", // Light Teal
           300: "#56DCCF", // Medium Teal
           400: "#28CFBF", // Bright Teal
-          500: "#0D9488", // Primary Teal - Deep Teal (sophera-brand-primary)
-          600: "#0A7D70", // Darker Primary - Hover state (sophera-brand-primary-hover)
+          500: "#0D9488", // Primary Teal (Deep Teal)
+          600: "#0A7D70", // Darker Primary
           700: "#086F63", // Even Darker Primary
           800: "#065F54", // Dark for text accents
           900: "#044F45", // Darkest Teal
         },
         coral: {
-          50: "#FFF3E0",  // Pale Orange/Peach (sophera-gradient-end) - Body Bg End
+          50: "#FFF3E0",  // Pale Orange/Peach (Gradient End)
           100: "#FFE0B2", // Light Peach
-          200: "#FFCC80", // Peach 
+          200: "#FFCC80", // Peach
           300: "#FFB74D", // Darker Peach
           400: "#FFA726", // Orange
-          500: "#FF7F50", // Secondary Accent Color - Bright Coral (sophera-accent-secondary)
-          600: "#E67348", // Darker Coral - Hover state (sophera-accent-secondary-hover)
+          500: "#FF7F50", // Secondary Accent Color (Bright Coral)
+          600: "#E67348", // Darker Coral (Hover)
           700: "#CC6640", // Dark Coral
           800: "#B35938", // Even Darker Coral
           900: "#994D30", // Darkest Coral
         },
         sunny: {
-          50: "#FFFDE7",  // Very light yellow
-          100: "#FFF9C4", // Light yellow 
-          200: "#FFF59D", // Light-medium yellow
-          300: "#FFF176", // Medium yellow
-          400: "#FFEE58", // Medium-dark yellow
-          500: "#FFC107", // Tertiary Accent Color - Sunny Yellow (sophera-accent-tertiary)
-          600: "#FFB300", // Darker yellow - Hover state
-          700: "#FFA000", // Dark yellow
-          800: "#FF8F00", // Darker yellow
-          900: "#FF6F00", // Darkest yellow
+          50: "#FFFDE7",
+          100: "#FFF9C4",
+          200: "#FFF59D",
+          300: "#FFF176",
+          400: "#FFEE58",
+          500: "#FFC107", // Tertiary Accent Color (Sunny Yellow)
+          600: "#FFB300", // Darker Yellow
+          700: "#FFA000",
+          800: "#FF8F00",
+          900: "#FF6F00",
         },
-        charcoal: {
+        charcoal: { // Grays for text and borders
           50: "#F9FAFB",  // Off-White (Alternative for card/popover bg if pure white is too stark on gradient)
           100: "#F3F4F6", // Very Light Gray
           200: "#E5E7EB", // Light Gray (Sidebar border)
-          300: "#D1D5DB", // Light Medium Gray
-          400: "#9CA3AF", // Medium Gray
-          500: "#718096", // Cool Gray (sophera-text-subtle) - Muted foreground
-          600: "#4A5568", // Medium Gray (sophera-text-body) - Body text
+          300: "#D1D5DB", // Medium Gray (Primary Border for cards/inputs)
+          400: "#9CA3AF", // Cool Gray (Subtle text/placeholders)
+          500: "#718096", // Cool Gray (Muted foreground)
+          600: "#4A5568", // Medium Gray (Body text)
           700: "#374151", // Dark Gray
           800: "#1F2937", // Darker Gray
-          900: "#2D3748", // Dark Charcoal (sophera-text-heading) - Headings
+          900: "#2D3748", // Dark Charcoal (Headings)
         },
       },
       keyframes: {
