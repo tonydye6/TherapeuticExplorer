@@ -268,15 +268,21 @@ export function SidebarNavigation() {
                     onClick={() => toggleSection(section.title)}
                     className={cn(
                       "w-full flex items-center justify-between py-3 px-4 rounded-lg border-2 transition-all duration-300 font-bold",
-                      isSectionActive(section.path) 
+                      // When section is active but not expanded, use primary color
+                      (isSectionActive(section.path) && !expandedSections.includes(section.title))
                         ? "bg-sophera-brand-primary text-white border-sophera-text-heading shadow-[0.35rem_0.35rem_0_#05060f]" 
-                        : "border-sophera-text-heading/70 shadow-[0.2rem_0.2rem_0_#05060f] hover:border-sophera-text-heading hover:shadow-[0.35rem_0.35rem_0_#05060f]",
-                      !isSectionActive(section.path) && section.color === "primary" && "bg-cyan-200",
-                      !isSectionActive(section.path) && section.color === "orange" && "bg-orange-200",
-                      !isSectionActive(section.path) && section.color === "lime" && "bg-lime-200",
-                      !isSectionActive(section.path) && section.color === "cyan" && "bg-cyan-200",
-                      !isSectionActive(section.path) && section.color === "pink" && "bg-pink-200",
-                      !isSectionActive(section.path) && section.color === "violet" && "bg-violet-200"
+                        // When section is expanded, use black background with white text
+                        : expandedSections.includes(section.title)
+                          ? "bg-sophera-text-heading text-white border-sophera-text-heading shadow-[0.35rem_0.35rem_0_#05060f]" 
+                          // Otherwise use original color scheme with hover effect
+                          : "border-sophera-text-heading/70 shadow-[0.2rem_0.2rem_0_#05060f] hover:border-sophera-text-heading hover:shadow-[0.35rem_0.35rem_0_#05060f]",
+                      // Apply background colors only when section is neither active nor expanded
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "primary" && "bg-cyan-200",
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "orange" && "bg-orange-200",
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "lime" && "bg-lime-200",
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "cyan" && "bg-cyan-200",
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "pink" && "bg-pink-200",
+                      !isSectionActive(section.path) && !expandedSections.includes(section.title) && section.color === "violet" && "bg-violet-200"
                     )}
                   >
                     <div className="flex items-center">
@@ -314,9 +320,17 @@ export function SidebarNavigation() {
                         <button 
                           className={cn(
                             "w-full flex items-center py-3 px-3 rounded-md border text-sm transition-all duration-300 mb-4",
+                            // Apply parent section color to child buttons (using background with opacity)
+                            section.color === "orange" && "bg-orange-100/80",
+                            section.color === "lime" && "bg-lime-100/80",
+                            section.color === "cyan" && "bg-cyan-100/80",
+                            section.color === "pink" && "bg-pink-100/80",
+                            section.color === "violet" && "bg-violet-100/80",
+                            section.color === "primary" && "bg-cyan-100/80",
+                            // Additional styling when the child is the active page
                             location === child.href
-                              ? "bg-gray-100 border-sophera-text-heading/60 shadow-[0.15rem_0.15rem_0_#05060f80]"
-                              : "bg-transparent border-sophera-text-heading/30 hover:border-sophera-text-heading/60 hover:shadow-[0.15rem_0.15rem_0_#05060f40]"
+                              ? "border-sophera-text-heading/60 shadow-[0.15rem_0.15rem_0_#05060f80]"
+                              : "border-sophera-text-heading/30 hover:border-sophera-text-heading/60 hover:shadow-[0.15rem_0.15rem_0_#05060f40]"
                           )}
                         >
                           {child.icon && <span className="mr-2">{child.icon}</span>}
