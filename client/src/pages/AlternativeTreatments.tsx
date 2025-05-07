@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,18 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import AlternativeTreatmentForm from "@/components/AlternativeTreatmentForm";
 import AlternativeTreatmentDetails from "@/components/AlternativeTreatmentDetails";
-import { 
-  Heart, Search, Plus, Filter, Leaf, Microscope, FlaskConical, 
-  Star, ShieldCheck, Clipboard, Users, Apple, PenTool, Utensils
-} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuCheckboxItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
   Accordion,
@@ -29,81 +26,91 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Heart,
+  Search,
+  Plus,
+  Filter,
+  Leaf,
+  Microscope,
+  FlaskConical,
+  Star,
+  ShieldCheck,
+  Apple,
+  PenTool,
+  XIcon,
+  Brain as BrainCircuitIcon
+} from "lucide-react";
 
-// Define treatment categories with icons
 interface CategoryWithIcon {
   id: string;
   name: string;
   icon: React.ReactNode;
+  colorClass?: string;
 }
 
 const PREDEFINED_CATEGORIES: CategoryWithIcon[] = [
   {
     id: "herbal-compounds",
-    name: "Herbal Compounds and Plant Extracts",
-    icon: <Leaf className="h-4 w-4 mr-1" />
+    name: "Herbal & Plant Extracts",
+    icon: <Leaf className="h-4 w-4" />,
+    colorClass: "text-sophera-brand-primary"
   },
   {
     id: "alt-protocols",
-    name: "Alt Protocols",
-    icon: <FlaskConical className="h-4 w-4 mr-1" />
+    name: "Integrative Protocols",
+    icon: <FlaskConical className="h-4 w-4" />,
+    colorClass: "text-sophera-accent-secondary"
   },
   {
     id: "biological",
-    name: "Biological",
-    icon: <Microscope className="h-4 w-4 mr-1" />
+    name: "Biological Therapies",
+    icon: <Microscope className="h-4 w-4" />,
+    colorClass: "text-sophera-accent-tertiary"
   },
   {
     id: "nutritional-therapy",
     name: "Nutritional Therapy",
-    icon: <Leaf className="h-4 w-4 mr-1" />
+    icon: <Apple className="h-4 w-4" />,
+    colorClass: "text-green-500"
   },
   {
     id: "mind-body-therapy",
-    name: "Mind-Body Therapy",
-    icon: <FlaskConical className="h-4 w-4 mr-1" />
+    name: "Mind-Body Practices",
+    icon: <BrainCircuitIcon className="h-4 w-4" />,
+    colorClass: "text-purple-500"
   },
   {
     id: "traditional-chinese-medicine",
-    name: "Traditional Chinese Medicine",
-    icon: <Microscope className="h-4 w-4 mr-1" />
+    name: "Traditional & Energy",
+    icon: <PenTool className="h-4 w-4" />,
+    colorClass: "text-blue-500"
   }
 ];
 
-// Define filter options
+const EVIDENCE_LEVELS = ["Strong", "Moderate", "Limited", "Preliminary", "Anecdotal", "Insufficient"];
+const SAFETY_PROFILES = ["Very Safe", "Generally Safe", "Safe with Precautions", "Use with Caution", "Potentially Harmful"];
+const APPROACH_TYPES = ["Preventative", "Supportive", "Symptom Management", "Direct Treatment", "Recovery Support"];
+
 interface FilterOptions {
   evidenceLevel: string[];
   safetyProfile: string[];
   approachType: string[];
 }
 
-// Constants for filter options
-const EVIDENCE_LEVELS = ["Strong", "Moderate", "Limited", "Preliminary", "Anecdotal", "Insufficient"];
-const SAFETY_PROFILES = ["Very Safe", "Generally Safe", "Safe with Precautions", "Use with Caution", "Potentially Harmful"];
-const APPROACH_TYPES = ["Preventative", "Supportive", "Symptom Management", "Direct Treatment", "Recovery Support"];
-
-export default function AlternativeTreatments() {
+export default function AlternativeTreatmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedTreatment, setSelectedTreatment] = useState<AlternativeTreatment | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showNutritionalSection, setShowNutritionalSection] = useState(false);
-  const [showPatientExperiences, setShowPatientExperiences] = useState(false);
-  const [showVisualization, setShowVisualization] = useState(false);
-  
-  // Filtering state
   const [filters, setFilters] = useState<FilterOptions>({
     evidenceLevel: [],
     safetyProfile: [],
     approachType: []
   });
-  
 
-  
   const queryClient = useQueryClient();
 
-  // Fetch alternative treatments
   const { data: treatments = [], isLoading, error } = useQuery({
     queryKey: ['/api/alternative-treatments'],
     queryFn: async () => {
@@ -111,254 +118,233 @@ export default function AlternativeTreatments() {
     }
   });
 
-  // Handle toggling a filter
   const toggleFilter = (filterType: keyof FilterOptions, value: string) => {
     setFilters(prevFilters => {
       const currentFilters = [...prevFilters[filterType]];
       const index = currentFilters.indexOf(value);
-      
       if (index === -1) {
-        // Add the filter
-        return {
-          ...prevFilters,
-          [filterType]: [...currentFilters, value]
-        };
+        return { ...prevFilters, [filterType]: [...currentFilters, value] };
       } else {
-        // Remove the filter
         currentFilters.splice(index, 1);
-        return {
-          ...prevFilters,
-          [filterType]: currentFilters
-        };
+        return { ...prevFilters, [filterType]: currentFilters };
       }
     });
   };
-  
-  // Clear all filters
+
   const clearFilters = () => {
-    setFilters({
-      evidenceLevel: [],
-      safetyProfile: [],
-      approachType: []
-    });
+    setFilters({ evidenceLevel: [], safetyProfile: [], approachType: [] });
   };
 
-  // Filter treatments based on search term, active category, and selected filters
   const filteredTreatments = treatments.filter(treatment => {
-    // Search term filter
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       treatment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       treatment.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const currentCategory = PREDEFINED_CATEGORIES.find(c => c.id === activeCategory);
+    const matchesCategory = !activeCategory || !currentCategory || treatment.category === currentCategory.name;
     
-    // Category filter
-    const matchesCategory = !activeCategory || 
-      treatment.category === activeCategory || 
-      (activeCategory === "herbal-compounds" && treatment.category === "Herbal Compounds and Plant Extracts") ||
-      (activeCategory === "alt-protocols" && treatment.category === "Alt Protocols") ||
-      (activeCategory === "biological" && treatment.category === "Biological") ||
-      (activeCategory === "nutritional-therapy" && treatment.category === "Nutritional Therapy") ||
-      (activeCategory === "mind-body-therapy" && treatment.category === "Mind-Body Therapy") ||
-      (activeCategory === "traditional-chinese-medicine" && treatment.category === "Traditional Chinese Medicine");
-    
-    // Evidence level filter
-    const matchesEvidenceLevel = filters.evidenceLevel.length === 0 || 
+    const matchesEvidenceLevel = filters.evidenceLevel.length === 0 ||
       (treatment.evidenceRating && filters.evidenceLevel.includes(treatment.evidenceRating));
-    
-    // Safety profile filter
-    const matchesSafetyProfile = filters.safetyProfile.length === 0 || 
+    const matchesSafetyProfile = filters.safetyProfile.length === 0 ||
       (treatment.safetyRating && filters.safetyProfile.includes(treatment.safetyRating));
-    
-    // Approach type filter (this is a placeholder as we don't have this field yet in the data model)
-    // In a real implementation, we would check against an actual property in the treatment data
     const matchesApproachType = filters.approachType.length === 0;
-    
-    return matchesSearch && matchesCategory && matchesEvidenceLevel && 
+
+    return matchesSearch && matchesCategory && matchesEvidenceLevel &&
            matchesSafetyProfile && matchesApproachType;
   });
 
-  // Get unique categories from treatments
-  const categories = [...new Set(treatments.map(t => t.category))];
-
-  // Toggle favorite status
   const toggleFavorite = async (id: number) => {
     try {
-      await apiRequest<AlternativeTreatment>(
-        `/api/alternative-treatments/${id}/toggle-favorite`, 
-        { method: 'POST' }
-      );
+      await apiRequest<AlternativeTreatment>(`/api/alternative-treatments/${id}/toggle-favorite`, { method: 'POST' });
       queryClient.invalidateQueries({ queryKey: ['/api/alternative-treatments'] });
     } catch (error) {
       console.error("Error toggling favorite:", error);
     }
   };
 
-  // Handle form submission
   const handleTreatmentAdded = () => {
     setShowAddForm(false);
     queryClient.invalidateQueries({ queryKey: ['/api/alternative-treatments'] });
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Non-Traditional Treatment Explorer</h1>
-      
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center w-full max-w-md space-x-2">
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading mb-8 text-center md:text-left">
+        Explore Complementary & Alternative Approaches
+      </h1>
+
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+        <div className="flex items-center w-full md:max-w-lg relative">
+          <Search className="h-5 w-5 text-sophera-text-subtle absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
-            placeholder="Search treatments..."
+            placeholder="Search treatments, conditions, keywords..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10"
+            className="h-12 rounded-sophera-input pl-10 pr-4 w-full text-base"
           />
-          <Button variant="outline" size="icon" className="h-10 w-10">
-            <Search className="h-4 w-4" />
-          </Button>
         </div>
-        
-        <div className="flex items-center space-x-2">
-          {/* Filters Dropdown */}
+
+        <div className="flex items-center space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10">
-                <Filter className="h-4 w-4 mr-2" /> 
-                Filters 
+              <Button variant="outline" className="h-12 rounded-sophera-button px-5 text-base">
+                <Filter className="h-5 w-5 mr-2 text-sophera-brand-primary" />
+                Filters
                 {Object.values(filters).flat().length > 0 && (
-                  <Badge className="ml-2 h-5 px-1.5" variant="secondary">
+                  <Badge className="ml-2 h-6 px-2 rounded-md bg-sophera-accent-secondary text-white">
                     {Object.values(filters).flat().length}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>Filter By</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              {/* Evidence Level Filters */}
-              <DropdownMenuLabel className="text-xs font-medium">Evidence Level</DropdownMenuLabel>
+            <DropdownMenuContent className="w-64 rounded-sophera-card shadow-xl p-2" align="end">
+              <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-sophera-text-heading">
+                Filter By
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-sophera-border-primary" />
+
+              <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-sophera-text-subtle">
+                Evidence Level
+              </DropdownMenuLabel>
               {EVIDENCE_LEVELS.map(level => (
                 <DropdownMenuCheckboxItem
                   key={level}
                   checked={filters.evidenceLevel.includes(level)}
                   onCheckedChange={() => toggleFilter('evidenceLevel', level)}
+                  className="text-sm text-sophera-text-body rounded-md"
                 >
-                  <div className="flex items-center">
-                    <Star className={`h-3.5 w-3.5 mr-2 ${
-                      level === 'Strong' ? 'text-green-500' : 
-                      level === 'Moderate' ? 'text-blue-500' : 
-                      level === 'Limited' ? 'text-yellow-500' :
-                      level === 'Preliminary' ? 'text-orange-500' :
-                      'text-gray-400'
-                    }`} />
-                    {level}
-                  </div>
+                  <Star className={`h-4 w-4 mr-2 ${
+                    level === 'Strong' ? 'text-green-500 fill-green-500' :
+                    level === 'Moderate' ? 'text-blue-500 fill-blue-500' :
+                    level === 'Limited' ? 'text-yellow-500 fill-yellow-500' :
+                    'text-sophera-text-subtle fill-sophera-text-subtle'
+                  }`} />
+                  {level}
                 </DropdownMenuCheckboxItem>
               ))}
-              <DropdownMenuSeparator />
-              
-              {/* Safety Profile Filters */}
-              <DropdownMenuLabel className="text-xs font-medium">Safety Profile</DropdownMenuLabel>
+              <DropdownMenuSeparator className="my-2 bg-sophera-border-primary"/>
+
+              <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-sophera-text-subtle">
+                Safety Profile
+              </DropdownMenuLabel>
               {SAFETY_PROFILES.map(profile => (
                 <DropdownMenuCheckboxItem
                   key={profile}
                   checked={filters.safetyProfile.includes(profile)}
                   onCheckedChange={() => toggleFilter('safetyProfile', profile)}
+                  className="text-sm text-sophera-text-body rounded-md"
                 >
-                  <div className="flex items-center">
-                    <ShieldCheck className={`h-3.5 w-3.5 mr-2 ${
-                      profile === 'Very Safe' ? 'text-green-500' : 
-                      profile === 'Generally Safe' ? 'text-blue-500' : 
-                      profile === 'Safe with Precautions' ? 'text-yellow-500' :
-                      profile === 'Use with Caution' ? 'text-orange-500' :
-                      'text-red-500'
-                    }`} />
-                    {profile}
-                  </div>
+                  <ShieldCheck className={`h-4 w-4 mr-2 ${
+                    profile === 'Very Safe' ? 'text-green-500 fill-green-500' :
+                    profile === 'Generally Safe' ? 'text-blue-500 fill-blue-500' :
+                    profile === 'Safe with Precautions' ? 'text-yellow-500 fill-yellow-500' :
+                    profile === 'Use with Caution' ? 'text-orange-500 fill-orange-500' :
+                    'text-red-500 fill-red-500'
+                  }`} />
+                  {profile}
                 </DropdownMenuCheckboxItem>
               ))}
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="my-2 bg-sophera-border-primary"/>
               
-              {/* Approach Type Filters */}
-              <DropdownMenuLabel className="text-xs font-medium">Approach Type</DropdownMenuLabel>
+              <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-sophera-text-subtle">
+                Approach Type
+              </DropdownMenuLabel>
               {APPROACH_TYPES.map(type => (
                 <DropdownMenuCheckboxItem
                   key={type}
                   checked={filters.approachType.includes(type)}
                   onCheckedChange={() => toggleFilter('approachType', type)}
+                  className="text-sm text-sophera-text-body rounded-md"
                 >
                   {type}
                 </DropdownMenuCheckboxItem>
               ))}
-              <DropdownMenuSeparator />
-              
-              {/* Reset Filters */}
+              <DropdownMenuSeparator className="my-2 bg-sophera-border-primary"/>
+
               <div className="p-2">
-                <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
-                  Clear Filters
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full rounded-sophera-button border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light"
+                  onClick={clearFilters}
+                >
+                  Clear All Filters
                 </Button>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          {/* Add Treatment Button */}
-          <Button onClick={() => setShowAddForm(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Treatment
+
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="h-12 rounded-sophera-button px-5 text-base bg-sophera-accent-secondary hover:bg-sophera-accent-secondary-hover"
+          >
+            <Plus className="mr-2 h-5 w-5" /> Add Approach
           </Button>
         </div>
       </div>
-      
-      {/* Filter badges - show active filters */}
+
       {Object.values(filters).flat().length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-6 items-center">
+          <span className="text-sm text-sophera-text-subtle mr-1">Active Filters:</span>
           {filters.evidenceLevel.map(level => (
-            <Badge key={level} variant="secondary" className="flex items-center gap-1">
-              <Star className="h-3 w-3" /> {level}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-4 w-4 ml-1 p-0" 
+            <Badge
+              key={`el-${level}`}
+              variant="secondary"
+              className="rounded-md bg-sophera-brand-primary-light text-sophera-brand-primary border-sophera-brand-primary text-xs h-7"
+            >
+              <Star className="h-3.5 w-3.5 mr-1.5" /> {level}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 ml-1 p-0 hover:bg-sophera-brand-primary/20 rounded-full"
                 onClick={() => toggleFilter('evidenceLevel', level)}
               >
+                <XIcon className="h-3.5 w-3.5" />
                 <span className="sr-only">Remove</span>
-                &times;
               </Button>
             </Badge>
           ))}
-          
           {filters.safetyProfile.map(profile => (
-            <Badge key={profile} variant="secondary" className="flex items-center gap-1">
-              <ShieldCheck className="h-3 w-3" /> {profile}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-4 w-4 ml-1 p-0" 
+            <Badge
+              key={`sp-${profile}`}
+              variant="secondary"
+              className="rounded-md bg-sophera-brand-primary-light text-sophera-brand-primary border-sophera-brand-primary text-xs h-7"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> {profile}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 ml-1 p-0 hover:bg-sophera-brand-primary/20 rounded-full"
                 onClick={() => toggleFilter('safetyProfile', profile)}
               >
+                <XIcon className="h-3.5 w-3.5" />
                 <span className="sr-only">Remove</span>
-                &times;
               </Button>
             </Badge>
           ))}
-          
           {filters.approachType.map(type => (
-            <Badge key={type} variant="secondary" className="flex items-center gap-1">
+            <Badge
+              key={`at-${type}`}
+              variant="secondary"
+              className="rounded-md bg-sophera-brand-primary-light text-sophera-brand-primary border-sophera-brand-primary text-xs h-7"
+            >
               {type}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-4 w-4 ml-1 p-0" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 ml-1 p-0 hover:bg-sophera-brand-primary/20 rounded-full"
                 onClick={() => toggleFilter('approachType', type)}
               >
+                <XIcon className="h-3.5 w-3.5" />
                 <span className="sr-only">Remove</span>
-                &times;
               </Button>
             </Badge>
           ))}
-          
           {Object.values(filters).flat().length > 1 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-7 px-2 text-xs" 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-sophera-text-subtle hover:text-sophera-brand-primary"
               onClick={clearFilters}
             >
               Clear all
@@ -366,242 +352,220 @@ export default function AlternativeTreatments() {
           )}
         </div>
       )}
-      
-      <div className="flex items-center gap-2 mb-4">
-        {/* Categories Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-10">
-              <Microscope className="h-4 w-4 mr-2" /> 
-              Categories
-              {activeCategory && (
-                <Badge className="ml-2 h-5 px-1.5" variant="secondary">1</Badge>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuLabel>Select Category</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuCheckboxItem
-              checked={activeCategory === null}
-              onCheckedChange={() => setActiveCategory(null)}
+
+      <Tabs
+        defaultValue="all"
+        value={activeCategory || "all"}
+        onValueChange={(value) => setActiveCategory(value === "all" ? null : value)}
+        className="w-full"
+      >
+        <div className="mb-6 border-b border-sophera-border-primary">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 h-auto p-1 bg-sophera-gradient-start rounded-sophera-button">
+            <TabsTrigger
+              value="all"
+              className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10"
             >
-              All Categories
-            </DropdownMenuCheckboxItem>
-            
+              All Approaches
+            </TabsTrigger>
             {PREDEFINED_CATEGORIES.map((category) => (
-              <DropdownMenuCheckboxItem
+              <TabsTrigger
                 key={category.id}
-                checked={activeCategory === category.id}
-                onCheckedChange={() => setActiveCategory(category.id)}
+                value={category.id}
+                className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10 flex items-center justify-center gap-1.5"
               >
-                <div className="flex items-center">
-                  {category.icon}
-                  <span className="ml-2">{category.name}</span>
-                </div>
-              </DropdownMenuCheckboxItem>
+                <span className={category.colorClass}>{category.icon}</span>
+                {category.name}
+              </TabsTrigger>
             ))}
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              checked={activeCategory === 'favorites'}
-              onCheckedChange={() => setActiveCategory('favorites')}
+            <TabsTrigger
+              value="favorites"
+              className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-10 flex items-center justify-center gap-1.5"
             >
-              <div className="flex items-center">
-                <Heart className="h-4 w-4 mr-2 text-red-500" />
-                <span>Favorites</span>
-              </div>
-            </DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        
-        {/* Selected category badge */}
-        {activeCategory && (
-          <Badge 
-            variant="secondary" 
-            className="flex items-center gap-1"
-            onClick={() => setActiveCategory(null)}
-          >
-            {activeCategory === 'favorites' ? (
-              <>
-                <Heart className="h-3 w-3" /> Favorites
-              </>
-            ) : (
-              <>
-                {/* Find and display the appropriate category icon */}
-                {PREDEFINED_CATEGORIES.find(c => c.id === activeCategory)?.icon || <Microscope className="h-3 w-3 mr-1" />}
-                {PREDEFINED_CATEGORIES.find(c => c.id === activeCategory)?.name || activeCategory}
-              </>
-            )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-4 w-4 ml-1 p-0" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveCategory(null);
-              }}
-            >
-              <span className="sr-only">Remove</span>
-              &times;
-            </Button>
-          </Badge>
-        )}
-      </div>
-      
-      <Tabs defaultValue="all" className="w-full">
-        
-        {/* All treatments tab */}
+              <Heart className="h-4 w-4 text-red-500" /> Favorites
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
         <TabsContent value="all" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTreatments.map((treatment) => (
-              <TreatmentCard 
-                key={treatment.id} 
-                treatment={treatment} 
-                onSelect={() => setSelectedTreatment(treatment)}
-                onToggleFavorite={() => toggleFavorite(treatment.id)}
-              />
-            ))}
-          </div>
+          <TreatmentGrid
+            treatments={filteredTreatments}
+            onSelect={setSelectedTreatment}
+            onToggleFavorite={toggleFavorite}
+          />
         </TabsContent>
-        
-        {/* Predefined category tabs */}
+
         {PREDEFINED_CATEGORIES.map((category) => (
           <TabsContent key={category.id} value={category.id} className="mt-0">
-            <div className="mb-4 flex items-center">
-              <h2 className="text-xl font-semibold flex items-center">
+            <div className="mb-6 flex items-center">
+              <h2 className={`text-2xl font-bold text-sophera-text-heading flex items-center gap-2 ${category.colorClass}`}>
                 {category.icon} {category.name}
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTreatments
-                .filter(t => 
-                  t.category === category.name || 
-                  (category.id === "herbal-compounds" && t.category === "Herbal Compounds and Plant Extracts") ||
-                  (category.id === "alt-protocols" && t.category === "Alt Protocols") ||
-                  (category.id === "biological" && t.category === "Biological") ||
-                  (category.id === "nutritional-therapy" && t.category === "Nutritional Therapy") ||
-                  (category.id === "mind-body-therapy" && t.category === "Mind-Body Therapy") ||
-                  (category.id === "traditional-chinese-medicine" && t.category === "Traditional Chinese Medicine")
-                )
-                .map((treatment) => (
-                  <TreatmentCard 
-                    key={treatment.id} 
-                    treatment={treatment} 
-                    onSelect={() => setSelectedTreatment(treatment)}
-                    onToggleFavorite={() => toggleFavorite(treatment.id)}
-                  />
-                ))
-              }
-            </div>
+            <TreatmentGrid
+              treatments={filteredTreatments.filter(t => t.category === category.name)}
+              onSelect={setSelectedTreatment}
+              onToggleFavorite={toggleFavorite}
+            />
           </TabsContent>
         ))}
-        
-        {/* Favorites tab */}
+
         <TabsContent value="favorites" className="mt-0">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold flex items-center">
-              <Heart className="mr-2 h-5 w-5 text-red-500" /> Favorite Treatments
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-sophera-text-heading flex items-center gap-2">
+              <Heart className="h-6 w-6 text-red-500 fill-red-500" /> Your Favorite Approaches
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTreatments
-              .filter(t => t.isFavorite)
-              .map((treatment) => (
-                <TreatmentCard 
-                  key={treatment.id} 
-                  treatment={treatment} 
-                  onSelect={() => setSelectedTreatment(treatment)}
-                  onToggleFavorite={() => toggleFavorite(treatment.id)}
-                />
-              ))
-            }
-            {filteredTreatments.filter(t => t.isFavorite).length === 0 && (
-              <div className="col-span-3 py-10 text-center text-muted-foreground">
-                <Heart className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-                <p>No favorite treatments yet. Click the heart icon on any treatment card to add it to your favorites.</p>
-              </div>
-            )}
-          </div>
+          <TreatmentGrid
+            treatments={filteredTreatments.filter(t => t.isFavorite)}
+            onSelect={setSelectedTreatment}
+            onToggleFavorite={toggleFavorite}
+            emptyStateMessage="No favorite treatments yet. Click the heart icon on any treatment card to add it to your favorites."
+            emptyIcon={<Heart className="h-12 w-12 mx-auto mb-3 text-sophera-text-subtle/50" />}
+          />
         </TabsContent>
       </Tabs>
-      
-      {/* Treatment details dialog */}
+
       {selectedTreatment && (
         <Dialog open={!!selectedTreatment} onOpenChange={(open) => !open && setSelectedTreatment(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedTreatment.name}</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 rounded-sophera-modal-outer">
+            <DialogHeader className="px-6 py-4 border-b border-sophera-border-primary sticky top-0 bg-sophera-bg-card z-10 rounded-t-sophera-modal-outer">
+              <DialogTitle className="text-2xl font-bold text-sophera-text-heading">
+                {selectedTreatment.name}
+              </DialogTitle>
             </DialogHeader>
-            <AlternativeTreatmentDetails treatment={selectedTreatment} />
+            <div className="p-6">
+              <AlternativeTreatmentDetails treatment={selectedTreatment} />
+            </div>
           </DialogContent>
         </Dialog>
       )}
-      
-      {/* Add treatment form dialog */}
+
       <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Add Non-Traditional Treatment</DialogTitle>
+        <DialogContent className="max-w-2xl p-0 rounded-sophera-modal-outer">
+          <DialogHeader className="px-6 py-4 border-b border-sophera-border-primary sticky top-0 bg-sophera-bg-card z-10 rounded-t-sophera-modal-outer">
+            <DialogTitle className="text-2xl font-bold text-sophera-text-heading">Add New Approach</DialogTitle>
           </DialogHeader>
-          <AlternativeTreatmentForm onSuccess={handleTreatmentAdded} onCancel={() => setShowAddForm(false)} />
+          <div className="p-6">
+            <AlternativeTreatmentForm onSuccess={handleTreatmentAdded} onCancel={() => setShowAddForm(false)} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
-// Treatment card component
-function TreatmentCard({ 
-  treatment, 
-  onSelect, 
-  onToggleFavorite 
-}: { 
-  treatment: AlternativeTreatment; 
+function TreatmentGrid({
+  treatments,
+  onSelect,
+  onToggleFavorite,
+  emptyStateMessage = "No approaches found matching your criteria. Try adjusting your search or filters.",
+  emptyIcon = <Search className="h-12 w-12 mx-auto mb-3 text-sophera-text-subtle/50" />
+}: {
+  treatments: AlternativeTreatment[];
+  onSelect: (treatment: AlternativeTreatment) => void;
+  onToggleFavorite: (id: number) => void;
+  emptyStateMessage?: string;
+  emptyIcon?: React.ReactNode;
+}) {
+  if (treatments.length === 0) {
+    return (
+      <div className="col-span-full py-12 text-center text-sophera-text-body bg-sophera-bg-card rounded-sophera-card p-8 shadow-sm">
+        {emptyIcon}
+        <p className="text-lg">{emptyStateMessage}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {treatments.map((treatment) => (
+        <TreatmentCard
+          key={treatment.id}
+          treatment={treatment}
+          onSelect={() => onSelect(treatment)}
+          onToggleFavorite={() => onToggleFavorite(treatment.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TreatmentCard({
+  treatment,
+  onSelect,
+  onToggleFavorite
+}: {
+  treatment: AlternativeTreatment;
   onSelect: () => void;
   onToggleFavorite: () => void;
 }) {
   return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
+    <Card
+      className="h-full flex flex-col bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg hover:shadow-xl transition-shadow duration-200 ease-in-out cursor-pointer"
+      onClick={onSelect}
+    >
+      <CardHeader className="pb-3 pt-5 px-5">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl">{treatment.name}</CardTitle>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <CardTitle className="text-lg font-semibold text-sophera-text-heading leading-tight">
+            {treatment.name}
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full text-sophera-text-subtle hover:bg-sophera-accent-secondary/10 hover:text-sophera-accent-secondary"
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite();
             }}
           >
-            <Heart 
-              className={`h-5 w-5 ${treatment.isFavorite ? 'fill-red-500 text-red-500' : ''}`} 
+            <Heart
+              className={`h-5 w-5 transition-colors ${
+                treatment.isFavorite
+                  ? 'fill-sophera-accent-secondary text-sophera-accent-secondary'
+                  : 'text-sophera-text-subtle'
+              }`}
             />
           </Button>
         </div>
-        <Badge variant="outline" className="w-fit">
+        <Badge
+          variant="outline"
+          className="w-fit mt-1 text-xs rounded-md border-sophera-border-primary text-sophera-text-subtle bg-sophera-gradient-start px-2 py-0.5"
+        >
           {treatment.category}
         </Badge>
       </CardHeader>
-      <CardContent className="pb-2 flex-grow">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+      <CardContent className="pb-4 px-5 flex-grow">
+        <p className="text-sm text-sophera-text-body line-clamp-3">
           {treatment.description}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
-        <div className="flex items-center text-sm text-muted-foreground">
-          <span className="font-semibold mr-2">Evidence:</span>
-          <Badge variant={
-            treatment.evidenceRating === 'Strong' ? 'default' :
-            treatment.evidenceRating === 'Moderate' ? 'secondary' :
-            'outline'
-          }>
+      <CardFooter className="flex justify-between items-center pt-3 pb-5 px-5 border-t border-sophera-border-primary/50">
+        <div className="flex items-center text-sm">
+          <span className="font-semibold text-sophera-text-body mr-2">Evidence:</span>
+          <Badge
+            className={`text-xs rounded-md px-2.5 py-1 ${
+              treatment.evidenceRating === 'Strong'
+                ? 'bg-green-100 text-green-700 border-green-300'
+                : treatment.evidenceRating === 'Moderate'
+                ? 'bg-blue-100 text-blue-700 border-blue-300'
+                : treatment.evidenceRating === 'Limited'
+                ? 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                : 'bg-sophera-gradient-start text-sophera-text-subtle border-sophera-border-primary'
+            }`}
+            variant="outline"
+          >
             {treatment.evidenceRating}
           </Badge>
         </div>
-        <Button variant="outline" size="sm" onClick={onSelect}>
-          Details
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
+          className="rounded-sophera-button text-xs border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light"
+        >
+          View Details
         </Button>
       </CardFooter>
     </Card>
