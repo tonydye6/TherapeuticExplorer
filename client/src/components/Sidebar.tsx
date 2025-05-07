@@ -254,10 +254,10 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
                     >
                       <div
                         className={cn(
-                          "flex items-center px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sophera-500 focus:ring-offset-1",
+                          "flex items-center px-6 py-3 text-sm font-medium border-black border-2 transition-all duration-200 cursor-pointer focus:outline-none",
                           isActive
-                            ? "bg-sophera-50 text-sophera-500 shadow-sm border-l-4 border-sophera-500 font-bold"
-                            : "text-charcoal-600 hover:bg-sophera-50/50 hover:text-charcoal-700"
+                            ? "bg-cyan-200 hover:bg-cyan-300 active:bg-cyan-400 hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+                            : "bg-violet-200 hover:bg-violet-300 active:bg-violet-400 hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]"
                         )}
                         tabIndex={0}
                         role="link"
