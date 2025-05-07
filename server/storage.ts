@@ -774,6 +774,82 @@ export class MemStorage implements IStorage {
     
     this.hopeSnippets.delete(id);
   }
+  
+  // Action steps methods
+  async getActionSteps(userId: string): Promise<ActionStep[]> {
+    return Array.from(this.actionSteps.values())
+      .filter(step => step.userId === userId)
+      .sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }
+  
+  async getActionStepById(id: number): Promise<ActionStep | undefined> {
+    return this.actionSteps.get(id);
+  }
+  
+  async createActionStep(insertStep: InsertActionStep): Promise<ActionStep> {
+    const id = this.actionStepIdCounter++;
+    const now = new Date();
+    
+    const actionStep: ActionStep = {
+      ...insertStep,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      isCompleted: false,
+      completedDate: null,
+    };
+    
+    this.actionSteps.set(id, actionStep);
+    return actionStep;
+  }
+  
+  async updateActionStep(id: number, stepData: Partial<ActionStep>): Promise<ActionStep> {
+    const step = await this.getActionStepById(id);
+    
+    if (!step) {
+      throw new Error(`Action step with ID ${id} not found`);
+    }
+    
+    const updatedStep = { 
+      ...step, 
+      ...stepData,
+      updatedAt: new Date()
+    };
+    
+    // If the step is being marked as completed, set the completedDate
+    if (stepData.isCompleted && !step.isCompleted) {
+      updatedStep.completedDate = new Date();
+    }
+    
+    // If the step is being marked as incomplete, clear the completedDate
+    if (stepData.isCompleted === false && step.isCompleted) {
+      updatedStep.completedDate = null;
+    }
+    
+    this.actionSteps.set(id, updatedStep);
+    return updatedStep;
+  }
+  
+  async getCompletedActionSteps(userId: string): Promise<ActionStep[]> {
+    return Array.from(this.actionSteps.values())
+      .filter(step => step.userId === userId && step.isCompleted)
+      .sort((a, b) => {
+        if (a.completedDate && b.completedDate) {
+          return new Date(b.completedDate).getTime() - new Date(a.completedDate).getTime();
+        }
+        return 0;
+      });
+  }
+  
+  async deleteIncompleteActionSteps(userId: string): Promise<void> {
+    for (const [id, step] of this.actionSteps.entries()) {
+      if (step.userId === userId && !step.isCompleted) {
+        this.actionSteps.delete(id);
+      }
+    }
+  }
 }
 
 // Import the storage implementations
