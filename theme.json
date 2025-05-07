@@ -1,6 +1,27 @@
 {
   "variant": "vibrant",
   "primary": "#0D9488",
+  "secondary": "#FF7F50",
+  "accent": "#FFC107",
   "appearance": "light",
-  "radius": 1.0
+  "radius": 1.0,
+  "radii": {
+    "card": 16,
+    "button": 12,
+    "input": 12,
+    "modal": 24
+  },
+  "colors": {
+    "background": {
+      "gradient": {
+        "start": "#E6FFFA",
+        "end": "#FFF3E0"
+      }
+    },
+    "text": {
+      "heading": "#2D3748",
+      "body": "#4A5568",
+      "subtle": "#718096"
+    }
+  }
 }
