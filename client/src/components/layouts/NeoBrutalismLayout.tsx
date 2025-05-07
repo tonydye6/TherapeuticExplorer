@@ -140,18 +140,21 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             <NeoNavigationItem 
               href="/understand/explainer" 
               active={location.startsWith('/understand/explainer')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Explainer
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/understand/treatments" 
               active={location.startsWith('/understand/treatments')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Treatments
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/understand/interactions" 
               active={location.startsWith('/understand/interactions')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Interactions
             </NeoNavigationItem>
@@ -159,6 +162,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/understand/documents" 
               active={location.startsWith('/understand/documents')}
               badge={2}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Documents
             </NeoNavigationItem>
@@ -168,18 +172,21 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             <NeoNavigationItem 
               href="/explore/search" 
               active={location.startsWith('/explore/search')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Research
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/explore/trials" 
               active={location.startsWith('/explore/trials')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Clinical Trials
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/explore/creative" 
               active={location.startsWith('/explore/creative')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Creative
             </NeoNavigationItem>
@@ -189,12 +196,14 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             <NeoNavigationItem 
               href="/connect/stories" 
               active={location.startsWith('/connect/stories')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Stories
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/connect/mindfulness" 
               active={location.startsWith('/connect/mindfulness')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Mindfulness
             </NeoNavigationItem>
@@ -202,12 +211,14 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/connect/resources" 
               active={location.startsWith('/connect/resources')}
               badge="New"
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Resources
             </NeoNavigationItem>
             <NeoNavigationItem 
               href="/connect/caregivers" 
               active={location.startsWith('/connect/caregivers')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Caregivers
             </NeoNavigationItem>
@@ -217,6 +228,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
             <NeoNavigationItem 
               href="/settings/profile" 
               active={location.startsWith('/settings/profile')}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Profile
             </NeoNavigationItem>
@@ -224,6 +236,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/help" 
               active={location === '/help'}
               icon={<HelpCircle />}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Help
             </NeoNavigationItem>
@@ -234,6 +247,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/design/neo-brutalism" 
               active={location.startsWith('/design/neo-brutalism')}
               icon={<Sparkles />}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Neo Brutalism
             </NeoNavigationItem>
