@@ -1,0 +1,72 @@
+// client/src/pages/ConnectHopePage.tsx
+
+import React from 'react';
+// Assuming TabsLayout is a custom component that internally uses shadcn/ui Tabs
+// or is styled to match the Sophera theme.
+import { TabsLayout } from '@/components/ui/tabs-layout'; 
+import HopeSnippetsPage from './HopeSnippetsPage'; // Will need its own styling review
+import SurvivorStoriesPage from './SurvivorStoriesPage'; // Will need its own styling review
+import ResourceHubPage from './ResourceHubPage'; // Will need its own styling review
+import CaregiverConnectPage from './CaregiverConnectPage'; // We styled this previously
+
+import {
+  MessageSquare, // Consider HeartPulseIcon or similar for Survivor Stories for more warmth
+  Sparkles,      // Good for Mindfulness/Hope
+  BookOpen,      // Good for Resource Hub
+  Users          // Good for Caregiver Connect
+} from 'lucide-react';
+
+const ConnectHopePage = () => {
+  const tabs = [
+    {
+      id: 'stories',
+      label: 'Survivor Stories',
+      // Icon styled with Sophera v5 colors
+      icon: <MessageSquare className="h-5 w-5 text-sophera-brand-primary" />, 
+      content: <SurvivorStoriesPage inTabView />
+    },
+    {
+      id: 'mindfulness',
+      label: 'Mindfulness Corner',
+      // Icon styled with Sophera v5 colors
+      icon: <Sparkles className="h-5 w-5 text-sophera-accent-tertiary" />, 
+      content: <HopeSnippetsPage inTabView /> // This might be a page for general hope snippets/mindfulness
+    },
+    {
+      id: 'resources',
+      label: 'Resource Hub',
+      // Icon styled with Sophera v5 colors
+      icon: <BookOpen className="h-5 w-5 text-sophera-accent-secondary" />, 
+      content: <ResourceHubPage inTabView />
+    },
+    {
+      id: 'caregivers',
+      label: 'Caregiver Connect',
+      // Icon styled with Sophera v5 colors
+      icon: <Users className="h-5 w-5 text-sophera-brand-primary" />, 
+      content: <CaregiverConnectPage inTabView />
+    },
+  ];
+
+  // The main page container will have the global gradient background applied via body styles.
+  // The TabsLayout component itself will define the internal layout and styling for tabs.
+  // We pass title and description, which TabsLayout should style according to Sophera v5 typography.
+  return (
+    // The `TabsLayout` component is expected to handle its own internal padding
+    // and apply card-like styling for its main container if appropriate,
+    // or simply structure the tab navigation and content area.
+    // The page title and description styling will be handled within TabsLayout.
+    <TabsLayout
+      title="Connect & Hope"
+      description="Find support, inspiration, and resources to nurture hope and well-being on your journey."
+      tabs={tabs}
+      // Optional: Pass additional classes if TabsLayout accepts them for further customization
+      // e.g., className="text-sophera-text-body"
+      // The TabsList and TabsTrigger within TabsLayout should pick up the new theme:
+      // TabsList: bg-sophera-gradient-start rounded-sophera-button
+      // TabsTrigger: data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input
+    />
+  );
+};
+
+export default ConnectHopePage;
