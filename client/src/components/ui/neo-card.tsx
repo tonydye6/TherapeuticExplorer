@@ -8,7 +8,7 @@ const NeoCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative bg-sophera-bg-card border-3 sm:border-4 border-sophera-text-heading rounded-xl shadow-[0.3rem_0.3rem_0_#05060f] sm:shadow-[0.5rem_0.5rem_0_#05060f] transition-all duration-300 hover:translate-x-[-0.2rem] hover:translate-y-[-0.2rem] sm:hover:translate-x-[-0.3rem] sm:hover:translate-y-[-0.3rem] hover:shadow-[0.5rem_0.5rem_0_#05060f] sm:hover:shadow-[0.8rem_0.8rem_0_#05060f] overflow-hidden",
+      "relative bg-sophera-bg-card border-3 sm:border-4 border-sophera-text-heading rounded-xl shadow-[0.3rem_0.3rem_0_#05060f] sm:shadow-[0.5rem_0.5rem_0_#05060f] h-[450px]",
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ const NeoCardBadge = React.forwardRef<
   <span
     ref={ref}
     className={cn(
-      "bg-white text-sophera-text-heading text-xs font-extrabold py-1.5 px-3 border-2 border-sophera-text-heading rounded-md shadow-[0.2rem_0.2rem_0_#05060f] uppercase tracking-wider transform rotate-3 transition-transform hover:rotate-[-2deg] hover:scale-110",
+      "bg-white text-sophera-text-heading text-xs font-extrabold py-1.5 px-3 border-2 border-sophera-text-heading rounded-md shadow-[0.2rem_0.2rem_0_#05060f] uppercase tracking-wider transform rotate-3",
       className
     )}
     {...props}
@@ -106,15 +106,15 @@ const NeoCardDecoration = () => {
       {/* Corner accent */}
       <div className="absolute top-[-0.7rem] sm:top-[-1rem] right-[-0.7rem] sm:right-[-1rem] w-12 sm:w-16 h-12 sm:h-16 bg-sophera-accent-secondary transform rotate-45 z-10"></div>
       <div className="absolute top-1 sm:top-2 right-1 sm:right-2 text-sophera-text-heading text-lg sm:text-xl font-bold z-20">★</div>
-      
+
       {/* Card pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:0.5rem_0.5rem] opacity-50 pointer-events-none"></div>
-      
+
       {/* Bottom decoration */}
-      <div className="hidden sm:block absolute bottom-[-1.2rem] right-8 w-10 h-10 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45 transition-transform hover:rotate-[55deg] hover:scale-110"></div>
-      
+      <div className="hidden sm:block absolute bottom-[-1.2rem] right-8 w-10 h-10 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45"></div>
+
       {/* Mobile-optimized bottom decoration */}
-      <div className="block sm:hidden absolute bottom-[-0.8rem] right-4 w-7 h-7 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45 transition-transform hover:rotate-[55deg] hover:scale-110"></div>
+      <div className="block sm:hidden absolute bottom-[-0.8rem] right-4 w-7 h-7 bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md transform rotate-45"></div>
     </>
   )
 }
