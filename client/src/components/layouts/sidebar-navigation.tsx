@@ -271,9 +271,9 @@ export function SidebarNavigation() {
                       // When section is active but not expanded, use primary color
                       (isSectionActive(section.path) && !expandedSections.includes(section.title))
                         ? "bg-sophera-brand-primary text-white border-sophera-text-heading shadow-[0.35rem_0.35rem_0_#05060f]" 
-                        // When section is expanded, use black background with white text
+                        // When section is expanded, use light gray background with white text
                         : expandedSections.includes(section.title)
-                          ? "bg-sophera-text-heading text-white border-sophera-text-heading shadow-[0.35rem_0.35rem_0_#05060f]" 
+                          ? "bg-gray-300 text-white border-gray-400 shadow-[0.35rem_0.35rem_0_#05060f]" 
                           // Otherwise use original color scheme with hover effect
                           : "border-sophera-text-heading/70 shadow-[0.2rem_0.2rem_0_#05060f] hover:border-sophera-text-heading hover:shadow-[0.35rem_0.35rem_0_#05060f]",
                       // Apply background colors only when section is neither active nor expanded
