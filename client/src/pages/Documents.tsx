@@ -1,128 +1,182 @@
+// client/src/pages/Documents.tsx
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Document } from "@shared/schema";
-import DocumentViewer from "../components/DocumentViewer";
-import { 
-  Search, 
-  Filter, 
-  FileText, 
-  FileImage, 
-  FilePlus, 
+import DocumentViewer from "@/components/document/DocumentViewer";
+import {
+  Search,
+  FileText,
+  FileImage,
+  FilePlus,
   UploadCloud,
-  TableProperties,
+  Beaker,
+  BookOpen,
   CalendarDays,
   ListFilter,
-  Eye
+  Eye,
+  LayoutGrid,
+  List,
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-export default function Documents() {
+interface MockDocument extends Document {
+  id: number;
+  title: string;
+  type: 'lab_report' | 'imaging' | 'notes' | 'book';
+  dateAdded: string;
+  content?: string;
+}
+
+const sampleDocs: MockDocument[] = [
+  { id: 1, title: "CBC Results - May 2025", type: 'lab_report', dateAdded: "2025-05-03T10:00:00Z", content: "Hemoglobin 11.2" },
+  { id: 2, title: "PET Scan Report - April 2025", type: 'imaging', dateAdded: "2025-04-20T14:30:00Z", content: "No distant metastases noted." },
+  { id: 3, title: "Oncology Consult Notes", type: 'notes', dateAdded: "2025-04-15T09:00:00Z", content: "Discussed chemoradiation plan." },
+  { id: 4, title: "Excerpt - Radical Remission", type: 'book', dateAdded: "2025-04-10T12:00:00Z", content: "Chapter on dietary changes." },
+  { id: 5, title: "Pathology Report - Biopsy", type: 'lab_report', dateAdded: "2025-04-01T16:00:00Z", content: "Adenocarcinoma confirmed." },
+];
+
+const getDocumentIcon = (type: string) => {
+  const iconClass = "h-10 w-10";
+  switch (type) {
+    case 'lab_report':
+      return <Beaker className={`${iconClass} text-blue-500`} />;
+    case 'imaging':
+      return <FileImage className={`${iconClass} text-purple-500`} />;
+    case 'notes':
+      return <FileText className={`${iconClass} text-green-500`} />;
+    case 'book':
+      return <BookOpen className={`${iconClass} text-sophera-accent-tertiary`} />;
+    default:
+      return <FileText className={`${iconClass} text-sophera-text-subtle`} />;
+  }
+};
+
+const getDocumentTypeLabel = (type: string) => {
+  switch (type) {
+    case 'lab_report': return "Lab Report";
+    case 'imaging': return "Imaging Report";
+    case 'notes': return "Clinical Notes";
+    case 'book': return "Book/Excerpt";
+    default: return "Document";
+  }
+};
+
+export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  
-  // Fetch documents
-  const { data: documents, isLoading, error } = useQuery<Document[]>({
-    queryKey: ['/api/documents'],
-    // If API doesn't exist yet, return empty array
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/documents');
-        if (!response.ok) return [];
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-        return [];
-      }
-    },
-  });
-  
-  // Filter documents based on search query and filters
+
+  const documents = sampleDocs;
+  const isLoading = false;
+  const error = null;
+
   const filteredDocuments = documents?.filter(doc => {
-    // Search filter
-    const matchesSearch = searchQuery === "" || 
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.content && doc.content.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    // Type filter
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === "" ||
+      doc.title.toLowerCase().includes(lowerCaseQuery) ||
+      (doc.content && doc.content.toLowerCase().includes(lowerCaseQuery));
     const matchesType = typeFilter === "all" || doc.type === typeFilter;
-    
-    // Date filter - this is simplified; in a real app you'd have more complex date filtering
+
     if (dateFilter === "all") return matchesSearch && matchesType;
-    
     const docDate = new Date(doc.dateAdded);
     const now = new Date();
-    
     if (dateFilter === "last7days") {
-      const lastWeek = new Date(now);
-      lastWeek.setDate(lastWeek.getDate() - 7);
+      const lastWeek = new Date(now); lastWeek.setDate(lastWeek.getDate() - 7);
       return matchesSearch && matchesType && docDate >= lastWeek;
     }
-    
     if (dateFilter === "last30days") {
-      const lastMonth = new Date(now);
-      lastMonth.setDate(lastMonth.getDate() - 30);
+      const lastMonth = new Date(now); lastMonth.setDate(lastMonth.getDate() - 30);
       return matchesSearch && matchesType && docDate >= lastMonth;
     }
-    
     if (dateFilter === "last90days") {
-      const last3Months = new Date(now);
-      last3Months.setDate(last3Months.getDate() - 90);
+      const last3Months = new Date(now); last3Months.setDate(last3Months.getDate() - 90);
       return matchesSearch && matchesType && docDate >= last3Months;
     }
-    
     return matchesSearch && matchesType;
-  });
-  
-  // Group documents by type
-  const labReports = filteredDocuments?.filter(doc => doc.type === 'lab_report');
-  const imagingReports = filteredDocuments?.filter(doc => doc.type === 'imaging');
-  const clinicalNotes = filteredDocuments?.filter(doc => doc.type === 'notes');
-  const bookExcerpts = filteredDocuments?.filter(doc => doc.type === 'book');
-  
-  // Helper function to get document icon
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case 'lab_report':
-        return <TableProperties className="h-10 w-10 text-blue-500" />;
-      case 'imaging':
-        return <FileImage className="h-10 w-10 text-purple-500" />;
-      case 'notes':
-        return <FileText className="h-10 w-10 text-green-500" />;
-      case 'book':
-        return <FileText className="h-10 w-10 text-amber-500" />;
-      default:
-        return <FileText className="h-10 w-10 text-gray-500" />;
-    }
-  };
-  
-  // Helper function for document type labels
-  const getDocumentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'lab_report':
-        return "Lab Report";
-      case 'imaging':
-        return "Imaging";
-      case 'notes':
-        return "Clinical Notes";
-      case 'book':
-        return "Book Excerpt";
-      default:
-        return "Document";
-    }
+  }) || [];
+
+  const handleViewDocument = (docId: number) => {
+    setSelectedDocumentId(docId);
+    setIsViewerOpen(true);
   };
 
+  const renderDocumentCard = (doc: MockDocument) => (
+    <Card
+      key={doc.id}
+      className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg hover:shadow-xl transition-shadow duration-200 ease-in-out overflow-hidden flex flex-col"
+    >
+      <CardHeader className="flex flex-row items-center gap-4 p-5 space-y-0">
+        <div className="flex-shrink-0">
+          {getDocumentIcon(doc.type)}
+        </div>
+        <div className="flex-grow min-w-0">
+          <CardTitle className="text-base font-semibold text-sophera-text-heading leading-tight truncate" title={doc.title}>
+            {doc.title}
+          </CardTitle>
+          <CardDescription className="text-xs text-sophera-text-subtle mt-0.5">
+            {getDocumentTypeLabel(doc.type)} • Added {new Date(doc.dateAdded).toLocaleDateString()}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardFooter className="mt-auto border-t border-sophera-border-primary/50 bg-sophera-gradient-start/30 p-4 flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleViewDocument(doc.id)}
+          className="rounded-sophera-button text-xs border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light"
+        >
+          <Eye className="h-4 w-4 mr-1.5" />
+          View Document
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+
+  const renderDocumentListItem = (doc: MockDocument) => (
+    <div key={doc.id} className="flex items-center border border-sophera-border-primary rounded-sophera-input p-4 bg-sophera-bg-card shadow-sm hover:shadow-md transition-shadow duration-150 ease-in-out">
+      <div className="flex-shrink-0 mr-4">
+        {getDocumentIcon(doc.type)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-sophera-text-heading truncate" title={doc.title}>{doc.title}</h3>
+        <p className="text-sm text-sophera-text-subtle">
+          {getDocumentTypeLabel(doc.type)} • Added {new Date(doc.dateAdded).toLocaleDateString()}
+        </p>
+      </div>
+      <div className="flex gap-2 ml-4 shrink-0">
+        {doc.type === 'lab_report' && (
+          <Badge variant="outline" className="text-xs rounded-md border-blue-300 bg-blue-50 text-blue-700 hidden sm:flex items-center">
+            Analyzed
+          </Badge>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleViewDocument(doc.id)}
+          className="rounded-sophera-button text-xs border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light"
+        >
+          <Eye className="h-4 w-4 mr-1.5 sm:mr-1" />
+          <span className="hidden sm:inline">View</span>
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      {/* Document Viewer */}
-      <DocumentViewer 
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <DocumentViewer
         documentId={selectedDocumentId}
         isOpen={isViewerOpen}
         onClose={() => {
@@ -130,41 +184,42 @@ export default function Documents() {
           setSelectedDocumentId(null);
         }}
       />
-      
-      <div className="flex flex-col gap-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Documents</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-1">
-              <UploadCloud className="h-4 w-4" />
+
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading">My Documents</h1>
+            <p className="text-lg text-sophera-text-body mt-1">
+              Upload, organize, and analyze your medical records and notes.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="rounded-sophera-button h-11 px-5 border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light flex items-center gap-2">
+              <UploadCloud className="h-5 w-5" />
               Upload
-            </Button>
-            <Button className="bg-primary-800 hover:bg-primary-900 flex items-center gap-1">
-              <FilePlus className="h-4 w-4" />
-              New Document
             </Button>
           </div>
         </div>
-      
-        {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
             <Input
-              className="pl-10"
-              placeholder="Search documents..."
+              type="search"
+              className="pl-11 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
+              placeholder="Search document titles or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="flex gap-3 shrink-0">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[150px]">
-                <ListFilter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Type" />
+              <SelectTrigger className="w-full md:w-[180px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-sophera-border-primary">
+                <ListFilter className="h-5 w-5 mr-2 text-sophera-text-subtle" />
+                <SelectValue placeholder="Filter by Type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-sophera-input">
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="lab_report">Lab Reports</SelectItem>
                 <SelectItem value="imaging">Imaging</SelectItem>
@@ -172,329 +227,104 @@ export default function Documents() {
                 <SelectItem value="book">Books</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[150px]">
-                <CalendarDays className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Date" />
+              <SelectTrigger className="w-full md:w-[180px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-sophera-border-primary">
+                <CalendarDays className="h-5 w-5 mr-2 text-sophera-text-subtle" />
+                <SelectValue placeholder="Filter by Date" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-sophera-input">
                 <SelectItem value="all">All Dates</SelectItem>
                 <SelectItem value="last7days">Last 7 Days</SelectItem>
                 <SelectItem value="last30days">Last 30 Days</SelectItem>
                 <SelectItem value="last90days">Last 90 Days</SelectItem>
               </SelectContent>
             </Select>
-            
-            <div className="flex border rounded-md overflow-hidden">
-              <Button 
-                variant={viewMode === "grid" ? "default" : "ghost"} 
-                size="sm"
+
+            <div className="flex border border-sophera-border-primary rounded-sophera-button overflow-hidden h-12 bg-sophera-bg-card">
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setViewMode("grid")}
-                className={viewMode === "grid" ? "bg-primary-800 hover:bg-primary-900" : ""}
+                className={cn(
+                  "h-full w-12 rounded-none",
+                  viewMode === "grid" 
+                    ? "bg-sophera-brand-primary-light text-sophera-brand-primary" 
+                    : "text-sophera-text-subtle hover:bg-sophera-brand-primary-light/50"
+                )}
+                aria-label="Grid View"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                </svg>
+                <LayoutGrid className="h-5 w-5" />
               </Button>
-              <Button 
-                variant={viewMode === "list" ? "default" : "ghost"} 
-                size="sm"
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setViewMode("list")}
-                className={viewMode === "list" ? "bg-primary-800 hover:bg-primary-900" : ""}
+                className={cn(
+                  "h-full w-12 rounded-none",
+                  viewMode === "list" 
+                    ? "bg-sophera-brand-primary-light text-sophera-brand-primary" 
+                    : "text-sophera-text-subtle hover:bg-sophera-brand-primary-light/50"
+                )}
+                aria-label="List View"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6"></line>
-                  <line x1="8" y1="12" x2="21" y2="12"></line>
-                  <line x1="8" y1="18" x2="21" y2="18"></line>
-                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                </svg>
+                <List className="h-5 w-5" />
               </Button>
             </div>
           </div>
         </div>
-        
-        {/* Documents display */}
+
         {isLoading ? (
-          <div className="text-center py-12">
-            <p>Loading documents...</p>
+          <div className="flex flex-col items-center justify-center min-h-[30vh] p-4">
+            <Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary mb-4" />
+            <h3 className="text-lg font-semibold text-sophera-text-heading">Loading documents...</h3>
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-red-500">
-            <p>Error loading documents. Please try again.</p>
-          </div>
-        ) : filteredDocuments?.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-lg font-medium">No documents found</p>
-            <p className="text-sm mt-2">Upload documents to organize your medical information.</p>
-            <Button className="mt-4 bg-primary-800 hover:bg-primary-900 flex items-center gap-1">
-              <UploadCloud className="h-4 w-4" />
-              Upload Documents
-            </Button>
-          </div>
+          <Card className="text-center py-16 md:py-24 bg-red-50 border-red-200 rounded-sophera-card shadow-lg">
+            <AlertTriangle className="h-16 w-16 mx-auto mb-6 text-red-500" />
+            <p className="text-xl font-semibold text-red-700">Error Loading Documents</p>
+            <p className="text-red-600 mt-2 max-w-md mx-auto">We couldn't retrieve your documents. Please try again later.</p>
+          </Card>
+        ) : filteredDocuments.length === 0 ? (
+          <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-lg">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+                <FileText className="h-12 w-12 text-sophera-brand-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-sophera-text-heading">
+                {searchQuery || typeFilter !== 'all' || dateFilter !== 'all' ? "No Matching Documents Found" : "No Documents Uploaded Yet"}
+              </h3>
+              <p className="text-sophera-text-body mt-1 max-w-md">
+                {searchQuery || typeFilter !== 'all' || dateFilter !== 'all'
+                  ? "Try adjusting your search or filters."
+                  : "Upload your medical records, notes, or book excerpts to keep everything organized."}
+              </p>
+              {!(searchQuery || typeFilter !== 'all' || dateFilter !== 'all') && (
+                <Button className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+                  <UploadCloud className="mr-2 h-5 w-5" />
+                  Upload Your First Document
+                </Button>
+              )}
+            </div>
+          </Card>
         ) : (
-          <Tabs defaultValue="all">
-            <TabsList className="mb-6">
-              <TabsTrigger value="all">All Documents</TabsTrigger>
-              <TabsTrigger value="labs">Lab Reports</TabsTrigger>
-              <TabsTrigger value="imaging">Imaging</TabsTrigger>
-              <TabsTrigger value="notes">Clinical Notes</TabsTrigger>
-              <TabsTrigger value="books">Books</TabsTrigger>
+          <Tabs defaultValue="all" value={typeFilter} onValueChange={setTypeFilter} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto p-1.5 bg-sophera-gradient-start rounded-sophera-button mb-6 gap-1.5">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11">All Docs</TabsTrigger>
+              <TabsTrigger value="lab_report" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11">Lab Reports</TabsTrigger>
+              <TabsTrigger value="imaging" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11">Imaging</TabsTrigger>
+              <TabsTrigger value="notes" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11">Notes</TabsTrigger>
+              <TabsTrigger value="book" className="text-sm data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-md rounded-sophera-input h-11">Books</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="all">
-              {viewMode === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredDocuments?.map((doc) => (
-                    <Card key={doc.id} className="overflow-hidden">
-                      <div className="flex items-center p-4">
-                        {getDocumentIcon(doc.type)}
-                        <div className="ml-4">
-                          <h3 className="font-medium">{doc.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            {getDocumentTypeLabel(doc.type)} • {new Date(doc.dateAdded).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <CardContent className="border-t bg-gray-50 p-4">
-                        <div className="flex justify-between">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center gap-1"
-                            onClick={() => {
-                              setSelectedDocumentId(doc.id);
-                              setIsViewerOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                            View
-                          </Button>
-                          {doc.type === 'lab_report' && (
-                            <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              Analyzed
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {filteredDocuments?.map((doc) => (
-                    <div key={doc.id} className="flex items-center border rounded-lg p-4 bg-white">
-                      <div className="flex-shrink-0 mr-4">
-                        {getDocumentIcon(doc.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{doc.title}</h3>
-                        <p className="text-sm text-gray-500">
-                          {getDocumentTypeLabel(doc.type)} • {new Date(doc.dateAdded).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        {doc.type === 'lab_report' && (
-                          <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
-                            Analyzed
-                          </span>
-                        )}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1"
-                          onClick={() => {
-                            setSelectedDocumentId(doc.id);
-                            setIsViewerOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="labs">
-              {labReports?.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p>No lab reports found.</p>
-                </div>
-              ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {labReports?.map((doc) => (
-                    <Card key={doc.id} className="overflow-hidden">
-                      <div className="flex items-center p-4">
-                        <TableProperties className="h-10 w-10 text-blue-500" />
-                        <div className="ml-4">
-                          <h3 className="font-medium">{doc.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            Lab Report • {new Date(doc.dateAdded).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <CardContent className="border-t bg-gray-50 p-4">
-                        <div className="flex justify-between">
-                          <Button variant="outline" size="sm" className="flex items-center gap-1">
-                            <Eye className="h-4 w-4" />
-                            View
-                          </Button>
-                          <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                            Analyzed
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {labReports?.map((doc) => (
-                    <div key={doc.id} className="flex items-center border rounded-lg p-4 bg-white">
-                      <div className="flex-shrink-0 mr-4">
-                        <TableProperties className="h-10 w-10 text-blue-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{doc.title}</h3>
-                        <p className="text-sm text-gray-500">
-                          Lab Report • {new Date(doc.dateAdded).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
-                          Analyzed
-                        </span>
-                        <Button variant="outline" size="sm" className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="imaging">
-              {imagingReports?.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p>No imaging reports found.</p>
-                </div>
-              ) : (
-                <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-3"}>
-                  {imagingReports?.map((doc) => renderDocument(doc, viewMode))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="notes">
-              {clinicalNotes?.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p>No clinical notes found.</p>
-                </div>
-              ) : (
-                <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-3"}>
-                  {clinicalNotes?.map((doc) => renderDocument(doc, viewMode))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="books">
-              {bookExcerpts?.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p>No book excerpts found.</p>
-                </div>
-              ) : (
-                <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-3"}>
-                  {bookExcerpts?.map((doc) => renderDocument(doc, viewMode))}
-                </div>
-              )}
-            </TabsContent>
+
+            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
+              {filteredDocuments.map((doc) => (
+                viewMode === "grid" ? renderDocumentCard(doc) : renderDocumentListItem(doc)
+              ))}
+            </div>
           </Tabs>
         )}
       </div>
     </div>
   );
-  
-  // Helper function to render a document in both view modes
-  function renderDocument(doc: Document, mode: "grid" | "list") {
-    if (mode === "grid") {
-      return (
-        <Card key={doc.id} className="overflow-hidden">
-          <div className="flex items-center p-4">
-            {getDocumentIcon(doc.type)}
-            <div className="ml-4">
-              <h3 className="font-medium">{doc.title}</h3>
-              <p className="text-sm text-gray-500">
-                {getDocumentTypeLabel(doc.type)} • {new Date(doc.dateAdded).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-          <CardContent className="border-t bg-gray-50 p-4">
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1"
-                onClick={() => {
-                  setSelectedDocumentId(doc.id);
-                  setIsViewerOpen(true);
-                }}
-              >
-                <Eye className="h-4 w-4" />
-                View
-              </Button>
-              {doc.type === 'lab_report' && (
-                <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Analyzed
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      );
-    } else {
-      return (
-        <div key={doc.id} className="flex items-center border rounded-lg p-4 bg-white">
-          <div className="flex-shrink-0 mr-4">
-            {getDocumentIcon(doc.type)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium truncate">{doc.title}</h3>
-            <p className="text-sm text-gray-500">
-              {getDocumentTypeLabel(doc.type)} • {new Date(doc.dateAdded).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="flex gap-2 ml-4">
-            {doc.type === 'lab_report' && (
-              <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
-                Analyzed
-              </span>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1"
-              onClick={() => {
-                setSelectedDocumentId(doc.id);
-                setIsViewerOpen(true);
-              }}
-            >
-              <Eye className="h-4 w-4" />
-              View
-            </Button>
-          </div>
-        </div>
-      );
-    }
-  }
 }
