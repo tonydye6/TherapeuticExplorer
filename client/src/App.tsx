@@ -27,6 +27,11 @@ import DietLogsPage from "./pages/DietLogsPage";
 import DashboardPage from "./pages/DashboardPage";
 import HopeSnippetsPage from "./pages/HopeSnippetsPage";
 
+// Import Connect & Hope section pages
+import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
+import ResourceHubPage from "./pages/ResourceHubPage";
+import CaregiverConnectPage from "./pages/CaregiverConnectPage";
+
 // Temporary redirect component
 const RedirectWithMessage = ({ to }: { to: string }) => {
   return (
@@ -39,6 +44,22 @@ const RedirectWithMessage = ({ to }: { to: string }) => {
   );
 };
 
+// Wrapper components for pages with inTabView props to make them compatible with wouter
+const MyPlanPageWrapper = () => <MyPlanPage inTabView={false} />;
+const JournalLogsPageWrapper = () => <JournalLogsPage inTabView={false} />;
+const DietLogsPageWrapper = () => <DietLogsPage inTabView={false} />;
+const SemanticSearchWrapper = () => <SemanticSearch inTabView={false} />;
+const TreatmentTrackerWrapper = () => <TreatmentTracker inTabView={false} />;
+const SideEffectAnalyzerWrapper = () => <SideEffectAnalyzer inTabView={false} />;
+const DocumentsPageWrapper = () => <DocumentsPage inTabView={false} />;
+const ResearchAssistantWrapper = () => <ResearchAssistant inTabView={false} />;
+const ClinicalTrialsWrapper = () => <ClinicalTrials inTabView={false} />;
+const MultimodalChatPageWrapper = () => <MultimodalChatPage inTabView={false} />;
+const SurvivorStoriesPageWrapper = () => <SurvivorStoriesPage inTabView={false} />;
+const HopeSnippetsPageWrapper = () => <HopeSnippetsPage inTabView={false} />;
+const ResourceHubPageWrapper = () => <ResourceHubPage inTabView={false} />;
+const CaregiverConnectPageWrapper = () => <CaregiverConnectPage inTabView={false} />;
+
 function Router() {
   return (
     <Layout>
@@ -49,46 +70,46 @@ function Router() {
         <Route path="/dashboard" component={() => <RedirectWithMessage to="/today" />} />
 
         {/* My Journey Section */}
-        <Route path="/my-journey/plan" component={MyPlanPage} />
+        <Route path="/my-journey/plan" component={MyPlanPageWrapper} />
         <Route path="/my-plan" component={() => <RedirectWithMessage to="/my-journey/plan" />} />
         
-        <Route path="/my-journey/journal" component={JournalLogsPage} />
+        <Route path="/my-journey/journal" component={JournalLogsPageWrapper} />
         <Route path="/journal-logs" component={() => <RedirectWithMessage to="/my-journey/journal" />} />
         
-        <Route path="/my-journey/diet" component={DietLogsPage} />
+        <Route path="/my-journey/diet" component={DietLogsPageWrapper} />
         <Route path="/diet-logs" component={() => <RedirectWithMessage to="/my-journey/diet" />} />
         
         <Route path="/my-journey/metrics" component={() => <div>My Metrics - Coming Soon</div>} />
         <Route path="/my-journey/trends" component={() => <div>Trends - Coming Soon</div>} />
         
         {/* Understand Section */}
-        <Route path="/understand/explainer" component={SemanticSearch} />
+        <Route path="/understand/explainer" component={SemanticSearchWrapper} />
         <Route path="/semantic-search" component={() => <RedirectWithMessage to="/understand/explainer" />} />
         
-        <Route path="/understand/treatments" component={TreatmentTracker} />
+        <Route path="/understand/treatments" component={TreatmentTrackerWrapper} />
         <Route path="/treatment-tracker" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         
-        <Route path="/understand/interactions" component={SideEffectAnalyzer} />
+        <Route path="/understand/interactions" component={SideEffectAnalyzerWrapper} />
         <Route path="/side-effect-analyzer" component={() => <RedirectWithMessage to="/understand/interactions" />} />
         
-        <Route path="/understand/documents" component={DocumentsPage} />
+        <Route path="/understand/documents" component={DocumentsPageWrapper} />
         <Route path="/documents" component={() => <RedirectWithMessage to="/understand/documents" />} />
         
         {/* Explore Section */}
-        <Route path="/explore/search" component={ResearchAssistant} />
+        <Route path="/explore/search" component={ResearchAssistantWrapper} />
         <Route path="/saved-research" component={() => <RedirectWithMessage to="/explore/search" />} />
         
-        <Route path="/explore/trials" component={ClinicalTrials} />
+        <Route path="/explore/trials" component={ClinicalTrialsWrapper} />
         <Route path="/clinical-trials" component={() => <RedirectWithMessage to="/explore/trials" />} />
         
-        <Route path="/explore/creative" component={MultimodalChatPage} />
+        <Route path="/explore/creative" component={MultimodalChatPageWrapper} />
         <Route path="/multimodal-chat" component={() => <RedirectWithMessage to="/explore/creative" />} />
         
         {/* Connect & Hope Section */}
-        <Route path="/connect/stories" component={() => <div>Survivor Stories - Coming Soon</div>} />
-        <Route path="/connect/mindfulness" component={() => <div>Mindfulness Corner - Coming Soon</div>} />
-        <Route path="/connect/resources" component={() => <div>Resource Hub - Coming Soon</div>} />
-        <Route path="/connect/caregivers" component={() => <div>Caregiver Connect - Coming Soon</div>} />
+        <Route path="/connect/stories" component={SurvivorStoriesPageWrapper} />
+        <Route path="/connect/mindfulness" component={HopeSnippetsPageWrapper} />
+        <Route path="/connect/resources" component={ResourceHubPageWrapper} />
+        <Route path="/connect/caregivers" component={CaregiverConnectPageWrapper} />
         <Route path="/hope-snippets" component={() => <RedirectWithMessage to="/connect/mindfulness" />} />
         
         {/* Settings Section */}
