@@ -27,6 +27,8 @@ import DietLogsPage from "./pages/DietLogsPage";
 import DashboardPage from "./pages/DashboardPage";
 import HopeSnippetsPage from "./pages/HopeSnippetsPage";
 import NeoBrutalismDemo from "./pages/NeoBrutalismDemo";
+import DesignSystemAccess from "./pages/DesignSystemAccess";
+import DirectAccessDemo from "./pages/DirectAccessDemo";
 
 // Import Connect & Hope section pages
 import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
@@ -123,8 +125,10 @@ function Router() {
         <Route path="/treatment-predictor" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         <Route path="/treatment-timeline" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         
-        {/* Design System Route */}
+        {/* Design System Routes */}
+        <Route path="/design" component={DesignSystemAccess} />
         <Route path="/design/neo-brutalism" component={NeoBrutalismDemo} />
+        <Route path="/neo-brutalism-direct" component={DirectAccessDemo} />
         
         {/* 404 route */}
         <Route component={NotFound} />

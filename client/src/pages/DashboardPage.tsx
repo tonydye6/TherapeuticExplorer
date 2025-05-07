@@ -57,11 +57,11 @@ export default function DashboardPage() {
             <p className="text-sophera-text-body mb-4">
               Check out our new Neo Brutalism Design components with exaggerated shadows, playful elements, and bold styling.
             </p>
-            <Link href="/design/neo-brutalism">
-              <a className="inline-flex items-center px-4 py-2 bg-sophera-brand-primary text-white font-medium rounded-lg hover:bg-sophera-brand-primary-dark transition-colors">
-                View Neo Brutalism Demo
+            <Link href="/design">
+              <div className="inline-flex items-center px-4 py-2 bg-sophera-brand-primary text-white font-medium rounded-lg hover:bg-sophera-brand-primary-dark transition-colors cursor-pointer">
+                View Design System
                 <span className="ml-2">→</span>
-              </a>
+              </div>
             </Link>
           </div>
         </div>
