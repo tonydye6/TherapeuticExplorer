@@ -29,6 +29,7 @@ import HopeSnippetsPage from "./pages/HopeSnippetsPage";
 import NeoBrutalismDemo from "./pages/NeoBrutalismDemo";
 import DesignSystemAccess from "./pages/DesignSystemAccess";
 import DirectAccessDemo from "./pages/DirectAccessDemo";
+import NeoBrutalismLayout from "./components/layouts/NeoBrutalismLayout";
 
 // Import Connect & Hope section pages
 import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
@@ -65,7 +66,7 @@ const CaregiverConnectPageWrapper = () => <CaregiverConnectPage inTabView={false
 
 function Router() {
   return (
-    <Layout>
+    <NeoBrutalismLayout>
       <Switch>
         {/* Today (Dashboard) */}
         <Route path="/today" component={DashboardPage} />
@@ -133,7 +134,7 @@ function Router() {
         {/* 404 route */}
         <Route component={NotFound} />
       </Switch>
-    </Layout>
+    </NeoBrutalismLayout>
   );
 }
 
