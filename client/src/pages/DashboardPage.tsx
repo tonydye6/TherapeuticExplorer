@@ -112,13 +112,17 @@ export default function DashboardPage() {
               <JournalPrompt />
             </NeoCardContent>
             <NeoCardFooter>
-              <div className="flex justify-between items-center w-full">
-                <Link href="/journal-entry">
-                  <NeoButton buttonText="Add Entry" size="sm" color="lime" />
-                </Link>
-                <Link href="/my-journey/journal">
-                  <NeoButton buttonText="View Journal" size="sm" color="primary" />
-                </Link>
+              <div className="w-full px-4 flex justify-between items-center">
+                <div className="mx-auto">
+                  <div className="flex gap-8 justify-center">
+                    <Link href="/journal-entry">
+                      <NeoButton buttonText="Add Entry" size="sm" color="lime" />
+                    </Link>
+                    <Link href="/my-journey/journal">
+                      <NeoButton buttonText="View Journal" size="sm" color="primary" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </NeoCardFooter>
           </NeoCard>
