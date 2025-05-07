@@ -228,11 +228,27 @@ export function SidebarNavigation() {
           "bg-[url('/grid-pattern.svg')] bg-repeat"
         )}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-40 right-4 w-16 h-16 rounded-full bg-teal-200/40 blur-md"></div>
-        <div className="absolute top-[30%] left-2 w-4 h-4 rounded-sm bg-secondary/30 transform rotate-12"></div>
-        <div className="absolute bottom-[35%] right-6 w-8 h-8 rounded-sm bg-tertiary/20 transform -rotate-12"></div>
-        <div className="absolute bottom-[15%] left-2 w-10 h-10 rounded-full bg-teal-100/20 blur-sm"></div>
+        {/* Decorative elements - more fun shapes with different colors */}
+        <div className="absolute top-24 right-4 w-16 h-16 rounded-full bg-teal-200/40 blur-md"></div>
+        <div className="absolute top-[15%] left-2 w-4 h-4 rounded-sm bg-secondary/50 transform rotate-12 border border-secondary shadow-neo-sm"></div>
+        <div className="absolute top-[25%] right-6 w-6 h-6 bg-red-300/60 transform rotate-45 shadow-neo-sm"></div>
+        <div className="absolute top-[35%] left-6 w-6 h-6 rounded-full bg-cyan-300/70 border border-cyan-400/70 shadow-neo-sm"></div>
+        
+        {/* Diamond shape - matches the one in dashboard */}
+        <div className="absolute top-[10%] right-3 w-6 h-6 bg-yellow-400 transform rotate-45 border border-yellow-500 shadow-neo-sm"></div>
+        
+        {/* Small square shape - matches the smaller shapes in dashboard */}
+        <div className="absolute top-[20%] left-10 w-4 h-4 bg-red-400 transform -rotate-12 border border-red-500 shadow-neo-sm"></div>
+        
+        <div className="absolute top-[50%] right-3 w-5 h-5 rounded-sm bg-yellow-300/70 transform -rotate-12 border border-yellow-400 shadow-neo-sm"></div>
+        <div className="absolute bottom-[35%] right-6 w-8 h-8 rounded-sm bg-tertiary/50 transform -rotate-12 shadow-neo-sm"></div>
+        <div className="absolute bottom-[40%] left-3 w-7 h-7 rounded-md bg-orange-300/60 transform rotate-12 border border-orange-400/60 shadow-neo-sm"></div>
+        
+        {/* Circle button - matches the one at bottom of dashboard card */}
+        <div className="absolute bottom-[20%] right-0 w-7 h-7 rounded-full bg-orange-400 border-2 border-orange-500 shadow-neo-sm"></div>
+        
+        <div className="absolute bottom-[25%] right-5 w-5 h-5 rounded-full bg-pink-300/70 border border-pink-400/70 shadow-neo-sm"></div>
+        <div className="absolute bottom-[15%] left-2 w-10 h-10 rounded-full bg-teal-100/30 blur-sm"></div>
         <div className="p-4 bg-sophera-brand-primary">
           <div className="flex items-center justify-between">
             <Link href="/">
