@@ -63,16 +63,52 @@ export default {
         },
         // Sophera custom colors
         sophera: {
-          50: "#f0f6f5",  // Lightest - Sidebar background
-          100: "#e6f2f0", // Light - Active sidebar item background
-          200: "#dce9e7", // Light-medium - Sidebar footer background
+          50: "#E6FFFA",  // Very Light Aqua - Gradient start color
+          100: "#FFF0E9", // Soft Peach - Gradient end color
+          200: "#dce9e7", // Light-medium - Lighter background
           300: "#c2dad6", // Medium
           400: "#a8cbc5", // Medium-dark
-          500: "#8ebcb4", // Primary medium
-          600: "#74ad9e", // Primary base (corresponds to primary color)
-          700: "#5a8e83", // Dark
-          800: "#406f65", // Darker
-          900: "#265047", // Darkest
+          500: "#0D9488", // Primary Teal - Deep Teal - Primary Brand Color
+          600: "#0A7D70", // Darker Primary - Hover state
+          700: "#086F63", // Even Darker Primary
+          800: "#065F54", // Dark for text
+          900: "#2D3748", // Dark Charcoal for headings
+        },
+        coral: {
+          50: "#FFF5F2",  // Very light coral
+          100: "#FFEAE2",  // Light coral
+          200: "#FFD6C7",  // Light-medium coral
+          300: "#FFC1AD",  // Medium coral
+          400: "#FFAD93",  // Medium-dark coral
+          500: "#FF7F50",  // Secondary Accent Color - Bright Coral
+          600: "#E67348",  // Darker coral - Hover state
+          700: "#CC6640",  // Dark coral
+          800: "#B35938",  // Darker coral
+          900: "#994D30",  // Darkest coral
+        },
+        sunny: {
+          50: "#FFFDE7",  // Very light yellow
+          100: "#FFF9C4",  // Light yellow
+          200: "#FFF59D",  // Light-medium yellow
+          300: "#FFF176",  // Medium yellow
+          400: "#FFEE58",  // Medium-dark yellow
+          500: "#FFC107",  // Tertiary Accent Color - Sunny Yellow
+          600: "#E6B000",  // Darker yellow - Hover state
+          700: "#CC9D00",  // Dark yellow
+          800: "#B38900",  // Darker yellow
+          900: "#997600",  // Darkest yellow
+        },
+        charcoal: {
+          50: "#F7FAFC",  // Very light charcoal
+          100: "#EDF2F7",  // Light charcoal
+          200: "#E2E8F0",  // Light-medium charcoal
+          300: "#CBD5E0",  // Medium charcoal - Border color
+          400: "#A0AEC0",  // Medium-dark charcoal
+          500: "#718096",  // Cool Gray - Subtle/Helper text
+          600: "#4A5568",  // Medium Gray - Body text
+          700: "#2D3748",  // Dark Charcoal - Headings
+          800: "#1A202C",  // Darker charcoal
+          900: "#171923",  // Darkest charcoal
         },
       },
       keyframes: {

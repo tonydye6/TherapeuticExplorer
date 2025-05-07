@@ -198,17 +198,17 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
   ];
 
   return (
-    <div className="w-72 bg-[#f0f6f5] h-full border-r border-gray-100 flex-shrink-0 shadow-sm" id="mobile-sidebar">
+    <div className="w-72 bg-white h-full border-r border-charcoal-100 flex-shrink-0 shadow-md" id="mobile-sidebar">
       {/* Logo & title */}
-      <div className="px-6 py-6 border-b border-gray-100 bg-[#e6f2f0]">
+      <div className="px-6 py-6 border-b border-charcoal-100">
         <Link href="/today">
-          <div className="flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md p-1" tabIndex={0}>
-            <div className="h-10 w-10 rounded-lg bg-primary-600 flex items-center justify-center shadow-sm">
-              <Sun className="h-6 w-6 text-white" aria-hidden="true" />
+          <div className="flex items-center focus:outline-none focus:ring-2 focus:ring-sophera-500 focus:ring-offset-2 rounded-md p-1" tabIndex={0}>
+            <div className="h-12 w-12 rounded-lg bg-sophera-500 flex items-center justify-center shadow-sm">
+              <Sun className="h-7 w-7 text-white" aria-hidden="true" />
             </div>
             <div className="ml-3">
-              <h2 className="text-xl font-bold text-primary-800">Sophera</h2>
-              <p className="text-xs text-gray-600 -mt-1">Your Healing Companion</p>
+              <h2 className="text-xl font-bold text-charcoal-700">Sophera</h2>
+              <p className="text-xs text-charcoal-500 -mt-1">Your Healing Companion</p>
             </div>
           </div>
         </Link>
@@ -218,17 +218,17 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       <nav className="mt-5 px-4 space-y-1 overflow-y-auto max-h-[calc(100vh-230px)]" aria-label="Main Navigation">
         {/* Group items by section */}
         {Array.from(new Set(navigationItems.map(item => item.section))).map(section => (
-          <div key={section} className="mb-6" role="group" aria-labelledby={`section-${section?.replace(/\s+|\./g, '-').toLowerCase()}`}>
+          <div key={section} className="mb-8" role="group" aria-labelledby={`section-${section?.replace(/\s+|\./g, '-').toLowerCase()}`}>
             {/* Section header */}
             <h3 
               id={`section-${section?.replace(/\s+|\./g, '-').toLowerCase()}`} 
-              className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 mb-3"
+              className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider px-2 mb-3"
             >
               {section}
             </h3>
             
             {/* Section items */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {navigationItems
                 .filter(item => item.section === section)
                 .map((item) => {
@@ -246,10 +246,10 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
                     >
                       <div
                         className={cn(
-                          "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1",
+                          "flex items-center px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sophera-500 focus:ring-offset-1",
                           isActive
-                            ? "bg-[#e6f2f0] text-primary-700 shadow-sm border-l-2 border-primary-500"
-                            : "text-gray-600 hover:bg-[#e6f2f0]/50 hover:text-gray-900"
+                            ? "bg-sophera-50 text-sophera-500 shadow-sm border-l-4 border-sophera-500 font-bold"
+                            : "text-charcoal-600 hover:bg-sophera-50/50 hover:text-charcoal-700"
                         )}
                         tabIndex={0}
                         role="link"
@@ -259,8 +259,8 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
                         <span className={cn(
                           "mr-3 transition-colors", 
                           isActive 
-                            ? "text-primary-600" 
-                            : "text-gray-400"
+                            ? "text-sophera-500" 
+                            : "text-charcoal-400"
                         )} aria-hidden="true">
                           {item.icon}
                         </span>
@@ -275,11 +275,11 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       </nav>
 
       {/* User profile */}
-      <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-[#dce9e7]">
+      <div className="absolute bottom-0 w-full p-4 border-t border-charcoal-100 bg-white">
         {isAuthenticated && user ? (
           <div className="flex flex-col space-y-3">
             <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center shadow-sm" aria-hidden="true">
+              <div className="h-10 w-10 rounded-full bg-sophera-100 flex items-center justify-center shadow-sm" aria-hidden="true">
                 {user.profileImageUrl ? (
                   <img 
                     src={user.profileImageUrl} 
@@ -287,15 +287,15 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
                     className="h-10 w-10 rounded-full object-cover" 
                   />
                 ) : (
-                  <User className="h-6 w-6 text-gray-600" />
+                  <User className="h-6 w-6 text-sophera-500" />
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-charcoal-700">
                   {user.displayName || user.username}
                 </p>
                 {user.email && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-charcoal-500">
                     {user.email}
                   </p>
                 )}
@@ -304,19 +304,19 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
             <div className="flex space-x-2 justify-between">
               <Link href="/settings/profile" className="flex-1">
                 <button 
-                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-[#f0f6f5] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-charcoal-600 bg-white border border-charcoal-200 rounded-xl hover:bg-sophera-50 transition-colors focus:outline-none focus:ring-2 focus:ring-sophera-500 focus:ring-offset-1"
                   aria-label="Go to settings"
                 >
-                  <Settings className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
+                  <Settings className="h-3.5 w-3.5 text-charcoal-500" aria-hidden="true" />
                   <span>Settings</span>
                 </button>
               </Link>
               <Link href="/logout" className="flex-1">
                 <button 
-                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-[#f0f6f5] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+                  className="w-full flex items-center justify-center space-x-1 px-3 py-2 text-xs font-medium text-charcoal-600 bg-white border border-charcoal-200 rounded-xl hover:bg-sophera-50 transition-colors focus:outline-none focus:ring-2 focus:ring-sophera-500 focus:ring-offset-1"
                   aria-label="Log out of your account"
                 >
-                  <LogOut className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
+                  <LogOut className="h-3.5 w-3.5 text-charcoal-500" aria-hidden="true" />
                   <span>Logout</span>
                 </button>
               </Link>
