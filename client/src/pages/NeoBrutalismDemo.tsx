@@ -105,8 +105,8 @@ export default function NeoBrutalismDemo() {
               </div>
             </NeoCardContent>
             <NeoCardFooter>
-              <NeoButton variant="outline" size="sm">Learn More</NeoButton>
-              <NeoButton variant="primary" size="sm" shine>View Plan</NeoButton>
+              <NeoButton buttonText="Learn More" size="sm" color="cyan" />
+              <NeoButton buttonText="View Plan" size="sm" color="primary" />
             </NeoCardFooter>
           </NeoCard>
 
@@ -115,7 +115,7 @@ export default function NeoBrutalismDemo() {
               <div className="absolute top-[-0.5rem] right-[-0.5rem] w-5 h-5 bg-sophera-accent-secondary transform rotate-45 border-2 border-sophera-text-heading z-10"></div>
               <h3 className="text-xl font-bold text-sophera-text-heading mb-4">Research Findings</h3>
               <p className="text-sophera-text-body mb-4">Latest research on esophageal cancer treatment options and clinical trials that match your profile.</p>
-              <NeoButton variant="secondary" className="w-full" shine>View Research</NeoButton>
+              <NeoButton buttonText="View Research" className="w-full" fullWidth color="orange" />
             </NeoCardContent>
           </NeoCard>
         </div>
@@ -166,7 +166,7 @@ export default function NeoBrutalismDemo() {
             </NeoInputWrapper>
 
             <div className="pt-4">
-              <NeoButton className="w-full" shine>Submit Information</NeoButton>
+              <NeoButton buttonText="Submit Information" className="w-full" fullWidth color="primary" />
             </div>
           </div>
         </div>
@@ -219,23 +219,24 @@ export default function NeoBrutalismDemo() {
         <div>
           <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Button Variants</h2>
           <div className="flex flex-wrap gap-4">
-            <NeoButton variant="primary">Primary Button</NeoButton>
-            <NeoButton variant="secondary">Secondary Button</NeoButton>
-            <NeoButton variant="tertiary">Tertiary Button</NeoButton>
-            <NeoButton variant="outline">Outline Button</NeoButton>
-            <NeoButton variant="destructive">Destructive Button</NeoButton>
-            <NeoButton variant="link">Link Button</NeoButton>
+            <NeoButton buttonText="Primary Button" color="primary" />
+            <NeoButton buttonText="Violet Button" color="violet" />
+            <NeoButton buttonText="Pink Button" color="pink" />
+            <NeoButton buttonText="Red Button" color="red" />
+            <NeoButton buttonText="Orange Button" color="orange" />
+            <NeoButton buttonText="Yellow Button" color="yellow" />
           </div>
 
           <div className="flex flex-wrap gap-4 mt-6">
-            <NeoButton variant="primary" size="sm">Small Button</NeoButton>
-            <NeoButton variant="primary" size="default">Default Button</NeoButton>
-            <NeoButton variant="primary" size="lg">Large Button</NeoButton>
+            <NeoButton buttonText="Small Button" size="sm" color="primary" />
+            <NeoButton buttonText="Medium Button" size="md" color="primary" />
+            <NeoButton buttonText="Large Button" size="lg" color="primary" />
           </div>
 
           <div className="flex flex-wrap gap-4 mt-6">
-            <NeoButton variant="primary" shine>With Shine Effect</NeoButton>
-            <NeoButton variant="secondary" shine>With Shine Effect</NeoButton>
+            <NeoButton buttonText="Rounded None" rounded="none" color="cyan" />
+            <NeoButton buttonText="Rounded MD" rounded="md" color="cyan" />
+            <NeoButton buttonText="Rounded Full" rounded="full" color="cyan" />
           </div>
         </div>
       </div>
