@@ -18,6 +18,7 @@ import { nutritionService } from "./services/nutrition-service";
 import { creativeSandboxService } from "./services/creative-sandbox-service";
 import { caregiverAccessService } from "./services/caregiver-access-service";
 import { documentAnalysisService } from "./services/document-analysis-service";
+import { actionStepsService } from "./services/action-steps-service";
 import * as hopeService from "./services/hope-service";
 import { multimodalService } from "./services/multimodal-service";
 import * as firestoreService from "./services/firestore-service";
