@@ -110,12 +110,11 @@ export default function DashboardPage() {
               <JournalPrompt />
             </NeoCardContent>
             </NeoCard>
-            <div className="mt-4 flex justify-end">
-              <Link href="/my-journey/journal">
-                <NeoButton variant="outline" size="sm">View Journal</NeoButton>
-              </Link>
-            </div>
-          </NeoCard>
+          <div className="mt-4 flex justify-end">
+            <Link href="/my-journey/journal">
+              <NeoButton variant="outline" size="sm">View Journal</NeoButton>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:gap-8">

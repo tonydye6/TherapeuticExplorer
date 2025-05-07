@@ -28,7 +28,7 @@ const NeoButton = React.forwardRef<HTMLButtonElement, NeoButtonProps>(
     fullWidth,
     ...props 
   }, ref) => {
-    
+
     const buttonClasses = cn(
       "relative border-sophera-text-heading border-2 font-bold flex items-center justify-center transition-all duration-300",
       "hover:translate-y-[-2px] active:translate-y-[1px]",
@@ -67,7 +67,7 @@ const NeoButton = React.forwardRef<HTMLButtonElement, NeoButtonProps>(
         {buttonText || children}
       </>
     )
-    
+
     if (href) {
       return (
         <Link href={href}>
@@ -82,7 +82,7 @@ const NeoButton = React.forwardRef<HTMLButtonElement, NeoButtonProps>(
         </Link>
       )
     }
-    
+
     return (
       <button
         className={buttonClasses}
