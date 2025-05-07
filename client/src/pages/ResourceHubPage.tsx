@@ -11,6 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, ExternalLink, Bookmark, Star, Heart, BookOpen, Users, Building, Globe, PenSquare, Newspaper, Download, Link2, Filter } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 // Mock resource categories
 const RESOURCE_CATEGORIES = [
@@ -130,6 +134,8 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   // Mock API call for resources
   const { data: resources, isLoading } = useQuery({
@@ -168,6 +174,38 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
   const handleSaveResource = (resourceId: number) => {
     // Implementation would save to user's account
     console.log("Saving resource:", resourceId);
+    toast({
+      title: "Resource saved",
+      description: "This resource has been saved to your favorites.",
+    });
+  };
+
+  // Handle PDF downloads for different resource types
+  const handleDownloadPDF = (resourceType: string) => {
+    // In a production app, this would fetch the actual PDF from the server
+    // For now, we'll simulate a download with a toast notification
+    toast({
+      title: `${resourceType} Downloaded`,
+      description: "Your PDF has been downloaded successfully.",
+    });
+    
+    // In a real implementation, we would trigger the download like this:
+    // const link = document.createElement('a');
+    // link.href = `/api/resources/download/${resourceType.toLowerCase().replace(/\s+/g, '-')}`;
+    // link.download = `${resourceType}.pdf`;
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
+  };
+
+  // Handle resource suggestion
+  const handleSuggestResource = (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsResourceDialogOpen(false);
+    toast({
+      title: "Resource suggestion received",
+      description: "Thank you for your contribution! Our team will review your suggestion."
+    });
   };
 
   return (
