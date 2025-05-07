@@ -222,11 +222,17 @@ export function SidebarNavigation() {
       <div 
         className={cn(
           "fixed top-0 left-0 h-full bg-sophera-bg-card transition-all duration-300 border-r-4 border-sophera-text-heading z-40",
-          "flex flex-col shadow-[0.5rem_0_1rem_rgba(0,0,0,0.1)]",
+          "flex flex-col shadow-[0.5rem_0_1rem_rgba(0,0,0,0.1)] overflow-hidden",
           isOpen ? "w-64 translate-x-0" : "-translate-x-full",
-          isMobile ? "w-[65vw]" : "w-64"
+          isMobile ? "w-[65vw]" : "w-64",
+          "bg-[url('/grid-pattern.svg')] bg-repeat"
         )}
       >
+        {/* Decorative elements */}
+        <div className="absolute top-40 right-4 w-16 h-16 rounded-full bg-teal-200/40 blur-md"></div>
+        <div className="absolute top-[30%] left-2 w-4 h-4 rounded-sm bg-secondary/30 transform rotate-12"></div>
+        <div className="absolute bottom-[35%] right-6 w-8 h-8 rounded-sm bg-tertiary/20 transform -rotate-12"></div>
+        <div className="absolute bottom-[15%] left-2 w-10 h-10 rounded-full bg-teal-100/20 blur-sm"></div>
         <div className="p-4 bg-sophera-brand-primary">
           <div className="flex items-center justify-between">
             <Link href="/">
@@ -241,6 +247,10 @@ export function SidebarNavigation() {
         </div>
         
         <div className="p-4 flex-1 overflow-y-auto">
+          {/* Dotted divider line */}
+          <div className="w-full h-2 mb-4 flex items-center">
+            <div className="w-full border-t-2 border-dashed border-sophera-text-heading/20"></div>
+          </div>
           <nav className="space-y-6">
             {navSections.map((section) => (
               <div key={section.path} className={cn("space-y-2", 
@@ -313,9 +323,18 @@ export function SidebarNavigation() {
           </nav>
         </div>
         
-        <div className="p-4 border-t-2 border-sophera-text-heading/20">
-          <div className="text-sm text-sophera-text-subtle">
-            © 2025 Sophera Health
+        <div className="p-4 relative">
+          {/* Dotted divider line */}
+          <div className="w-full h-2 mb-4 flex items-center">
+            <div className="w-full border-t-2 border-dashed border-sophera-text-heading/20"></div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-sophera-text-subtle">
+              © 2025 Sophera Health
+            </div>
+            <div className="w-6 h-6 rounded-full bg-tertiary rotate-12 transform relative shadow-neo-sm flex items-center justify-center">
+              <span className="text-xs font-bold">✧</span>
+            </div>
           </div>
         </div>
       </div>
