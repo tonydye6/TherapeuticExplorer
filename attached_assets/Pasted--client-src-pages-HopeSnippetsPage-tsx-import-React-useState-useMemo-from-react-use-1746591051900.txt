@@ -1,0 +1,338 @@
+// client/src/pages/HopeSnippetsPage.tsx
+
+import React, { useState, useMemo } from 'react'; // useMemo imported
+import { useHopeSnippets } from '@/hooks/use-hope-snippets'; // Assuming this hook is set up
+import { HopeSnippetCard } from '@/components/hope/HopeSnippetCard'; // Needs its own Sophera v6 styling
+import { HopeSnippetDialog } from '@/components/hope/HopeSnippetDialog'; // Needs its own Sophera v6 styling
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { PlusIcon, SearchIcon, RefreshCwIcon, SparklesIcon, FilterIcon, XIcon, ListFilter } from 'lucide-react'; // Added SparklesIcon, FilterIcon, XIcon, ListFilter
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog"; // Assumes shadcn/ui dialogs will pick up theme
+import { HopeSuggest } from '@/components/hope/HopeSuggest'; // Needs its own Sophera v6 styling
+import { toast } from '@/hooks/use-toast'; // Assuming this hook is set up
+import { HopeSnippet as HopeSnippetType } from "@shared/schema"; // Assuming type for snippet
+import { Card, CardContent } from '@/components/ui/card'; // Added Card for empty state
+
+// Define categories
+const CATEGORIES = [
+  "All", "Quote", "Affirmation", "Story", "Poem", 
+  "Research", "Testimony", "Encouragement", "Other"
+];
+
+interface HopeSnippetsPageProps {
+  inTabView?: boolean;
+}
+
+export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
+  const {
+    snippets,
+    isLoading,
+    refetch,
+    createSnippet,
+    updateSnippet,
+    deleteSnippet,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    selectedCategory,
+    setSelectedCategory,
+    randomSnippet, // This is your featured/daily inspiration snippet
+    refetchRandom
+  } = useHopeSnippets();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [editingSnippet, setEditingSnippet] = useState<HopeSnippetType | null>(null);
+  const [snippetToDelete, setSnippetToDelete] = useState<number | null>(null);
+
+  const filteredSnippets = useMemo(() => {
+    if (!snippets?.length) return [];
+    return snippets.filter(snippet => {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      const matchesSearch = searchTerm ? (
+        snippet.title?.toLowerCase().includes(lowerSearchTerm) ||
+        snippet.content.toLowerCase().includes(lowerSearchTerm) ||
+        (snippet.author && snippet.author.toLowerCase().includes(lowerSearchTerm)) ||
+        (snippet.source && snippet.source.toLowerCase().includes(lowerSearchTerm)) ||
+        (snippet.tags && snippet.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm)))
+      ) : true;
+      const matchesCategory = !selectedCategory || selectedCategory === "All" || snippet.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [snippets, searchTerm, selectedCategory]);
+
+  const handleOpenDialog = (snippet?: HopeSnippetType) => {
+    setEditingSnippet(snippet || null);
+    setOpenDialog(true);
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setSnippetToDelete(id);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (snippetToDelete !== null) {
+      try {
+        await deleteSnippet(snippetToDelete); // Assuming deleteSnippet takes number
+        toast({
+          title: "Snippet Deleted",
+          description: "The hope snippet has been removed.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
+        });
+      } catch (error) {
+        console.error("Error deleting snippet:", error);
+        toast({
+          title: "Deletion Failed",
+          description: "Could not delete the snippet. Please try again.",
+          variant: "destructive",
+          className: "rounded-sophera-button",
+        });
+      } finally {
+        setOpenDeleteDialog(false);
+        setSnippetToDelete(null);
+      }
+    }
+  };
+
+  const handleSaveSnippet = async (data: Omit<HopeSnippetType, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (editingSnippet) {
+        await updateSnippet({ id: editingSnippet.id, ...data });
+        toast({
+          title: "Snippet Updated",
+          description: "Your hope snippet has been updated successfully.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
+        });
+      } else {
+        await createSnippet(data);
+        toast({
+          title: "Snippet Added",
+          description: "Your new hope snippet has been saved.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
+        });
+      }
+      setOpenDialog(false);
+      setEditingSnippet(null);
+    } catch (error) {
+      console.error("Error saving snippet:", error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save the snippet. Please try again.",
+        variant: "destructive",
+        className: "rounded-sophera-button",
+      });
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value === "All" ? null : value);
+  };
+  
+  const pageTitle = "Mindfulness & Hope"; // Updated title to be more encompassing
+  const pageDescription = "Discover inspirational quotes, affirmations, and stories to nurture hope on your healing journey.";
+
+  return (
+    // Applied Sophera v6 page padding and overall structure
+    <div className={`space-y-8 ${!inTabView ? 'container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-10' : 'py-6'}`}>
+      {!inTabView && (
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading mb-2 flex items-center gap-3 justify-center md:justify-start">
+            <SparklesIcon className="h-8 w-8 lg:h-9 lg:w-9 text-sophera-accent-tertiary" />
+            {pageTitle}
+          </h1>
+          <p className="text-lg lg:text-xl text-sophera-text-body">{pageDescription}</p>
+        </div>
+      )}
+
+      {/* Controls: Add Snippet, Search, Filters */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg">
+        <Button 
+          onClick={() => handleOpenDialog()} 
+          className="w-full md:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-5 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Add New Snippet
+        </Button>
+        
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
+          <div className="relative w-full sm:w-auto flex-grow md:max-w-xs">
+            <SearchIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
+            <Input
+              type="search"
+              placeholder="Search snippets..."
+              className="pl-11 pr-4 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-2 border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={selectedCategory || "All"} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="h-12 rounded-sophera-input text-base w-full sm:w-[180px] bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body">
+              <ListFilter className="h-5 w-5 mr-2 text-sophera-text-subtle" />
+              <SelectValue placeholder="Filter by Category" />
+            </SelectTrigger>
+            <SelectContent className="rounded-sophera-input">
+              {CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category} className="text-base">
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+           <Button
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 text-sophera-brand-primary hover:bg-sophera-brand-primary-light rounded-sophera-button"
+              onClick={() => refetch()} // Assuming refetch is for all snippets
+              title="Refresh Snippets"
+            >
+              <RefreshCwIcon className="h-5 w-5" />
+              <span className="sr-only">Refresh</span>
+            </Button>
+        </div>
+      </div>
+
+      {/* Featured Snippet / Daily Inspiration */}
+      {!searchTerm && (!selectedCategory || selectedCategory === "All") && randomSnippet && (
+        <div className="my-8 md:my-10">
+          <h2 className="text-2xl lg:text-3xl font-bold text-sophera-text-heading mb-4 flex items-center gap-2">
+             <SparklesIcon className="h-7 w-7 text-sophera-accent-tertiary" />
+             A Moment of Inspiration
+          </h2>
+          {/* HopeSuggest component will need Sophera v6 styling internally */}
+          <HopeSuggest snippet={randomSnippet} onRefresh={refetchRandom} />
+        </div>
+      )}
+      
+      {/* No Results for Search/Filter */}
+      {!isLoading && filteredSnippets.length === 0 && (searchTerm || selectedCategory) && (
+         <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-lg">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+                <Search className="h-12 w-12 text-sophera-brand-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-sophera-text-heading">No Snippets Found</h3>
+              <p className="text-sophera-text-body mt-1 max-w-md">
+                No snippets match your current search or filter criteria.
+              </p>
+              <Button variant="outline" onClick={() => { setSearchTerm(''); setSelectedCategory(null); }} className="mt-6 rounded-sophera-button border-2 border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light px-6 py-3 text-base">
+                Clear Search & Filters
+              </Button>
+            </div>
+          </Card>
+      )}
+
+
+      {/* Grid of Snippets */}
+      {filteredSnippets.length > 0 && (
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold text-sophera-text-heading mb-6">
+            {selectedCategory && selectedCategory !== "All" ? selectedCategory : 'All Hope Snippets'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {filteredSnippets.map((snippet) => (
+              // HopeSnippetCard component will need Sophera v6 styling internally
+              <HopeSnippetCard
+                key={snippet.id}
+                snippet={snippet}
+                onEdit={() => handleOpenDialog(snippet)}
+                onDelete={() => handleDeleteClick(snippet.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Loading State Skeletons */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {[...Array(6)].map((_, i) => (
+            <Card key={`skeleton-${i}`} className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6 space-y-4">
+              <div className="space-y-2">
+                <div className="h-6 w-3/4 bg-sophera-gradient-start rounded animate-pulse" /> {/* Use gradient for pulse */}
+                <div className="h-4 w-1/3 bg-sophera-gradient-end rounded animate-pulse" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <div className="h-4 w-full bg-sophera-gradient-start/80 rounded animate-pulse" />
+                <div className="h-4 w-full bg-sophera-gradient-start/70 rounded animate-pulse" />
+                <div className="h-4 w-5/6 bg-sophera-gradient-start/60 rounded animate-pulse" />
+              </div>
+               <div className="flex justify-between items-center pt-3">
+                <div className="h-5 w-20 bg-sophera-gradient-end rounded-full animate-pulse" />
+                <div className="h-8 w-24 bg-sophera-gradient-start rounded-sophera-button animate-pulse" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+      
+      {/* Empty state when no snippets exist at all and not loading/searching */}
+      {!isLoading && !snippets?.length && !searchTerm && !selectedCategory && (
+         <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-lg">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="p-4 bg-sophera-accent-tertiary/20 rounded-full">
+                <SparklesIcon className="h-12 w-12 text-sophera-accent-tertiary" />
+              </div>
+              <h3 className="text-xl font-semibold text-sophera-text-heading">Share Some Hope</h3>
+              <p className="text-sophera-text-body mt-1 max-w-md">
+                It looks like there are no hope snippets here yet. Be the first to add an inspiring quote, affirmation, or story!
+              </p>
+              <Button 
+                onClick={() => handleOpenDialog()} 
+                className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+              >
+                <PlusIcon className="mr-2 h-5 w-5" />
+                Add Your First Snippet
+              </Button>
+            </div>
+          </Card>
+      )}
+
+
+      {/* Create/Edit Dialog */}
+      {/* HopeSnippetDialog component needs Sophera v6 modal styling internally */}
+      <HopeSnippetDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        snippet={editingSnippet}
+        onSave={handleSaveSnippet}
+        isLoading={isCreating || isUpdating}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      {/* AlertDialogContent should pick up Sophera v6 modal styling from theme */}
+      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <AlertDialogContent className="rounded-sophera-modal-outer bg-sophera-bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-sophera-text-heading">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sophera-text-body pt-2">
+              This action cannot be undone. This will permanently delete this hope snippet.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-5">
+            <AlertDialogCancel className="rounded-sophera-button h-11 px-5">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-sophera-destructive text-white rounded-sophera-button h-11 px-5 hover:bg-red-700" // Using sophera-destructive
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+              {isDeleting ? "Deleting..." : "Yes, Delete Snippet"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
