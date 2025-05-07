@@ -9,14 +9,13 @@ import {
   CalendarCheck, 
   FileText, 
   Heart,
-  MessageCircle
+  BrainCircuit
 } from 'lucide-react';
-import { ModelType } from '@shared/schema';
-import ChatInterface from '@/components/ChatInterface';
-import { Greeting } from '@/components/dashboard/Greeting';
+//
 import { TodaysFocus } from '@/components/dashboard/TodaysFocus';
 import { JournalPrompt } from '@/components/dashboard/JournalPrompt';
 import { HopeSnippet } from '@/components/dashboard/HopeSnippet';
+import { AnalyzeAndAct } from '@/components/dashboard/AnalyzeAndAct';
 import { Link } from 'wouter';
 import { NeoPageHeader } from '@/components/ui/neo-page-header';
 import { 
@@ -153,26 +152,21 @@ export default function DashboardPage() {
             </NeoCardFooter>
           </NeoCard>
           
-          {/* AI Chat Assistant Card */}
+          {/* Analyze & Act Card */}
           <NeoCard>
             <NeoCardDecoration />
             <NeoCardHeader>
               <NeoCardTitle className="flex items-center">
-                <MessageCircle className="h-5 w-5 mr-2 text-sophera-brand-primary" />
-                AI Assistant
+                <BrainCircuit className="h-5 w-5 mr-2 text-sophera-brand-primary" />
+                Analyze & Act
               </NeoCardTitle>
               <NeoCardDescription>
-                Get quick answers and support for your journey
+                Personalized recommendations for your healing journey
               </NeoCardDescription>
             </NeoCardHeader>
             <NeoCardContent>
-              <div className="h-[300px]">
-                <ChatInterface 
-                  title=""
-                  placeholder="Ask me anything about your care journey..."
-                  preferredModel={ModelType.GEMINI}
-                  className="h-full"
-                />
+              <div className="h-[300px] overflow-hidden">
+                <AnalyzeAndAct />
               </div>
             </NeoCardContent>
           </NeoCard>
