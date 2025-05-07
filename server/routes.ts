@@ -541,6 +541,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/treatments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Valid ID is required" });
+      }
+      
+      const treatment = await storage.getTreatmentById(id);
+      if (!treatment) {
+        return res.status(404).json({ message: "Treatment not found" });
+      }
+      
+      res.json(treatment);
+    } catch (error) {
+      console.error("Error fetching treatment:", error);
+      res.status(500).json({ message: "Failed to fetch treatment" });
+    }
+  });
+  
+  app.patch("/api/treatments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Valid ID is required" });
+      }
+      
+      // Pre-process request body to handle date formats
+      const requestData = { ...req.body };
+      
+      // Handle date conversion for startDate and endDate if they exist as strings
+      if (requestData.startDate && typeof requestData.startDate === 'string') {
+        requestData.startDate = new Date(requestData.startDate);
+      }
+      
+      if (requestData.endDate && typeof requestData.endDate === 'string') {
+        requestData.endDate = new Date(requestData.endDate);
+      }
+      
+      // Get existing treatment to check if it exists
+      const existingTreatment = await storage.getTreatmentById(id);
+      if (!existingTreatment) {
+        return res.status(404).json({ message: "Treatment not found" });
+      }
+      
+      // Update the treatment
+      const updatedTreatment = await storage.updateTreatment(id, requestData);
+      res.json(updatedTreatment);
+    } catch (error) {
+      console.error("Error updating treatment:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid treatment data", 
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to update treatment" });
+    }
+  });
+  
+  app.delete("/api/treatments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Valid ID is required" });
+      }
+      
+      // Check if the treatment exists
+      const treatment = await storage.getTreatmentById(id);
+      if (!treatment) {
+        return res.status(404).json({ message: "Treatment not found" });
+      }
+      
+      // Delete the treatment (if this method doesn't exist in your storage interface,
+      // you might want to implement it or use an approach like setting 'active' to false)
+      if (storage.deleteTreatment) {
+        await storage.deleteTreatment(id);
+      } else {
+        // Alternative: mark as inactive
+        await storage.updateTreatment(id, { active: false });
+      }
+      
+      res.status(200).json({ message: "Treatment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting treatment:", error);
+      res.status(500).json({ message: "Failed to delete treatment" });
+    }
+  });
+  
   // Clinical Trial Routes
   app.get("/api/trials", async (req, res) => {
     try {

@@ -65,6 +65,7 @@ export interface IStorage {
   getTreatmentById(id: number): Promise<Treatment | undefined>;
   createTreatment(treatment: InsertTreatment): Promise<Treatment>;
   updateTreatment(id: number, treatment: Partial<Treatment>): Promise<Treatment>;
+  deleteTreatment(id: number): Promise<void>;
   
   // Saved trial methods
   getSavedTrials(userId: string): Promise<SavedTrial[]>;
@@ -396,6 +397,16 @@ export class MemStorage implements IStorage {
     this.treatments.set(id, updatedTreatment);
     
     return updatedTreatment;
+  }
+  
+  async deleteTreatment(id: number): Promise<void> {
+    const treatment = await this.getTreatmentById(id);
+    
+    if (!treatment) {
+      throw new Error(`Treatment with ID ${id} not found`);
+    }
+    
+    this.treatments.delete(id);
   }
   
   // Saved trial methods
