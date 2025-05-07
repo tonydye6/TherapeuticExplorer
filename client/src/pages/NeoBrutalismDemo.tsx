@@ -38,22 +38,23 @@ import {
   Users,
   Leaf
 } from 'lucide-react';
+import { NeoColorPalette } from '@/components/ui/neo-color-palette';
 
 export default function NeoBrutalismDemo() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [planType, setPlanType] = useState("");
-  
+
   return (
     <div className="container max-w-6xl mx-auto py-12 px-4">
       <h1 className="text-4xl font-extrabold mb-2 text-sophera-text-heading">Neo Brutalism Design System</h1>
       <p className="text-xl text-sophera-text-body mb-10">Bold, playful components for Sophera's interface</p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
         {/* Card Examples */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Card Components</h2>
-          
+
           <NeoCard className="w-full max-w-md">
             <NeoCardDecoration />
             <NeoCardHeader>
@@ -67,7 +68,7 @@ export default function NeoBrutalismDemo() {
                 Your personalized treatment plan includes medication schedules, 
                 appointment reminders, and progress tracking. Stay on top of your journey.
               </NeoCardDescription>
-              
+
               <div className="grid grid-cols-2 gap-3 mt-6">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 flex items-center justify-center bg-sophera-accent-secondary border-2 border-sophera-text-heading rounded-md shadow-[0.1rem_0.1rem_0_rgba(0,0,0,0.2)]">
@@ -108,7 +109,7 @@ export default function NeoBrutalismDemo() {
               <NeoButton variant="primary" size="sm" shine>View Plan</NeoButton>
             </NeoCardFooter>
           </NeoCard>
-          
+
           <NeoCard className="w-full max-w-md bg-sophera-accent-tertiary/20">
             <NeoCardContent className="p-6">
               <div className="absolute top-[-0.5rem] right-[-0.5rem] w-5 h-5 bg-sophera-accent-secondary transform rotate-45 border-2 border-sophera-text-heading z-10"></div>
@@ -118,11 +119,11 @@ export default function NeoBrutalismDemo() {
             </NeoCardContent>
           </NeoCard>
         </div>
-        
+
         {/* Form Elements */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Form Components</h2>
-          
+
           <div className="space-y-5 max-w-md">
             <NeoInputWrapper label="Your Name" htmlFor="name" corner="star">
               <NeoInput 
@@ -132,7 +133,7 @@ export default function NeoBrutalismDemo() {
                 onChange={(e) => setName(e.target.value)}
               />
             </NeoInputWrapper>
-            
+
             <NeoInputWrapper label="Email Address" htmlFor="email" corner="dot">
               <NeoInput 
                 id="email" 
@@ -142,7 +143,7 @@ export default function NeoBrutalismDemo() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </NeoInputWrapper>
-            
+
             <NeoInputWrapper label="Subscription Plan" htmlFor="plan" corner="triangle">
               <NeoSelect value={planType} onValueChange={setPlanType}>
                 <NeoSelectTrigger id="plan" className="w-full">
@@ -163,14 +164,20 @@ export default function NeoBrutalismDemo() {
                 </NeoSelectContent>
               </NeoSelect>
             </NeoInputWrapper>
-            
+
             <div className="pt-4">
               <NeoButton className="w-full" shine>Submit Information</NeoButton>
             </div>
           </div>
         </div>
       </div>
-      
+
+      {/* Color Palette */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Color Palette</h2>
+        <NeoColorPalette />
+      </div>
+
       {/* Navigation Showcase */}
       <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
@@ -187,7 +194,7 @@ export default function NeoBrutalismDemo() {
                 Journal
               </NeoNavigationItem>
             </NeoNavigationSection>
-            
+
             <NeoNavigationSection title="Knowledge Hub" icon={<BookOpen className="h-4 w-4" />}>
               <NeoNavigationItem icon={<Search className="h-5 w-5" />} href="/understand/explainer">
                 Medical Explainer
@@ -196,7 +203,7 @@ export default function NeoBrutalismDemo() {
                 Treatment Tracker
               </NeoNavigationItem>
             </NeoNavigationSection>
-            
+
             <NeoNavigationSection title="Connect" icon={<Heart className="h-4 w-4" />}>
               <NeoNavigationItem icon={<Users className="h-5 w-5" />} href="/connect/stories">
                 Survivor Stories
@@ -207,7 +214,7 @@ export default function NeoBrutalismDemo() {
             </NeoNavigationSection>
           </NeoMenu>
         </div>
-        
+
         {/* Button Showcase */}
         <div>
           <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Button Variants</h2>
@@ -219,13 +226,13 @@ export default function NeoBrutalismDemo() {
             <NeoButton variant="destructive">Destructive Button</NeoButton>
             <NeoButton variant="link">Link Button</NeoButton>
           </div>
-          
+
           <div className="flex flex-wrap gap-4 mt-6">
             <NeoButton variant="primary" size="sm">Small Button</NeoButton>
             <NeoButton variant="primary" size="default">Default Button</NeoButton>
             <NeoButton variant="primary" size="lg">Large Button</NeoButton>
           </div>
-          
+
           <div className="flex flex-wrap gap-4 mt-6">
             <NeoButton variant="primary" shine>With Shine Effect</NeoButton>
             <NeoButton variant="secondary" shine>With Shine Effect</NeoButton>

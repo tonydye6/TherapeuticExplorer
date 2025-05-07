@@ -26,6 +26,42 @@ export default {
         'sophera-tab-active': '10px',  // For active tabs
       },
       colors: {
+        // Neo Brutalism Colors
+        'neo-violet': {
+          200: '#A8A6FF',
+          300: '#918efa',
+          400: '#807dfa'
+        },
+        'neo-pink': {
+          200: '#FFA6F6',
+          300: '#fa8cef',
+          400: '#fa7fee'
+        },
+        'neo-red': {
+          200: '#FF9F9F',
+          300: '#fa7a7a',
+          400: '#f76363'
+        },
+        'neo-orange': {
+          200: '#FFC29F',
+          300: '#FF965B',
+          400: '#fa8543'
+        },
+        'neo-yellow': {
+          200: '#FFF066',
+          300: '#FFE500',
+          400: '#FFE500'
+        },
+        'neo-lime': {
+          200: '#B8FF9F',
+          300: '#9dfc7c',
+          400: '#7df752'
+        },
+        'neo-cyan': {
+          200: '#A6FAFF',
+          300: '#79F7FF',
+          400: '#53f2fc'
+        },
         // HSL variables driven by theme.json / shadcn-theme-json plugin
         // CRITICAL: Ensure the HSL values for these CSS variables are updated
         // in your global CSS / theme setup to match the Sophera HEX palette below.
