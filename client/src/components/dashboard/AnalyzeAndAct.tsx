@@ -5,13 +5,18 @@ import { Check, RefreshCw, BrainCircuit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 
+// This interface matches the schema in shared/schema.ts
 interface ActionStep {
-  id: string;
+  id: number;
+  userId: string;
   title: string;
   description: string;
-  completed: boolean;
-  dateCreated: string;
-  dateCompleted?: string;
+  category: 'exercise' | 'nutrition' | 'mental' | 'treatment' | 'social' | 'research' | null;
+  source: string | null;
+  isCompleted: boolean;
+  completedDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function AnalyzeAndAct() {
@@ -20,15 +25,15 @@ export function AnalyzeAndAct() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch action steps from the API
-  const { data: actionSteps, isLoading, error } = useQuery({
+  const { data: actionSteps, isLoading, error } = useQuery<ActionStep[]>({
     queryKey: ['/api/action-steps'],
     refetchOnWindowFocus: false
   });
 
   // Mutation to toggle the completed status of an action step
   const toggleCompleteMutation = useMutation({
-    mutationFn: async (actionStepId: string) => {
-      const response = await apiRequest('POST', `/api/action-steps/${actionStepId}/toggle`);
+    mutationFn: async (actionStepId: number) => {
+      const response = await apiRequest('POST', `/api/action-steps/${actionStepId}/toggle`, {});
       return response.json();
     },
     onSuccess: () => {
@@ -46,7 +51,7 @@ export function AnalyzeAndAct() {
   // Mutation to generate new action steps
   const generateActionStepsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/action-steps/generate');
+      const response = await apiRequest('POST', '/api/action-steps/generate', {});
       return response.json();
     },
     onSuccess: () => {
@@ -121,7 +126,7 @@ export function AnalyzeAndAct() {
 
   // Handle completion of an action step
   const handleCompleteAction = (actionStep: ActionStep) => {
-    if (!actionStep.completed) {
+    if (!actionStep.isCompleted) {
       triggerConfetti();
     }
     toggleCompleteMutation.mutate(actionStep.id);
@@ -174,15 +179,15 @@ export function AnalyzeAndAct() {
                 <button
                   onClick={() => handleCompleteAction(step)}
                   className={`flex-shrink-0 h-6 w-6 mt-0.5 border-2 border-black rounded-md flex items-center justify-center transition-all ${
-                    step.completed 
+                    step.isCompleted 
                       ? 'bg-sophera-brand-primary text-white' 
                       : 'bg-white hover:bg-gray-100'
                   }`}
                 >
-                  {step.completed && <Check className="h-4 w-4" />}
+                  {step.isCompleted && <Check className="h-4 w-4" />}
                 </button>
-                <div className={`flex-1 ${step.completed ? 'opacity-50' : ''}`}>
-                  <h4 className={`font-semibold text-sophera-text-heading text-base ${step.completed ? 'line-through decoration-2' : ''}`}>
+                <div className={`flex-1 ${step.isCompleted ? 'opacity-50' : ''}`}>
+                  <h4 className={`font-semibold text-sophera-text-heading text-base ${step.isCompleted ? 'line-through decoration-2' : ''}`}>
                     {step.title}
                   </h4>
                   <p className="text-sm text-sophera-text-body">
