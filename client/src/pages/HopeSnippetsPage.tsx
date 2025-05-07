@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { useHopeSnippets } from '@/hooks/use-hope-snippets';
 import { HopeSnippetCard } from '@/components/hope/HopeSnippetCard';
 import { HopeSnippetDialog } from '@/components/hope/HopeSnippetDialog';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { PlusIcon, SearchIcon, RefreshCwIcon } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { PlusIcon, SearchIcon, RefreshCwIcon, SparklesIcon, FilterIcon, XIcon, ListFilter, Loader2 } from 'lucide-react';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 import { HopeSuggest } from '@/components/hope/HopeSuggest';
 import { toast } from '@/hooks/use-toast';
+import { HopeSnippet as HopeSnippetType } from "@shared/schema";
+import { Card, CardContent } from '@/components/ui/card';
 
-// Define categories
 const CATEGORIES = [
-  "All",
-  "Quote",
-  "Affirmation",
-  "Story",
-  "Poem",
-  "Research",
-  "Testimony",
-  "Encouragement",
-  "Other"
+  "All", "Quote", "Affirmation", "Story", "Poem", 
+  "Research", "Testimony", "Encouragement", "Other"
 ];
 
 interface HopeSnippetsPageProps {
@@ -47,31 +51,26 @@ export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [editingSnippet, setEditingSnippet] = useState<any>(null);
+  const [editingSnippet, setEditingSnippet] = useState<HopeSnippetType | null>(null);
   const [snippetToDelete, setSnippetToDelete] = useState<number | null>(null);
 
-  // Filter snippets by search term and category
-  const filteredSnippets = React.useMemo(() => {
+  const filteredSnippets = useMemo(() => {
     if (!snippets?.length) return [];
-    
     return snippets.filter(snippet => {
+      const lowerSearchTerm = searchTerm.toLowerCase();
       const matchesSearch = searchTerm ? (
-        snippet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        snippet.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (snippet.author && snippet.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (snippet.source && snippet.source.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (snippet.tags && snippet.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+        snippet.title?.toLowerCase().includes(lowerSearchTerm) ||
+        snippet.content.toLowerCase().includes(lowerSearchTerm) ||
+        (snippet.author && snippet.author.toLowerCase().includes(lowerSearchTerm)) ||
+        (snippet.source && snippet.source.toLowerCase().includes(lowerSearchTerm)) ||
+        (snippet.tags && snippet.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm)))
       ) : true;
-      
-      const matchesCategory = !selectedCategory || selectedCategory === "All" ? 
-        true : 
-        snippet.category === selectedCategory;
-      
+      const matchesCategory = !selectedCategory || selectedCategory === "All" || snippet.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [snippets, searchTerm, selectedCategory]);
 
-  const handleOpenDialog = (snippet?: any) => {
+  const handleOpenDialog = (snippet?: HopeSnippetType) => {
     setEditingSnippet(snippet || null);
     setOpenDialog(true);
   };
@@ -85,32 +84,53 @@ export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
     if (snippetToDelete !== null) {
       try {
         await deleteSnippet(snippetToDelete);
-        setOpenDeleteDialog(false);
-        setSnippetToDelete(null);
         toast({
-          title: "Success",
-          description: "Hope snippet deleted successfully",
+          title: "Snippet Deleted",
+          description: "The hope snippet has been removed.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
         });
       } catch (error) {
         console.error("Error deleting snippet:", error);
+        toast({
+          title: "Deletion Failed",
+          description: "Could not delete the snippet. Please try again.",
+          variant: "destructive",
+          className: "rounded-sophera-button",
+        });
+      } finally {
+        setOpenDeleteDialog(false);
+        setSnippetToDelete(null);
       }
     }
   };
 
-  const handleSaveSnippet = async (data: any) => {
+  const handleSaveSnippet = async (data: Omit<HopeSnippetType, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       if (editingSnippet) {
-        await updateSnippet({
-          id: editingSnippet.id,
-          ...data
+        await updateSnippet({ id: editingSnippet.id, ...data });
+        toast({
+          title: "Snippet Updated",
+          description: "Your hope snippet has been updated successfully.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
         });
       } else {
         await createSnippet(data);
+        toast({
+          title: "Snippet Added",
+          description: "Your new hope snippet has been saved.",
+          className: "bg-sophera-brand-primary text-white rounded-sophera-button",
+        });
       }
       setOpenDialog(false);
       setEditingSnippet(null);
     } catch (error) {
       console.error("Error saving snippet:", error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save the snippet. Please try again.",
+        variant: "destructive",
+        className: "rounded-sophera-button",
+      });
     }
   };
 
@@ -118,86 +138,100 @@ export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
     setSelectedCategory(value === "All" ? null : value);
   };
   
-  return (
-    <div className={`space-y-6 ${!inTabView ? 'container py-6' : ''}`}>
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Hope Snippets</h1>
-          <p className="text-muted-foreground">
-            Inspirational quotes, affirmations, and stories to encourage your healing journey.
-          </p>
-        </div>
+  const pageTitle = "Mindfulness & Hope";
+  const pageDescription = "Discover inspirational quotes, affirmations, and stories to nurture hope on your healing journey.";
 
-        <div className="space-y-2">
-          <Button onClick={() => handleOpenDialog()} className="w-full md:w-auto">
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Snippet
-          </Button>
-          <div className="flex justify-between">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="flex-shrink-0"
-              onClick={() => refetch()}
-              title="Refresh snippets"
-            >
-              <RefreshCwIcon className="h-4 w-4" />
-            </Button>
-            <div className="flex gap-2">
-              <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-full md:w-[200px] pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select value={selectedCategory || "All"} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+  return (
+    <div className={`space-y-8 ${!inTabView ? 'container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-10' : 'py-6'}`}>
+      {!inTabView && (
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading mb-2 flex items-center gap-3 justify-center md:justify-start">
+            <SparklesIcon className="h-8 w-8 lg:h-9 lg:w-9 text-sophera-accent-tertiary" />
+            {pageTitle}
+          </h1>
+          <p className="text-lg lg:text-xl text-sophera-text-body">{pageDescription}</p>
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg">
+        <Button 
+          onClick={() => handleOpenDialog()} 
+          className="w-full md:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-5 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Add New Snippet
+        </Button>
+        
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
+          <div className="relative w-full sm:w-auto flex-grow md:max-w-xs">
+            <SearchIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" />
+            <Input
+              type="search"
+              placeholder="Search snippets..."
+              className="pl-11 pr-4 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-2 border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          <Select value={selectedCategory || "All"} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="h-12 rounded-sophera-input text-base w-full sm:w-[180px] bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body">
+              <ListFilter className="h-5 w-5 mr-2 text-sophera-text-subtle" />
+              <SelectValue placeholder="Filter by Category" />
+            </SelectTrigger>
+            <SelectContent className="rounded-sophera-input">
+              {CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category} className="text-base">
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-12 w-12 text-sophera-brand-primary hover:bg-sophera-brand-primary-light rounded-sophera-button"
+            onClick={() => refetch()}
+            title="Refresh Snippets"
+          >
+            <RefreshCwIcon className="h-5 w-5" />
+            <span className="sr-only">Refresh</span>
+          </Button>
         </div>
       </div>
 
-      {!isLoading && randomSnippet && filteredSnippets.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <p className="text-muted-foreground mb-4">
-            No snippets found matching your search.
-          </p>
-          <Button variant="outline" onClick={() => {
-            setSearchTerm('');
-            setSelectedCategory(null);
-          }}>
-            Clear filters
-          </Button>
-        </div>
-      )}
-
-      {/* Featured Snippet */}
       {!searchTerm && (!selectedCategory || selectedCategory === "All") && randomSnippet && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-3">Daily Inspiration</h2>
-          <HopeSuggest />
+        <div className="my-8 md:my-10">
+          <h2 className="text-2xl lg:text-3xl font-bold text-sophera-text-heading mb-4 flex items-center gap-2">
+            <SparklesIcon className="h-7 w-7 text-sophera-accent-tertiary" />
+            A Moment of Inspiration
+          </h2>
+          <HopeSuggest snippet={randomSnippet} onRefresh={refetchRandom} />
         </div>
       )}
+      
+      {!isLoading && filteredSnippets.length === 0 && (searchTerm || selectedCategory) && (
+        <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-lg">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+              <SearchIcon className="h-12 w-12 text-sophera-brand-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-sophera-text-heading">No Snippets Found</h3>
+            <p className="text-sophera-text-body mt-1 max-w-md">
+              No snippets match your current search or filter criteria.
+            </p>
+            <Button variant="outline" onClick={() => { setSearchTerm(''); setSelectedCategory(null); }} className="mt-6 rounded-sophera-button border-2 border-sophera-brand-primary text-sophera-brand-primary hover:bg-sophera-brand-primary-light px-6 py-3 text-base">
+              Clear Search & Filters
+            </Button>
+          </div>
+        </Card>
+      )}
 
-      {/* Grid of Snippets */}
       {filteredSnippets.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold mb-3">All Snippets {selectedCategory && selectedCategory !== "All" ? `- ${selectedCategory}` : ''}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h2 className="text-2xl lg:text-3xl font-bold text-sophera-text-heading mb-6">
+            {selectedCategory && selectedCategory !== "All" ? selectedCategory : 'All Hope Snippets'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredSnippets.map((snippet) => (
               <HopeSnippetCard
                 key={snippet.id}
@@ -211,24 +245,48 @@ export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
       )}
 
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="border rounded-lg p-4 space-y-3">
+            <Card key={`skeleton-${i}`} className="bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-lg p-6 space-y-4">
               <div className="space-y-2">
-                <div className="h-5 w-2/3 bg-muted rounded animate-pulse" />
-                <div className="h-4 w-1/4 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-3/4 bg-sophera-gradient-start rounded animate-pulse" />
+                <div className="h-4 w-1/3 bg-sophera-gradient-end rounded animate-pulse" />
               </div>
-              <div className="space-y-2">
-                <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+              <div className="space-y-2 pt-2">
+                <div className="h-4 w-full bg-sophera-gradient-start/80 rounded animate-pulse" />
+                <div className="h-4 w-full bg-sophera-gradient-start/70 rounded animate-pulse" />
+                <div className="h-4 w-5/6 bg-sophera-gradient-start/60 rounded animate-pulse" />
               </div>
-            </div>
+              <div className="flex justify-between items-center pt-3">
+                <div className="h-5 w-20 bg-sophera-gradient-end rounded-full animate-pulse" />
+                <div className="h-8 w-24 bg-sophera-gradient-start rounded-sophera-button animate-pulse" />
+              </div>
+            </Card>
           ))}
         </div>
       )}
+      
+      {!isLoading && !snippets?.length && !searchTerm && !selectedCategory && (
+        <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-lg">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-sophera-accent-tertiary/20 rounded-full">
+              <SparklesIcon className="h-12 w-12 text-sophera-accent-tertiary" />
+            </div>
+            <h3 className="text-xl font-semibold text-sophera-text-heading">Share Some Hope</h3>
+            <p className="text-sophera-text-body mt-1 max-w-md">
+              It looks like there are no hope snippets here yet. Be the first to add an inspiring quote, affirmation, or story!
+            </p>
+            <Button 
+              onClick={() => handleOpenDialog()} 
+              className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-105 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg"
+            >
+              <PlusIcon className="mr-2 h-5 w-5" />
+              Add Your First Snippet
+            </Button>
+          </div>
+        </Card>
+      )}
 
-      {/* Create/Edit Dialog */}
       <HopeSnippetDialog
         open={openDialog}
         onOpenChange={setOpenDialog}
@@ -237,23 +295,23 @@ export default function HopeSnippetsPage({ inTabView }: HopeSnippetsPageProps) {
         isLoading={isCreating || isUpdating}
       />
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-sophera-modal-outer bg-sophera-bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the hope snippet.
+            <AlertDialogTitle className="text-xl font-bold text-sophera-text-heading">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sophera-text-body pt-2">
+              This action cannot be undone. This will permanently delete this hope snippet.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="pt-5">
+            <AlertDialogCancel className="rounded-sophera-button h-11 px-5">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-sophera-destructive text-white rounded-sophera-button h-11 px-5 hover:bg-red-700"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+              {isDeleting ? "Deleting..." : "Yes, Delete Snippet"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
