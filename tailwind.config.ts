@@ -7,10 +7,10 @@ export default {
     extend: {
       // Ensure border radius aligns with the new design (16px for cards, 10px for buttons/inputs)
       borderRadius: {
-        lg: "var(--radius)", // This likely comes from theme.json
-        xl: "16px",         // Explicitly for cards as per design spec
-        md: "10px",         // Explicitly for buttons/inputs as per design spec
-        sm: "8px",          // For smaller elements if needed
+        lg: "16px", // Card radius
+        xl: "16px", // Explicitly for cards as per design spec
+        md: "10px", // Explicitly for buttons/inputs as per design spec
+        sm: "8px",  // For smaller elements if needed
       },
       colors: {
         // Core Sophera Palette (aligns with design specifications)
