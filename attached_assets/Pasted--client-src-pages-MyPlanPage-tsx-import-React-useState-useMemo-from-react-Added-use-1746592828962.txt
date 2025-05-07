@@ -1,0 +1,291 @@
+// client/src/pages/MyPlanPage.tsx
+
+import React, { useState, useMemo } from "react"; // Added useMemo
+import { usePlanItems } from "@/hooks/use-plan-items"; // Assuming this hook is set up
+import { PlanItemCard } from "@/components/PlanItemCard"; // This component will need its own Sophera v6 styling
+import { AddPlanItemDialog } from "@/components/AddPlanItemDialog"; // This component will need its own Sophera v6 styling
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel, // Added SelectLabel for better structure
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Separator is imported but not used in the provided code, can be removed if not needed.
+// import { Separator } from "@/components/ui/separator"; 
+import { CalendarIcon, ListFilter, Search, AlertTriangle, PlusIcon, CheckCircle2, CircleDotDashed, SlidersHorizontal, SortAscIcon } from "lucide-react"; // Added more icons
+import ErrorMessage from "@/components/ErrorMessage"; // This component will need its own Sophera v6 styling
+import { PlanItem } from "@shared/schema"; // Assuming this is the correct type
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added for empty/error states
+import { Loader2 } from "lucide-react"; // For loading state
+
+type FilterOptions = {
+  search: string;
+  category: string;
+  status: string; // 'all', 'active', 'completed'
+  sortBy: string; // 'date', 'priority'
+};
+
+const categories = [
+  { value: "all", label: "All Categories" },
+  { value: "medication", label: "Medication" },
+  { value: "appointment", label: "Appointment" },
+  { value: "exercise", label: "Exercise/Activity" }, // Renamed for clarity
+  { value: "nutrition", label: "Nutrition/Diet" },   // Renamed for clarity
+  { value: "supplement", label: "Supplement" },       // Added
+  { value: "therapy", label: "Therapy/Session" },    // Added
+  { value: "self_care", label: "Self-Care" },        // Added
+  { value: "other", label: "Other" },
+];
+
+interface MyPlanPageProps {
+  inTabView?: boolean;
+}
+
+export default function MyPlanPage({ inTabView = false }: MyPlanPageProps) {
+  const { planItems, isLoading, isError } = usePlanItems();
+
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: "",
+    category: "all",
+    status: "all", // Default to 'all' to be used by the "All Items" tab
+    sortBy: "date",
+  });
+
+  const handleFilterChange = (name: keyof FilterOptions, value: string) => { // Typed name
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const filteredAndSortedItems = useMemo(() => {
+    if (isError || !planItems || !Array.isArray(planItems)) return [];
+    
+    let items = planItems.filter((item: PlanItem) => {
+      if (
+        filters.search &&
+        !item.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !(item.description?.toLowerCase() || '').includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+      if (filters.category !== "all" && item.category !== filters.category) {
+        return false;
+      }
+      // Status filter will be applied by Tabs, not here directly for the main list
+      return true;
+    });
+
+    return items.sort((a: PlanItem, b: PlanItem) => {
+      if (filters.sortBy === "date") {
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      } else if (filters.sortBy === "priority") {
+        const priorityOrder = { high: 0, medium: 1, low: 2, none: 3 }; // Added 'none'
+        return (
+          priorityOrder[a.priority as keyof typeof priorityOrder || 'none'] -
+          priorityOrder[b.priority as keyof typeof priorityOrder || 'none']
+        );
+      }
+      return 0;
+    });
+  }, [planItems, filters, isError]);
+
+  const activeItems = filteredAndSortedItems.filter((item: PlanItem) => !item.isCompleted);
+  const completedItems = filteredAndSortedItems.filter((item: PlanItem) => item.isCompleted);
+
+  const pageTitle = "My Wellness Plan";
+  const pageDescription = "Organize your treatments, appointments, self-care, and more.";
+
+  const renderPlanItems = (items: PlanItem[]) => {
+    if (items.length === 0) {
+      let message = "No items found for your current filters.";
+      if (!filters.search && filters.category === "all" && filters.status === "all") {
+        message = "Your plan is looking clear! Add a new item to get started.";
+      } else if (filters.status === "active" && !filters.search && filters.category === "all") {
+        message = "No active items in your plan right now. Time to add something or relax!";
+      } else if (filters.status === "completed" && !filters.search && filters.category === "all") {
+        message = "No completed items yet. Keep up the great work!";
+      }
+      
+      return (
+        <Card className="text-center py-16 md:py-24 bg-sophera-bg-card border-sophera-border-primary rounded-sophera-card shadow-xl p-6 md:p-10 col-span-full">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-sophera-brand-primary-light rounded-full">
+              <CalendarIcon className="h-12 w-12 text-sophera-brand-primary" />
+            </div>
+            <h3 className="text-xl lg:text-2xl font-semibold text-sophera-text-heading">{message.includes("clear!") ? "Plan Looks Clear!" : "No Items Found"}</h3>
+            <p className="text-sophera-text-body mt-1 max-w-md text-base">{message}</p>
+            {(!filters.search && filters.category === "all" && (filters.status === "all" || filters.status === "active")) && (
+                <AddPlanItemDialog trigger={
+                    <Button className="mt-6 bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-6 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+                        <PlusIcon className="mr-2 h-5 w-5" /> Add First Plan Item
+                    </Button>
+                }/>
+            )}
+          </div>
+        </Card>
+      );
+    }
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+        {items.map((item: PlanItem) => (
+          // PlanItemCard will need its own Sophera v6 styling
+          <PlanItemCard key={item.id} planItem={item} />
+        ))}
+      </div>
+    );
+  };
+
+
+  return (
+    // Applied Sophera v6 page padding and structure
+    <div className={inTabView ? "py-6" : "container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-10 space-y-8 md:space-y-10"}>
+      {!inTabView && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-sophera-text-heading flex items-center gap-3">
+              <CalendarIcon className="h-8 w-8 lg:h-9 lg:w-9 text-sophera-brand-primary"/>
+              {pageTitle}
+            </h1>
+            <p className="text-lg lg:text-xl text-sophera-text-body mt-1">{pageDescription}</p>
+          </div>
+          <div className="mt-4 sm:mt-0">
+            {/* AddPlanItemDialog trigger button styled with Sophera v6 */}
+            <AddPlanItemDialog trigger={
+              <Button className="w-full sm:w-auto bg-sophera-accent-secondary text-white rounded-sophera-button py-3 px-5 text-base font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+                <PlusIcon className="mr-2 h-5 w-5" /> Add Plan Item
+              </Button>
+            }/>
+          </div>
+        </div>
+      )}
+      {/* Compact Add button for inTabView */}
+      {inTabView && (
+        <div className="flex justify-end mb-6">
+           <AddPlanItemDialog trigger={
+            <Button size="sm" className="bg-sophera-accent-secondary text-white rounded-sophera-button py-2.5 px-4 text-sm font-semibold tracking-wide hover:bg-sophera-accent-secondary-hover transform hover:scale-103 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg">
+              <PlusIcon className="mr-1.5 h-4 w-4" /> New Item
+            </Button>
+           }/>
+        </div>
+      )}
+
+      {/* Filters Card with Sophera v6 styling */}
+      <Card className="p-4 sm:p-6 bg-sophera-bg-card border border-sophera-border-primary rounded-sophera-card shadow-xl">
+        <div className="flex flex-col lg:flex-row gap-4 items-end">
+          <div className="relative flex-grow w-full lg:w-auto">
+            <Label htmlFor="planSearch" className="block text-sm font-medium text-sophera-text-body mb-1.5">Search Plan</Label>
+            <Search className="absolute left-3.5 top-[calc(50%+8px)] transform -translate-y-1/2 h-5 w-5 text-sophera-text-subtle pointer-events-none" /> {/* Adjusted top for label */}
+            <Input
+              id="planSearch"
+              type="search"
+              placeholder="Search by title or description..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
+              // Sophera v6 Input style
+              className="pl-11 pr-4 h-12 rounded-sophera-input text-base w-full bg-sophera-bg-card border-2 border-sophera-border-primary placeholder-sophera-text-subtle focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing"
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
+            <div className="flex-grow sm:w-auto">
+                <Label htmlFor="categoryFilter" className="block text-sm font-medium text-sophera-text-body mb-1.5">Category</Label>
+                <Select
+                value={filters.category}
+                onValueChange={(value) => handleFilterChange("category", value)}
+                >
+                <SelectTrigger id="categoryFilter" className="w-full sm:w-[200px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing">
+                    <ListFilter className="h-5 w-5 mr-2 text-sophera-text-subtle" />
+                    <SelectValue placeholder="Filter by Category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-sophera-input bg-sophera-bg-card border-sophera-border-primary shadow-xl">
+                    <SelectGroup>
+                    {categories.map((category) => (
+                        <SelectItem key={category.value} value={category.value} className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">
+                        {category.label}
+                        </SelectItem>
+                    ))}
+                    </SelectGroup>
+                </SelectContent>
+                </Select>
+            </div>
+            <div className="flex-grow sm:w-auto">
+                <Label htmlFor="sortFilter" className="block text-sm font-medium text-sophera-text-body mb-1.5">Sort By</Label>
+                <Select
+                value={filters.sortBy}
+                onValueChange={(value) => handleFilterChange("sortBy", value)}
+                >
+                <SelectTrigger id="sortFilter" className="w-full sm:w-[180px] h-12 rounded-sophera-input text-base bg-sophera-bg-card border-2 border-sophera-border-primary text-sophera-text-body focus:border-sophera-brand-primary focus:ring-2 focus:ring-sophera-brand-primary-focusRing">
+                    <SortAscIcon className="h-5 w-5 mr-2 text-sophera-text-subtle" /> {/* Changed icon */}
+                    <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="rounded-sophera-input bg-sophera-bg-card border-sophera-border-primary shadow-xl">
+                    <SelectGroup>
+                    <SelectItem value="date" className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">Date (Soonest First)</SelectItem>
+                    <SelectItem value="priority" className="text-base py-2 data-[state=checked]:bg-sophera-brand-primary-light data-[state=checked]:text-sophera-brand-primary">Priority</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+                </Select>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Tabs defaultValue="active" className="w-full" onValueChange={(value) => handleFilterChange("status", value)}>
+        {/* Styled TabsList according to Sophera v6 */}
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-sophera-gradient-start rounded-xl shadow-md gap-1.5 mb-8 md:mb-10">
+          <TabsTrigger value="active" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+            <CircleDotDashed className="h-5 w-5"/> {/* Changed icon */}
+            Active 
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-accent-secondary text-white text-xs">{activeItems.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+            <CheckCircle2 className="h-5 w-5"/> {/* Changed icon */}
+            Completed
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-brand-primary text-white text-xs">{completedItems.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="all" className="text-base data-[state=active]:bg-sophera-bg-card data-[state=active]:text-sophera-brand-primary data-[state=active]:shadow-lg rounded-lg h-12 flex items-center justify-center gap-2 font-medium transition-all">
+            <ListFilter className="h-5 w-5"/> {/* Changed icon */}
+            All Items
+            <Badge className="ml-1.5 h-6 px-2.5 rounded-md bg-sophera-text-subtle text-white text-xs">{filteredAndSortedItems.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active" className="mt-0">
+          {isLoading ? (
+             <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+          ) : isError ? (
+            <ErrorMessage title="Unable to Load Active Plan Items" message="Please check your connection and try again." />
+          ) : (
+            renderPlanItems(activeItems)
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="mt-0">
+          {isLoading ? (
+             <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+          ) : isError ? (
+            <ErrorMessage title="Unable to Load Completed Plan Items" message="Please check your connection and try again." />
+          ) : (
+            renderPlanItems(completedItems)
+          )}
+        </TabsContent>
+
+        <TabsContent value="all" className="mt-0">
+          {isLoading ? (
+            <div className="flex justify-center py-12"><Loader2 className="h-12 w-12 animate-spin text-sophera-brand-primary" /></div>
+          ) : isError ? (
+            <ErrorMessage title="Unable to Load Plan Items" message="Please check your connection and try again." />
+          ) : (
+            renderPlanItems(filteredAndSortedItems)
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
