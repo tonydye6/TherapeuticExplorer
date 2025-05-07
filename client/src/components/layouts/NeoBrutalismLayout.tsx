@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { 
   Home, 
@@ -10,10 +10,13 @@ import {
   HelpCircle,
   Sparkles,
   Heart,
-  BookOpen
+  BookOpen,
+  Menu,
+  X
 } from 'lucide-react';
 import { NeoMenu, NeoNavigationSection, NeoNavigationItem } from '@/components/ui/neo-navigation';
 import { cn } from '@/lib/utils';
+import useMobile from '@/hooks/use-mobile';
 
 type NeoBrutalismLayoutProps = {
   children: React.ReactNode;
@@ -21,18 +24,61 @@ type NeoBrutalismLayoutProps = {
 
 export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps) {
   const [location] = useLocation();
+  const isMobile = useMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   
+  // Update sidebarOpen state when screen size changes
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  
+  // Close sidebar on location change on mobile
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  }, [location, isMobile]);
+  
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="flex min-h-screen bg-white relative">
       {/* Decorative elements */}
-      <div className="fixed top-10 right-10 w-20 h-20 bg-yellow-300 rounded-full opacity-50 z-0"></div>
-      <div className="fixed bottom-20 left-40 w-32 h-32 bg-teal-200 rounded-full opacity-40 z-0"></div>
-      <div className="fixed top-1/3 right-1/4 w-16 h-16 bg-pink-200 rounded-full opacity-30 z-0"></div>
+      <div className="fixed top-10 right-10 w-20 h-20 bg-yellow-300 rounded-full opacity-50 z-0 hidden sm:block"></div>
+      <div className="fixed bottom-20 left-40 w-32 h-32 bg-teal-200 rounded-full opacity-40 z-0 hidden sm:block"></div>
+      <div className="fixed top-1/3 right-1/4 w-16 h-16 bg-pink-200 rounded-full opacity-30 z-0 hidden sm:block"></div>
+      
+      {/* Sidebar Toggle Button for Mobile */}
+      {isMobile && (
+        <button 
+          onClick={toggleSidebar} 
+          className="fixed top-4 left-4 z-50 bg-white p-2 rounded-lg border-3 border-sophera-text-heading shadow-[0.2rem_0.2rem_0_#000000] hover:translate-x-[-0.1rem] hover:translate-y-[-0.1rem] hover:shadow-[0.3rem_0.3rem_0_#000000] transition-all"
+          aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+        >
+          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      )}
+      
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20"
+          onClick={() => setSidebarOpen(false)} 
+          aria-hidden="true"
+        />
+      )}
       
       {/* Sidebar */}
-      <aside className="w-64 p-6 border-r-4 border-black min-h-screen z-10">
+      <aside 
+        className={cn(
+          "fixed md:relative w-[280px] md:w-64 p-6 border-r-4 border-black min-h-screen z-30 bg-white transition-all duration-300",
+          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
+        )}
+      >
         <div className="mb-8">
-          <Link href="/today">
+          <Link href="/today" onClick={() => isMobile && setSidebarOpen(false)}>
             <div className="flex items-center cursor-pointer">
               <div className="h-10 w-10 rounded-xl bg-sophera-brand-primary flex items-center justify-center border-3 border-black shadow-[0.2rem_0.2rem_0_#000000]">
                 <Sparkles className="h-6 w-6 text-white" />
@@ -51,6 +97,7 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
               href="/today" 
               icon={<Home />} 
               active={location === '/today'}
+              onClick={() => isMobile && setSidebarOpen(false)}
             >
               Dashboard
             </NeoNavigationItem>
@@ -184,7 +231,14 @@ export default function NeoBrutalismLayout({ children }: NeoBrutalismLayoutProps
       </aside>
       
       {/* Main content */}
-      <main className="flex-1 p-6 z-10">
+      <main 
+        className={cn(
+          "flex-1 p-4 md:p-6 z-10 transition-all duration-300",
+          isMobile ? "ml-0" : ""
+        )}
+      >
+        {/* Add some spacing at the top on mobile for the menu button */}
+        {isMobile && <div className="h-12"></div>}
         <div className="max-w-6xl mx-auto">
           {children}
         </div>

@@ -10,12 +10,16 @@ export interface NeoNavigationItemProps extends React.HTMLAttributes<HTMLDivElem
 }
 
 export const NeoNavigationItem = React.forwardRef<HTMLDivElement, NeoNavigationItemProps>(
-  ({ className, active, icon, href, badge, children, ...props }, ref) => {
+  ({ className, active, icon, href, badge, children, onClick, ...props }, ref) => {
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (onClick) onClick(e);
+    };
+
     const NavElement = href ? 
       ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => 
-        <Link href={href}><div className={className} {...props} /></Link> : 
+        <Link href={href} onClick={handleClick}><div className={className} {...props} /></Link> : 
       ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => 
-        <div className={className} {...props} />;
+        <div className={className} onClick={handleClick} {...props} />;
     
     return (
       <NavElement
