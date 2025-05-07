@@ -61,7 +61,9 @@ export default function DashboardPage() {
     );
   }
 
-  const displayName = userData?.displayName || userData?.username || 'User';
+  // Cast userData to User type to access its properties
+  const user = userData as { displayName?: string; username?: string } | null | undefined;
+  const displayName = user?.displayName || user?.username || 'User';
 
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -138,7 +140,7 @@ export default function DashboardPage() {
             <NeoCardFooter>
               <div className="flex justify-end">
                 <Link href="/connect/mindfulness">
-                  <NeoButton variant="outline" size="sm">More Snippets</NeoButton>
+                  <NeoButton buttonText="More Snippets" size="sm" color="cyan" />
                 </Link>
               </div>
             </NeoCardFooter>
