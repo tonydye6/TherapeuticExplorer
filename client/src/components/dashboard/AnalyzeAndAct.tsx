@@ -33,13 +33,27 @@ export function AnalyzeAndAct() {
   // Mutation to toggle the completed status of an action step
   const toggleCompleteMutation = useMutation({
     mutationFn: async (actionStepId: number) => {
-      const response = await apiRequest('POST', `/api/action-steps/${actionStepId}/toggle`, {});
-      return response.json();
+      // Fix the API request by using the proper method signature
+      const response = await fetch(`/api/action-steps/${actionStepId}/toggle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to toggle action step');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/action-steps'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
         description: `Failed to update action step: ${error.message}`,
@@ -51,8 +65,22 @@ export function AnalyzeAndAct() {
   // Mutation to generate new action steps
   const generateActionStepsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/action-steps/generate', {});
-      return response.json();
+      // Fix the API request by using the proper method signature
+      const response = await fetch('/api/action-steps/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to generate action steps');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/action-steps'] });
@@ -62,7 +90,7 @@ export function AnalyzeAndAct() {
         description: 'New action steps have been generated based on your latest data.',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setRefreshing(false);
       toast({
         title: 'Error',

@@ -1,5 +1,5 @@
 import { ActionStep, InsertActionStep } from '@shared/schema';
-import { aiRouter } from './ai-router';
+import { aiRouter } from '../services/ai-router';
 import { storage } from '../storage';
 
 /**
@@ -12,6 +12,7 @@ export class ActionStepsService {
   async generateActionSteps(userId: string): Promise<ActionStep[]> {
     try {
       // Get all user data that would be relevant for generating suggestions
+      // Only call methods that exist in the storage interface
       const [
         user, 
         treatments, 
@@ -19,30 +20,28 @@ export class ActionStepsService {
         researchItems,
         journalLogs,
         dietLogs,
-        planItems,
         completedActionSteps
       ] = await Promise.all([
         storage.getUser(userId),
-        storage.getTreatments(userId),
-        storage.getDocuments(userId),
-        storage.getResearchItems(userId),
+        storage.getTreatments(userId).catch(() => []),
+        storage.getDocuments(userId).catch(() => []),
+        storage.getResearchItems(userId).catch(() => []),
         storage.getJournalLogs(userId).catch(() => []),
         storage.getDietLogs(userId).catch(() => []),
-        storage.getPlanItems(userId).catch(() => []),
         storage.getCompletedActionSteps(userId).catch(() => [])
       ]);
 
       // Use AI router to generate personalized action steps
-      const prompt = this.buildActionStepsPrompt({
+      const userData = {
         user,
         treatments,
         documents,
         researchItems,
         journalLogs,
         dietLogs,
-        planItems,
         completedActionSteps
-      });
+      };
+      const prompt = this.buildActionStepsPrompt(userData);
 
       // If there are existing incomplete action steps, delete them
       await storage.deleteIncompleteActionSteps(userId);

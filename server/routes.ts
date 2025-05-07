@@ -2707,9 +2707,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/action-steps/:id/toggle", async (req, res) => {
     try {
-      const actionStepId = req.params.id;
+      const actionStepId = parseInt(req.params.id, 10);
       
-      if (!actionStepId) {
+      if (isNaN(actionStepId)) {
         return res.status(400).json({ message: "Invalid action step ID" });
       }
       
