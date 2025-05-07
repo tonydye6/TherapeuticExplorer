@@ -49,7 +49,7 @@ class AIRouter {
     return [
       {
         title: 'Schedule a follow-up appointment',
-        description: 'Based on your recent treatment updates, it's time for a follow-up with your oncologist.',
+        description: 'Based on your recent treatment updates, it is time for a follow-up with your oncologist.',
         category: 'treatment'
       },
       {

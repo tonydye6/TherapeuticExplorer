@@ -3,6 +3,16 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 
+// Action step categories for AI-generated action recommendations
+export const actionStepCategoryEnum = pgEnum("action_step_category", [
+  "exercise", 
+  "nutrition", 
+  "mental", 
+  "treatment", 
+  "social", 
+  "research"
+]);
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",
@@ -192,6 +202,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   journalLogs: many(journalLogs),
   dietLogs: many(dietLogs),
   hopeSnippets: many(hopeSnippets),
+  actionSteps: many(actionSteps),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -534,6 +545,37 @@ export const dietLogsRelations = relations(dietLogs, ({ one }) => ({
 export const hopeSnippetsRelations = relations(hopeSnippets, ({ one }) => ({
   user: one(users, {
     fields: [hopeSnippets.userId],
+    references: [users.id],
+  }),
+}));
+
+// Action steps for the Analyze & Act feature
+export const actionSteps = pgTable("action_steps", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: actionStepCategoryEnum("category"),
+  source: text("source"),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedDate: timestamp("completed_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertActionStepSchema = createInsertSchema(actionSteps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ActionStep = typeof actionSteps.$inferSelect;
+export type InsertActionStep = z.infer<typeof insertActionStepSchema>;
+
+// Action steps relations
+export const actionStepsRelations = relations(actionSteps, ({ one }) => ({
+  user: one(users, {
+    fields: [actionSteps.userId],
     references: [users.id],
   }),
 }));

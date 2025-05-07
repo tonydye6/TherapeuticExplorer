@@ -35,7 +35,9 @@ import {
   type DietLog,
   type InsertDietLog,
   type HopeSnippet,
-  type InsertHopeSnippet
+  type InsertHopeSnippet,
+  type ActionStep,
+  type InsertActionStep
 } from "@shared/schema";
 
 // Define the complete storage interface for all entities
@@ -116,6 +118,14 @@ export interface IStorage {
   createHopeSnippet(snippet: InsertHopeSnippet): Promise<HopeSnippet>;
   updateHopeSnippet(id: number, snippet: Partial<HopeSnippet>): Promise<HopeSnippet>;
   deleteHopeSnippet(id: number): Promise<void>;
+  
+  // Action steps methods
+  getActionSteps(userId: string): Promise<ActionStep[]>;
+  getActionStepById(id: number): Promise<ActionStep | undefined>;
+  createActionStep(step: InsertActionStep): Promise<ActionStep>;
+  updateActionStep(id: number, step: Partial<ActionStep>): Promise<ActionStep>;
+  getCompletedActionSteps(userId: string): Promise<ActionStep[]>;
+  deleteIncompleteActionSteps(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -130,6 +140,7 @@ export class MemStorage implements IStorage {
   private journalLogs: Map<number, JournalLog>;
   private dietLogs: Map<number, DietLog>;
   private hopeSnippets: Map<number, HopeSnippet>;
+  private actionSteps: Map<number, ActionStep>;
   
   private userIdCounter: number;
   private messageIdCounter: number;
@@ -142,6 +153,7 @@ export class MemStorage implements IStorage {
   private journalLogIdCounter: number;
   private dietLogIdCounter: number;
   private hopeSnippetIdCounter: number;
+  private actionStepIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -155,6 +167,7 @@ export class MemStorage implements IStorage {
     this.journalLogs = new Map();
     this.dietLogs = new Map();
     this.hopeSnippets = new Map();
+    this.actionSteps = new Map();
     
     this.userIdCounter = 1;
     this.messageIdCounter = 1;
@@ -167,6 +180,7 @@ export class MemStorage implements IStorage {
     this.journalLogIdCounter = 1;
     this.dietLogIdCounter = 1;
     this.hopeSnippetIdCounter = 1;
+    this.actionStepIdCounter = 1;
     
     // Initialize with a sample user
     this.createUser({

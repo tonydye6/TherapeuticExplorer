@@ -2670,6 +2670,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Action Steps API Routes
+  app.get("/api/action-steps", async (req, res) => {
+    try {
+      const DEFAULT_USER_ID = "1";
+      // Get action steps for the user
+      let actionSteps = [];
+      
+      try {
+        // Try to get from storage first
+        actionSteps = await storage.getActionSteps(DEFAULT_USER_ID);
+      } catch (error) {
+        console.log("No action steps found in storage, will generate new ones on first request");
+        // If no action steps exist yet, return empty array
+        // Will be populated on first generation request
+      }
+      
+      res.json(actionSteps);
+    } catch (error) {
+      console.error("Error fetching action steps:", error);
+      res.status(500).json({ message: "Failed to fetch action steps" });
+    }
+  });
+
+  app.post("/api/action-steps/generate", async (req, res) => {
+    try {
+      const DEFAULT_USER_ID = "1";
+      // Generate new action steps
+      const actionSteps = await actionStepsService.generateActionSteps(DEFAULT_USER_ID);
+      res.json(actionSteps);
+    } catch (error) {
+      console.error("Error generating action steps:", error);
+      res.status(500).json({ message: "Failed to generate action steps" });
+    }
+  });
+
+  app.post("/api/action-steps/:id/toggle", async (req, res) => {
+    try {
+      const actionStepId = req.params.id;
+      
+      if (!actionStepId) {
+        return res.status(400).json({ message: "Invalid action step ID" });
+      }
+      
+      const updatedStep = await actionStepsService.toggleActionStep(actionStepId);
+      res.json(updatedStep);
+    } catch (error) {
+      console.error("Error toggling action step:", error);
+      
+      if (typeof error === 'object' && error !== null && 'message' in error && 
+          typeof error.message === 'string' && error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      res.status(500).json({ message: "Failed to toggle action step" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
