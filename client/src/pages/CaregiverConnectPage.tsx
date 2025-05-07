@@ -1,6 +1,9 @@
+
+// client/src/pages/CaregiverConnectPage.tsx
+
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient'; // Assuming queryClient is correctly set up
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +13,11 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast"; // Assuming this hook is set up
+import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertCircleIcon, CheckCircle2Icon, ClipboardCopyIcon, Mail, PlusIcon, ShieldIcon, TrashIcon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react'; // Added UsersIcon
-import { ScrollArea } from "@/components/ui/scroll-area"; // Ensure this is styled or used appropriately
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // Ensure this is styled
+import { AlertCircleIcon, CheckCircle2Icon, ClipboardCopyIcon, Mail, PlusIcon, ShieldIcon, TrashIcon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CaregiverConnectPageProps {
@@ -33,17 +36,16 @@ interface Permission {
 }
 
 const DEFAULT_PERMISSIONS: Permission[] = [
-  // ... (DEFAULT_PERMISSIONS array remains the same as user provided)
-    { category: 'medical', label: 'View Medical Information', description: 'Can view diagnosis, treatments, and medical history', type: 'view', granted: true },
-    { category: 'medical', label: 'Update Medical Information', description: 'Can update medical information and track treatments', type: 'update', granted: false },
-    { category: 'careplan', label: 'View Care Plan', description: 'Can view care plan items and schedules', type: 'view', granted: true },
-    { category: 'careplan', label: 'Update Care Plan', description: 'Can add, edit, and mark care plan items as complete', type: 'update', granted: true },
-    { category: 'journal', label: 'View Journal Entries', description: 'Can view journal entries, symptoms, and mood tracking', type: 'view', granted: true },
-    { category: 'journal', label: 'Create Journal Notes', description: 'Can add caregiver notes to journal', type: 'update', granted: true },
-    { category: 'documents', label: 'View Documents', description: 'Can view uploaded medical documents', type: 'view', granted: true },
-    { category: 'documents', label: 'Manage Documents', description: 'Can upload and organize documents', type: 'manage', granted: false },
-    { category: 'appointments', label: 'View Appointments', description: 'Can view upcoming medical appointments', type: 'view', granted: true },
-    { category: 'appointments', label: 'Manage Appointments', description: 'Can add and edit appointment information', type: 'manage', granted: false }
+  { category: 'medical', label: 'View Medical Information', description: 'Can view diagnosis, treatments, and medical history', type: 'view', granted: true },
+  { category: 'medical', label: 'Update Medical Information', description: 'Can update medical information and track treatments', type: 'update', granted: false },
+  { category: 'careplan', label: 'View Care Plan', description: 'Can view care plan items and schedules', type: 'view', granted: true },
+  { category: 'careplan', label: 'Update Care Plan', description: 'Can add, edit, and mark care plan items as complete', type: 'update', granted: true },
+  { category: 'journal', label: 'View Journal Entries', description: 'Can view journal entries, symptoms, and mood tracking', type: 'view', granted: true },
+  { category: 'journal', label: 'Create Journal Notes', description: 'Can add caregiver notes to journal', type: 'update', granted: true },
+  { category: 'documents', label: 'View Documents', description: 'Can view uploaded medical documents', type: 'view', granted: true },
+  { category: 'documents', label: 'Manage Documents', description: 'Can upload and organize documents', type: 'manage', granted: false },
+  { category: 'appointments', label: 'View Appointments', description: 'Can view upcoming medical appointments', type: 'view', granted: true },
+  { category: 'appointments', label: 'Manage Appointments', description: 'Can add and edit appointment information', type: 'manage', granted: false }
 ];
 
 interface Caregiver {
@@ -58,10 +60,9 @@ interface Caregiver {
 }
 
 const CAREGIVERS: Caregiver[] = [
-  // ... (CAREGIVERS array remains the same as user provided for mock data)
-    { id: '1', name: 'Michael Johnson', email: 'michael.j@example.com', relationship: 'Spouse', dateInvited: '2025-01-15', status: 'active', lastActive: '2025-04-05', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p }))] },
-    { id: '2', name: 'Emily Davis', email: 'emily.davis@example.com', relationship: 'Daughter', dateInvited: '2025-02-03', status: 'active', lastActive: '2025-04-03', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.type === 'view' }))] },
-    { id: '3', name: 'Dr. Sarah Wilson', email: 'dr.wilson@example.com', relationship: 'Healthcare Provider', dateInvited: '2025-03-10', status: 'pending', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.category === 'medical' || p.category === 'careplan' }))] }
+  { id: '1', name: 'Michael Johnson', email: 'michael.j@example.com', relationship: 'Spouse', dateInvited: '2025-01-15', status: 'active', lastActive: '2025-04-05', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p }))] },
+  { id: '2', name: 'Emily Davis', email: 'emily.davis@example.com', relationship: 'Daughter', dateInvited: '2025-02-03', status: 'active', lastActive: '2025-04-03', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.type === 'view' }))] },
+  { id: '3', name: 'Dr. Sarah Wilson', email: 'dr.wilson@example.com', relationship: 'Healthcare Provider', dateInvited: '2025-03-10', status: 'pending', permissions: [...DEFAULT_PERMISSIONS.map(p => ({ ...p, granted: p.category === 'medical' || p.category === 'careplan' }))] }
 ];
 
 export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPageProps) {
@@ -87,7 +88,6 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
   const { mutate: sendInvitation, isPending: isSending } = useMutation({
     mutationFn: async (data: { email: string, relationship: string }) => {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      // Simulate success/error for demo
       if (data.email.includes("fail")) throw new Error("Simulated API error");
       return { success: true };
     },
@@ -98,14 +98,14 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
       toast({
         title: "Invitation Sent!",
         description: "Your invitation has been sent successfully.",
-        className: "bg-sophera-brand-primary text-white rounded-sophera-button", // Positive toast
+        className: "bg-sophera-brand-primary text-white rounded-sophera-button",
       });
     },
     onError: (error) => {
       toast({
         title: "Oh no! Invitation Failed",
         description: "There was a problem sending the invitation. Please check the details and try again.",
-        variant: "destructive", // This should pick up destructive colors from theme
+        variant: "destructive",
         className: "rounded-sophera-button",
       });
     },
@@ -164,7 +164,7 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
 
   const handleOpenPermissions = (caregiver: Caregiver) => {
     setSelectedCaregiver(caregiver);
-    setPermissions(caregiver.permissions.map(p => ({ ...p }))); // Ensure deep copy for editing
+    setPermissions(caregiver.permissions.map(p => ({ ...p })));
     setOpenPermissionsDialog(true);
   };
 
@@ -190,7 +190,7 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://sophera.app/join?invite=CAREINVITE123`); // Example link
+    navigator.clipboard.writeText(`https://sophera.app/join?invite=CAREINVITE123`);
     toast({
       title: "Link Copied!",
       description: "Invitation link copied to your clipboard.",
@@ -199,7 +199,6 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
   };
 
   const handleRemoveCaregiver = (id: string) => {
-    // Consider using a custom confirmation dialog styled with Sophera theme
     if (window.confirm("Are you sure you want to remove this caregiver? They will no longer have access to your Sophera information.")) {
       removeCaregiver(id);
     }
@@ -377,7 +376,6 @@ export default function CaregiverConnectPage({ inTabView }: CaregiverConnectPage
                                           <Switch
                                             checked={permission.granted}
                                             onCheckedChange={() => handleTogglePermission(originalIndex)}
-                                            // Switch should pick up themed colors
                                           />
                                         </div>
                                       );
