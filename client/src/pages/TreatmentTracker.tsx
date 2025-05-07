@@ -10,7 +10,7 @@ interface TreatmentTrackerProps {
   inTabView?: boolean;
 }
 
-export default function TreatmentTracker({ inTabView }: TreatmentTrackerProps) {
+function TreatmentTracker({ inTabView }: TreatmentTrackerProps) {
   const [activeTab, setActiveTab] = useState('current');
   const { toast } = useToast();
 
@@ -36,3 +36,5 @@ export default function TreatmentTracker({ inTabView }: TreatmentTrackerProps) {
     </div>
   );
 }
+
+export default TreatmentTracker;
