@@ -72,8 +72,8 @@ export default function DashboardPage() {
         decorationColor="bg-sophera-accent-secondary"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div className="space-y-6 md:space-y-8">
           {/* Today's Focus Card */}
           <NeoCard>
             <NeoCardDecoration />
@@ -117,7 +117,7 @@ export default function DashboardPage() {
           </NeoCard>
         </div>
 
-        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+        <div className="space-y-6 md:space-y-8">
           {/* Hope Snippet Card */}
           <NeoCard>
             <NeoCardDecoration />

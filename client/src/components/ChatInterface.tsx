@@ -162,11 +162,11 @@ export default function ChatInterface({
         modelUsed: response.modelUsed || preferredModel || ModelType.GPT,
         isLoading: false,
       };
-      
+
       setMessages(prev => prev.map(msg => 
         msg.id === tempAssistantMessage.id ? processedResponse : msg
       ));
-      
+
       // Call onMessageSend if it exists
       if (onMessageSend) {
         onMessageSend(response);
@@ -242,7 +242,7 @@ export default function ChatInterface({
       });
       return;
     }
-    
+
     // Check file type
     const supportedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff', 'image/gif', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
     if (!supportedTypes.includes(file.type)) {
@@ -253,16 +253,16 @@ export default function ChatInterface({
       });
       return;
     }
-    
+
     // Create the form data for the upload
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", file.name);
     formData.append("type", "medical_record");
-    
+
     // Set up loading state and create a temporary processing message
     setIsUploading(true);
-    
+
     // Create a temporary "processing" message from the assistant
     const tempAssistantMessage: Message = {
       id: uuidv4(),
@@ -272,55 +272,55 @@ export default function ChatInterface({
       timestamp: new Date(),
       isLoading: true,
     };
-    
+
     // Add the temporary message to the chat
     setMessages(prev => [...prev, tempAssistantMessage]);
-    
+
     // Clear the file input
     if (event.target) {
       event.target.value = "";
     }
-    
+
     try {
       console.log(`Uploading document: ${file.name} (${Math.round(file.size/1024)} KB, type: ${file.type})`);
-      
+
       // Call the API to process the document with a timeout of 60 seconds
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
-      
+
       const response = await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Document upload failed with status: ${response.status}, message: ${errorText}`);
       }
-      
+
       const result = await response.json();
       console.log("Document processing result:", result);
-      
+
       // Extract relevant information from the OCR results
       const document = result.document;
       const processingResults = result.processingResults;
       const analysis = document.parsedContent?.analysis;
       let extractedText = "";
-      
+
       if (document.parsedContent?.text) {
         extractedText = document.parsedContent.text;
       }
 
       // Format a user-friendly summary message
       let summaryText = `# Document Analysis: ${file.name}\n\n`;
-      
+
       // Add document type if available
       const docType = processingResults?.documentType || analysis?.sourceType || "Medical Document";
       summaryText += `**Document Type**: ${docType}\n\n`;
-      
+
       // If we have a structured analysis, display it
       if (analysis?.summary) {
         summaryText += `## Summary\n${analysis.summary}\n\n`;
@@ -403,16 +403,16 @@ export default function ChatInterface({
             }
           : msg
       ));
-      
+
       // Show a success notification
       toast({
         title: "Document processed successfully",
         description: `Analyzed ${file.name} with ${Math.round(processingResults.confidence * 100)}% confidence`,
       });
-      
+
     } catch (error) {
       console.error("Error uploading document:", error);
-      
+
       // Check if it's an abort error (timeout)
       if (error.name === 'AbortError') {
         setMessages(prev => prev.map(msg => 
@@ -440,7 +440,7 @@ export default function ChatInterface({
             : msg
         ));
       }
-      
+
       // Show an error notification
       toast({
         title: "Document processing failed",
