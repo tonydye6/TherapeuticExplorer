@@ -21,6 +21,23 @@ import {
   NeoSelectLabel,
   NeoSelectSeparator
 } from "@/components/ui/neo-select";
+import {
+  NeoNavigationItem,
+  NeoNavigationSection,
+  NeoMenu
+} from "@/components/ui/neo-navigation";
+import { 
+  Home, 
+  BookOpen, 
+  Search, 
+  Activity, 
+  Calendar, 
+  Heart, 
+  Settings, 
+  FileText,
+  Users,
+  Leaf
+} from 'lucide-react';
 
 export default function NeoBrutalismDemo() {
   const [name, setName] = useState("");
@@ -154,27 +171,65 @@ export default function NeoBrutalismDemo() {
         </div>
       </div>
       
-      {/* Button Showcase */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Button Variants</h2>
-        <div className="flex flex-wrap gap-4">
-          <NeoButton variant="primary">Primary Button</NeoButton>
-          <NeoButton variant="secondary">Secondary Button</NeoButton>
-          <NeoButton variant="tertiary">Tertiary Button</NeoButton>
-          <NeoButton variant="outline">Outline Button</NeoButton>
-          <NeoButton variant="destructive">Destructive Button</NeoButton>
-          <NeoButton variant="link">Link Button</NeoButton>
+      {/* Navigation Showcase */}
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div>
+          <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Navigation Elements</h2>
+          <NeoMenu className="max-w-md">
+            <NeoNavigationSection title="My Journey" icon={<Activity className="h-4 w-4" />}>
+              <NeoNavigationItem active icon={<Home className="h-5 w-5" />} href="/today">
+                Dashboard
+              </NeoNavigationItem>
+              <NeoNavigationItem icon={<Calendar className="h-5 w-5" />} href="/my-journey/plan" badge={3}>
+                Treatment Plan
+              </NeoNavigationItem>
+              <NeoNavigationItem icon={<FileText className="h-5 w-5" />} href="/my-journey/journal">
+                Journal
+              </NeoNavigationItem>
+            </NeoNavigationSection>
+            
+            <NeoNavigationSection title="Knowledge Hub" icon={<BookOpen className="h-4 w-4" />}>
+              <NeoNavigationItem icon={<Search className="h-5 w-5" />} href="/understand/explainer">
+                Medical Explainer
+              </NeoNavigationItem>
+              <NeoNavigationItem icon={<Activity className="h-5 w-5" />} href="/understand/treatments">
+                Treatment Tracker
+              </NeoNavigationItem>
+            </NeoNavigationSection>
+            
+            <NeoNavigationSection title="Connect" icon={<Heart className="h-4 w-4" />}>
+              <NeoNavigationItem icon={<Users className="h-5 w-5" />} href="/connect/stories">
+                Survivor Stories
+              </NeoNavigationItem>
+              <NeoNavigationItem icon={<Leaf className="h-5 w-5" />} href="/connect/mindfulness" badge="New">
+                Mindfulness Corner
+              </NeoNavigationItem>
+            </NeoNavigationSection>
+          </NeoMenu>
         </div>
         
-        <div className="flex flex-wrap gap-4 mt-6">
-          <NeoButton variant="primary" size="sm">Small Button</NeoButton>
-          <NeoButton variant="primary" size="default">Default Button</NeoButton>
-          <NeoButton variant="primary" size="lg">Large Button</NeoButton>
-        </div>
-        
-        <div className="flex flex-wrap gap-4 mt-6">
-          <NeoButton variant="primary" shine>With Shine Effect</NeoButton>
-          <NeoButton variant="secondary" shine>With Shine Effect</NeoButton>
+        {/* Button Showcase */}
+        <div>
+          <h2 className="text-2xl font-bold text-sophera-text-heading mb-6">Button Variants</h2>
+          <div className="flex flex-wrap gap-4">
+            <NeoButton variant="primary">Primary Button</NeoButton>
+            <NeoButton variant="secondary">Secondary Button</NeoButton>
+            <NeoButton variant="tertiary">Tertiary Button</NeoButton>
+            <NeoButton variant="outline">Outline Button</NeoButton>
+            <NeoButton variant="destructive">Destructive Button</NeoButton>
+            <NeoButton variant="link">Link Button</NeoButton>
+          </div>
+          
+          <div className="flex flex-wrap gap-4 mt-6">
+            <NeoButton variant="primary" size="sm">Small Button</NeoButton>
+            <NeoButton variant="primary" size="default">Default Button</NeoButton>
+            <NeoButton variant="primary" size="lg">Large Button</NeoButton>
+          </div>
+          
+          <div className="flex flex-wrap gap-4 mt-6">
+            <NeoButton variant="primary" shine>With Shine Effect</NeoButton>
+            <NeoButton variant="secondary" shine>With Shine Effect</NeoButton>
+          </div>
         </div>
       </div>
     </div>

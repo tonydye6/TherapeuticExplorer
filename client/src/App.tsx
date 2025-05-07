@@ -26,6 +26,7 @@ import JournalLogsPage from "./pages/JournalLogsPage";
 import DietLogsPage from "./pages/DietLogsPage";
 import DashboardPage from "./pages/DashboardPage";
 import HopeSnippetsPage from "./pages/HopeSnippetsPage";
+import NeoBrutalismDemo from "./pages/NeoBrutalismDemo";
 
 // Import Connect & Hope section pages
 import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
@@ -121,6 +122,9 @@ function Router() {
         <Route path="/alternative-treatments" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         <Route path="/treatment-predictor" component={() => <RedirectWithMessage to="/understand/treatments" />} />
         <Route path="/treatment-timeline" component={() => <RedirectWithMessage to="/understand/treatments" />} />
+        
+        {/* Design System Route */}
+        <Route path="/design/neo-brutalism" component={NeoBrutalismDemo} />
         
         {/* 404 route */}
         <Route component={NotFound} />
