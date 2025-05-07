@@ -1,3 +1,6 @@
+
+// client/src/pages/DashboardPage.tsx
+
 import React from 'react';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { Loader2 } from 'lucide-react';
@@ -15,37 +18,34 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <h3 className="text-lg font-medium">Loading your dashboard...</h3>
-        <p className="text-gray-500">We're gathering your latest information</p>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] p-4">
+        <Loader2 className="h-16 w-16 animate-spin text-sophera-brand-primary mb-6" />
+        <h3 className="text-xl font-semibold text-sophera-text-heading mb-2">
+          Loading your dashboard...
+        </h3>
+        <p className="text-sophera-text-body text-center max-w-xs">
+          Gathering your latest information to personalize your Sophera experience.
+        </p>
       </div>
     );
   }
 
-  const displayName = userData && (userData.displayName || userData.username) || 'User';
+  const displayName = userData?.displayName || userData?.username || 'User';
 
   return (
-    <div className="container max-w-4xl py-8 px-4 md:px-8">
-      {/* Greeting */}
-      <Greeting userName={displayName} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div>
-          {/* Today's Focus Section */}
+    <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="mb-8 md:mb-10">
+        <Greeting userName={displayName} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           <TodaysFocus planItems={upcomingPlanItems} isLoading={isLoading} />
-          
-          {/* Journal Prompt Section */}
           <JournalPrompt />
         </div>
-        
-        {/* Right Column */}
-        <div>
-          {/* Hope Snippet Section */}
+
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
           <HopeSnippet />
-          
-          {/* Designed to be extendable with more components like quick actions, etc. */}
         </div>
       </div>
     </div>
