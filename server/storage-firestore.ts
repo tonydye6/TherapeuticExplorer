@@ -2,7 +2,8 @@ import {
   User, InsertUser, UpsertUser, Message, InsertMessage,
   ResearchItem, InsertResearchItem, Treatment, InsertTreatment,
   SavedTrial, InsertSavedTrial, Document, InsertDocument,
-  VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment
+  VectorEmbedding, InsertVectorEmbedding, AlternativeTreatment, InsertAlternativeTreatment,
+  ActionStep, InsertActionStep
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import * as firestoreService from "./services/firestore-service";
@@ -18,6 +19,228 @@ export class FirestoreStorage implements IStorage {
   // Initialize Firestore when this class is instantiated
   constructor() {
     firestoreService.initializeFirestore();
+  }
+  
+  // ACTION STEPS METHODS
+  async getActionSteps(userId: string): Promise<ActionStep[]> {
+    try {
+      const db = firestoreService.getFirestore();
+      const stepsSnapshot = await db
+        .collection('users')
+        .doc(userId)
+        .collection('actionSteps')
+        .orderBy('createdAt', 'desc')
+        .get();
+      
+      if (stepsSnapshot.empty) {
+        return [];
+      }
+      
+      return stepsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: parseInt(doc.id),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          completedDate: data.completedDate?.toDate() || null,
+          userId: userId
+        } as ActionStep;
+      });
+    } catch (error) {
+      console.error('Error fetching action steps:', error);
+      throw error;
+    }
+  }
+  
+  async getActionStepById(id: number): Promise<ActionStep | undefined> {
+    try {
+      const db = firestoreService.getFirestore();
+      const stepsSnapshot = await db
+        .collectionGroup('actionSteps')
+        .where('id', '==', id)
+        .limit(1)
+        .get();
+      
+      if (stepsSnapshot.empty) {
+        return undefined;
+      }
+      
+      const doc = stepsSnapshot.docs[0];
+      const data = doc.data();
+      
+      return {
+        ...data,
+        id: parseInt(doc.id),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        completedDate: data.completedDate?.toDate() || null,
+        userId: data.userId
+      } as ActionStep;
+    } catch (error) {
+      console.error(`Error fetching action step with ID ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  async createActionStep(insertStep: InsertActionStep): Promise<ActionStep> {
+    try {
+      const db = firestoreService.getFirestore();
+      const userId = insertStep.userId;
+      
+      // Get the next ID
+      const counterDoc = await db.collection('counters').doc('actionSteps').get();
+      let nextId = 1;
+      
+      if (counterDoc.exists) {
+        nextId = (counterDoc.data()?.currentId || 0) + 1;
+      }
+      
+      // Update the counter
+      await db.collection('counters').doc('actionSteps').set({ currentId: nextId });
+      
+      const stepRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('actionSteps')
+        .doc(nextId.toString());
+      
+      const now = new Date();
+      const stepData = {
+        ...insertStep,
+        id: nextId,
+        createdAt: Timestamp.fromDate(now),
+        updatedAt: Timestamp.fromDate(now),
+        isCompleted: false,
+        completedDate: null
+      };
+      
+      await stepRef.set(stepData);
+      
+      return {
+        ...stepData,
+        createdAt: now,
+        updatedAt: now,
+        id: nextId
+      } as ActionStep;
+    } catch (error) {
+      console.error('Error creating action step:', error);
+      throw error;
+    }
+  }
+  
+  async updateActionStep(id: number, stepData: Partial<ActionStep>): Promise<ActionStep> {
+    try {
+      // Get the current action step to check its status
+      const step = await this.getActionStepById(id);
+      
+      if (!step) {
+        throw new Error(`Action step with ID ${id} not found`);
+      }
+      
+      const userId = step.userId;
+      const db = firestoreService.getFirestore();
+      const stepRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('actionSteps')
+        .doc(id.toString());
+      
+      const updateData: any = {
+        ...stepData,
+        updatedAt: Timestamp.fromDate(new Date())
+      };
+      
+      // If the step is being marked as completed, set the completedDate
+      if (stepData.isCompleted && !step.isCompleted) {
+        updateData.completedDate = Timestamp.fromDate(new Date());
+      }
+      
+      // If the step is being marked as incomplete, clear the completedDate
+      if (stepData.isCompleted === false && step.isCompleted) {
+        updateData.completedDate = null;
+      }
+      
+      await stepRef.update(updateData);
+      
+      // Fetch the updated action step
+      const updatedDoc = await stepRef.get();
+      if (!updatedDoc.exists) {
+        throw new Error(`Action step with ID ${id} not found after update`);
+      }
+      
+      const data = updatedDoc.data();
+      return {
+        ...data,
+        id: parseInt(updatedDoc.id),
+        createdAt: data?.createdAt?.toDate() || new Date(),
+        updatedAt: data?.updatedAt?.toDate() || new Date(),
+        completedDate: data?.completedDate?.toDate() || null,
+        userId: userId
+      } as ActionStep;
+    } catch (error) {
+      console.error(`Error updating action step with ID ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  async getCompletedActionSteps(userId: string): Promise<ActionStep[]> {
+    try {
+      const db = firestoreService.getFirestore();
+      const stepsSnapshot = await db
+        .collection('users')
+        .doc(userId)
+        .collection('actionSteps')
+        .where('isCompleted', '==', true)
+        .orderBy('completedDate', 'desc')
+        .get();
+      
+      if (stepsSnapshot.empty) {
+        return [];
+      }
+      
+      return stepsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: parseInt(doc.id),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          completedDate: data.completedDate?.toDate() || null,
+          userId: userId
+        } as ActionStep;
+      });
+    } catch (error) {
+      console.error('Error fetching completed action steps:', error);
+      throw error;
+    }
+  }
+  
+  async deleteIncompleteActionSteps(userId: string): Promise<void> {
+    try {
+      const db = firestoreService.getFirestore();
+      const stepsSnapshot = await db
+        .collection('users')
+        .doc(userId)
+        .collection('actionSteps')
+        .where('isCompleted', '==', false)
+        .get();
+      
+      if (stepsSnapshot.empty) {
+        return;
+      }
+      
+      const batch = db.batch();
+      
+      stepsSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error('Error deleting incomplete action steps:', error);
+      throw error;
+    }
   }
 
   // USER METHODS
