@@ -85,8 +85,8 @@ export default function DashboardPage() {
                 </NeoCardTitle>
                 <NeoCardBadge>{upcomingPlanItems?.length || 0} items</NeoCardBadge>
               </div>
-              <NeoCardDescription>
-                Your scheduled activities and treatment plan for today
+              <NeoCardDescription className="mb-4">
+                Scheduled Activities & Plans
               </NeoCardDescription>
             </NeoCardHeader>
             <NeoCardContent>
@@ -109,11 +109,12 @@ export default function DashboardPage() {
             <NeoCardContent>
               <JournalPrompt />
             </NeoCardContent>
-            <NeoCardFooter>
+            </NeoCard>
+            <div className="mt-4 flex justify-end">
               <Link href="/my-journey/journal">
                 <NeoButton variant="outline" size="sm">View Journal</NeoButton>
               </Link>
-            </NeoCardFooter>
+            </div>
           </NeoCard>
         </div>
 
@@ -133,11 +134,12 @@ export default function DashboardPage() {
             <NeoCardContent>
               <HopeSnippet />
             </NeoCardContent>
-            <NeoCardFooter>
+            </NeoCard>
+            <div className="mt-4 flex justify-end">
               <Link href="/connect/mindfulness">
                 <NeoButton variant="outline" size="sm">More Snippets</NeoButton>
               </Link>
-            </NeoCardFooter>
+            </div>
           </NeoCard>
           
           {/* AI Chat Assistant Card */}
