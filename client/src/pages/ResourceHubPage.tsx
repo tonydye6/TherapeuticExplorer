@@ -158,7 +158,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
 
   // Filtered categories based on what has results
   const activeCategories = resources 
-    ? [...new Set(resources.map(r => r.category))]
+    ? Array.from(new Set(resources.map(r => r.category)))
     : [];
 
   const handleCategoryChange = (category: string | null) => {
@@ -195,7 +195,7 @@ export default function ResourceHubPage({ inTabView = false }: ResourceHubPagePr
           </div>
           
           <div className="flex gap-3 items-center">
-            <Select value={selectedCategory || ""} onValueChange={(value) => handleCategoryChange(value || null)}>
+            <Select value={selectedCategory || "all-categories"} onValueChange={(value) => handleCategoryChange(value === "all-categories" ? null : value)}>
               <SelectTrigger className="w-[180px] rounded-sophera-input border-sophera-border-primary">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-sophera-brand-primary" />
