@@ -314,7 +314,7 @@ export function SidebarNavigation() {
                 )}
                 
                 {section.isParent && section.children && expandedSections.includes(section.title) && (
-                  <div className="ml-4 pl-4 border-l-2 border-sophera-text-heading/20 space-y-8 animate-fadeIn mt-6">
+                  <div className="ml-4 pl-4 border-l-2 border-sophera-text-heading/20 space-y-8 animate-fadeIn mt-8">
                     {section.children.map((child) => (
                       <Link key={child.href} href={child.href}>
                         <button 
