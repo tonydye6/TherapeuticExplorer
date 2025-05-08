@@ -85,50 +85,50 @@
 
     --card: 0 0% 100%; /* HSL for #FFFFFF */
     --card-foreground: 222 22% 20%; /* HSL for #2D3748 */
- 
+
     --popover: 0 0% 100%; /* HSL for #FFFFFF */
     --popover-foreground: 222 22% 20%; /* HSL for #2D3748 */
- 
+
     --primary: 174 82% 31%; /* HSL for #0D9488 */
     --primary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
     --primary-hover: 174 84% 27%; /* HSL for #0A7D70 */
     --primary-light: 174 82% 31% / 0.1; /* RGBA for primary with 10% opacity */
     --primary-focus-ring: 174 82% 31% / 0.25; /* RGBA for primary with 25% opacity */
- 
+
     --secondary: 16 100% 66%; /* HSL for #FF7F50 */
     --secondary-foreground: 0 0% 100%; /* HSL for #FFFFFF */
     --secondary-hover: 15 75% 59%; /* HSL for #E67348 */
- 
+
     --tertiary: 45 100% 51%; /* HSL for #FFC107 - Sunny Yellow */
     --tertiary-foreground: 222 22% 20%; /* HSL for #2D3748 */
- 
+
     --muted: 216 28% 95%; /* HSL for #F3F4F6 */
     --muted-foreground: 216 12% 47%; /* HSL for #718096 */
- 
+
     --accent: 45 100% 51%; /* HSL for #FFC107 - Using tertiary as accent */
     --accent-foreground: 222 22% 20%; /* HSL for #2D3748 */
- 
+
     --destructive: 0 84% 60%; /* HSL for #EF4444 */
     --destructive-foreground: 0 0% 100%; /* HSL for #FFFFFF */
 
     --border: 215 20% 82%; /* HSL for #CBD5E0 */
     --input: 215 20% 82%; /* HSL for #CBD5E0 */
     --ring: 174 82% 31%; /* HSL for #0D9488 */
-    
+
     /* Text colors */
     --text-headings: 222 22% 20%; /* HSL for #2D3748 - Dark Charcoal */
     --text-body: 217 19% 35%; /* HSL for #4A5568 - Medium Gray */
     --text-subtle: 216 12% 47%; /* HSL for #718096 - Cool Gray */
-    
+
     /* Gradient colors - updated to exact color specs */
     --gradient-start: #E6FFFA; /* Very Light Teal/Mint */
     --gradient-end: #FFF3E0; /* Pale Orange/Peach */
- 
+
     /* Border radius values from design spec */
     --radius: 16px; /* Card radius - exactly 16px */
     --radius-md: 12px; /* Button radius - exactly 12px */
     --radius-sm: 8px; /* For smaller elements */
-    
+
     /* Additional Sophera specific radii */
     --radius-button: 12px;
     --radius-input: 12px;
@@ -181,13 +181,13 @@
     font-size: 16px;
     line-height: 1.7;
   }
-  
+
   label {
     @apply text-sm font-semibold text-sophera-text-heading;
     font-weight: 600; /* Semi-Bold for labels */
     font-size: 14px;
   }
-  
+
   .helper-text, .caption-text {
     @apply text-sophera-text-subtle text-xs;
     font-size: 13px;
@@ -201,25 +201,25 @@
     padding: 1.5rem;
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
   }
-  
+
   /* Card variants */
   .card-primary {
     border-top: 4px solid #0D9488; /* Deep Teal */
   }
-  
+
   .card-secondary {
     border-top: 4px solid #FF7F50; /* Bright Coral */
   }
-  
+
   .card-tertiary {
     border-top: 4px solid #FFC107; /* Sunny Yellow */
   }
-  
+
   .card-hope {
     border-top: 4px solid #FFC107; /* Sunny Yellow */
     background-image: linear-gradient(to bottom right, #FFFFFF, #FFFDE7); /* White to very light yellow */
   }
-  
+
   /* Card with background that stands out on gradient */
   .card-background-on-gradient {
     background-color: #FFFFFF;
@@ -260,7 +260,7 @@
     background-color: #E67348; /* Darker coral */
     transform: scale(1.03);
   }
-  
+
   .btn-tertiary {
     background-color: #FFC107; /* Sunny Yellow */
     color: #2D3748; /* Dark Charcoal */
@@ -293,12 +293,12 @@
   .btn-text:hover {
     text-decoration: underline;
   }
-  
+
   /* Loading State */
   .loading {
     @apply animate-pulse;
   }
-  
+
   /* Toast Notifications */
   .toast {
     padding: 1rem;
@@ -311,25 +311,25 @@
     max-width: 350px;
     margin: 0.5rem 0;
   }
-  
+
   .toast-success {
     background-color: #0D9488; /* Deep Teal */
     color: white;
     border-left: 4px solid #0A7D70; /* Darker teal */
   }
-  
+
   .toast-info {
     background-color: #3B82F6; /* Blue */
     color: white;
     border-left: 4px solid #2563EB; /* Darker blue */
   }
-  
+
   .toast-warning {
     background-color: #FFC107; /* Sunny Yellow */
     color: #2D3748; /* Dark Charcoal */
     border-left: 4px solid #F59E0B; /* Darker yellow */
   }
-  
+
   .toast-error {
     background-color: #EF4444; /* Red */
     color: white;
@@ -345,24 +345,24 @@
     font-size: 16px;
     transition: all 0.2s ease;
   }
-  
+
   input::placeholder, textarea::placeholder, select::placeholder {
     color: #718096; /* Cool Gray */
   }
-  
+
   input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: #0D9488; /* Deep Teal */
     box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25); /* 25% opacity teal */
   }
-  
+
   /* Tabs/Segmented Controls */
   .tabs {
     display: flex;
     border-bottom: 1px solid #CBD5E0;
     margin-bottom: 1.5rem;
   }
-  
+
   .tab {
     padding: 10px 18px;
     color: #4A5568; /* Medium Gray */
@@ -371,13 +371,13 @@
     position: relative;
     cursor: pointer;
   }
-  
+
   .tab-active {
     color: #0D9488; /* Deep Teal */
     font-weight: 700;
     position: relative;
   }
-  
+
   .tab-active:after {
     content: '';
     position: absolute;
@@ -389,7 +389,7 @@
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
   }
-  
+
   /* Empty States */
   .empty-state {
     padding: 2.5rem 1rem;
@@ -403,21 +403,21 @@
     border: 1px dashed #CBD5E0;
     margin: 1rem 0;
   }
-  
+
   .empty-state-icon {
     color: #0D9488; /* Deep Teal */
     width: 3rem;
     height: 3rem;
     margin-bottom: 1rem;
   }
-  
+
   .empty-state-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: #2D3748; /* Dark Charcoal */
     margin-bottom: 0.5rem;
   }
-  
+
   .empty-state-message {
     color: #4A5568; /* Medium Gray */
     margin-bottom: 1.5rem;
@@ -425,18 +425,18 @@
     margin-left: auto;
     margin-right: auto;
   }
-  
+
   /* Hope-themed empty state */
   .empty-state.hope {
     background-image: linear-gradient(to bottom right, #FFFFFF, #FFFDE7); /* White to very light yellow */
     border-color: #FFC107; /* Sunny Yellow */
     border-style: dashed;
   }
-  
+
   .empty-state.hope .empty-state-icon {
     color: #FFC107; /* Sunny Yellow */
   }
-  
+
   /* Micro-interactions */
   .hover-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -445,21 +445,21 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
-  
+
   .hover-glow {
     transition: box-shadow 0.2s ease;
   }
   .hover-glow:hover {
     box-shadow: 0 0 15px rgba(13, 148, 136, 0.3); /* 30% opacity teal glow */
   }
-  
+
   .hover-bright {
     transition: filter 0.2s ease;
   }
   .hover-bright:hover {
     filter: brightness(105%);
   }
-  
+
   /* Loading animations */
   .loading-wave-container {
     display: flex;
@@ -468,7 +468,7 @@
     gap: 4px;
     height: 24px;
   }
-  
+
   .loading-wave {
     width: 6px;
     height: 6px;
@@ -476,15 +476,15 @@
     animation: loading-wave 1s ease-in-out infinite;
     background-color: #0D9488; /* Deep Teal */
   }
-  
+
   .loading-wave:nth-child(2) {
     animation-delay: 0.2s;
   }
-  
+
   .loading-wave:nth-child(3) {
     animation-delay: 0.4s;
   }
-  
+
   @keyframes loading-wave {
     0%, 60%, 100% {
       transform: translateY(0);
@@ -493,12 +493,12 @@
       transform: translateY(-10px);
     }
   }
-  
+
   /* Pulse animation */
   .pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes pulse {
     0%, 100% {
       opacity: 1;
@@ -707,6 +707,14 @@
   .canvas-toolbar {
     @apply flex items-center justify-between px-4 py-2 border-b border-border bg-white z-canvas-ui;
     min-height: 50px;
+  }
+
+  .canvas-toolbar button {
+    @apply text-ellipsis overflow-hidden max-w-[120px];
+  }
+
+  .canvas-toolbar .button-group {
+    @apply flex items-center gap-2;
   }
 
   .canvas-palette {

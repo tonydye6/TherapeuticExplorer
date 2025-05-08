@@ -66,19 +66,22 @@ const CanvasToolbar = ({
     setScale,
     setOffset,
   } = useCanvas();
-  
+
   const [newTabName, setNewTabName] = useState('');
   const [newTabType, setNewTabType] = useState<CanvasTabType>('freeform');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleCreateTab = async () => {
     if (!newTabName) return;
-    
+
     const tabId = await createTab(newTabName, newTabType);
     setActiveTabId(tabId);
     setNewTabName('');
     setIsCreateDialogOpen(false);
   };
+
+  // Unified button style for canvas toolbar
+  const toolbarButtonClass = "h-9 px-3 flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50";
 
   const handleDeleteTab = async () => {
     if (!activeTabId) return;
@@ -123,16 +126,17 @@ const CanvasToolbar = ({
           <Button
             variant="ghost"
             size="icon"
+            className={toolbarButtonClass} // Added class for consistency
             onClick={onToggleSidebar}
             title={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
           >
             <PanelLeft className={`h-5 w-5 ${!showSidebar ? 'rotate-180' : ''}`} />
           </Button>
         )}
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="font-semibold">
+            <Button variant="outline" className={`font-semibold ${toolbarButtonClass}`}> {/* Added class for consistency */}
               {activeTabId
                 ? tabs.find((tab) => tab.id === activeTabId)?.name || 'Select Canvas'
                 : 'Select Canvas'}
@@ -143,7 +147,7 @@ const CanvasToolbar = ({
               <DropdownMenuItem
                 key={tab.id}
                 onClick={() => setActiveTabId(tab.id)}
-                className={`flex items-center ${activeTabId === tab.id ? 'bg-muted' : ''}`}
+                className={`flex items-center ${activeTabId === tab.id ? 'bg-muted' : ''} ${toolbarButtonClass}`} // Added class for consistency
               >
                 {getTypeIcon(tab.type)}
                 <span>{tab.name}</span>
@@ -154,7 +158,7 @@ const CanvasToolbar = ({
               <DialogTrigger asChild>
                 <DropdownMenuItem
                   onSelect={(e) => e.preventDefault()}
-                  className="flex items-center text-primary"
+                  className={`flex items-center text-primary ${toolbarButtonClass}`} // Added class for consistency
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   <span>Create New Canvas</span>
@@ -195,6 +199,7 @@ const CanvasToolbar = ({
                 </div>
                 <DialogFooter>
                   <Button
+                    className={toolbarButtonClass} // Added class for consistency
                     onClick={handleCreateTab}
                     disabled={!newTabName}
                   >
@@ -206,12 +211,13 @@ const CanvasToolbar = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
+
       {/* Center - View controls */}
       <div className="flex items-center space-x-1">
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           onClick={handleZoomIn}
           title="Zoom In"
         >
@@ -223,6 +229,7 @@ const CanvasToolbar = ({
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           onClick={handleZoomOut}
           title="Zoom Out"
         >
@@ -231,18 +238,20 @@ const CanvasToolbar = ({
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           onClick={handleReset}
           title="Reset View"
         >
           <History className="h-5 w-5" />
         </Button>
       </div>
-      
+
       {/* Right side - Actions */}
       <div className="flex items-center space-x-2">
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           title="Canvas Settings"
         >
           <Settings className="h-5 w-5" />
@@ -250,6 +259,7 @@ const CanvasToolbar = ({
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           title="Export Canvas"
         >
           <Download className="h-5 w-5" />
@@ -257,10 +267,30 @@ const CanvasToolbar = ({
         <Button
           variant="ghost"
           size="icon"
+          className={toolbarButtonClass} // Added class for consistency
           title="Import Canvas"
         >
           <Upload className="h-5 w-5" />
         </Button>
+        {/* Node type buttons */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Add Node:</span>
+          <Button className={toolbarButtonClass} onClick={() => {/* Add treatment node */}}>
+            <span className="truncate">Treatment</span>
+          </Button>
+          <Button className={toolbarButtonClass} onClick={() => {/* Add symptom node */}}>
+            <span className="truncate">Symptom</span>
+          </Button>
+          <Button className={toolbarButtonClass} onClick={() => {/* Add journal node */}}>
+            <span className="truncate">Journal</span>
+          </Button>
+          <Button className={toolbarButtonClass} onClick={() => {/* Add document node */}}>
+            <span className="truncate">Document</span>
+          </Button>
+          <Button className={toolbarButtonClass} onClick={() => {/* Add note node */}}>
+            <span className="truncate">Note</span>
+          </Button>
+        </div>
         {/* Canvas Menu */}
         <CanvasMenu />
       </div>
