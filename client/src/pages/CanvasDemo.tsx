@@ -1,118 +1,147 @@
-import { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import LiteGraphWrapper from '../components/canvas/LiteGraphWrapper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LiteGraphWrapper from '@/components/canvas/LiteGraphWrapper';
-import { v4 as uuidv4 } from 'uuid';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, Download, Upload, RotateCcw, Save } from 'lucide-react';
+
 import { CanvasTab, CanvasType } from '@shared/canvas-types';
 
 export default function CanvasDemo() {
   const [tabs, setTabs] = useState<CanvasTab[]>([
-    {
-      id: 'tab1',
-      title: 'My Journey',
-      type: 'freeform' as CanvasType,
-      isActive: true,
+    { 
+      id: 'tab1', 
+      title: 'My Journey', 
+      type: CanvasType.JOURNEY,
+      nodes: [],
+      edges: [],
       createdAt: new Date(),
+      updatedAt: new Date()
     },
-    {
-      id: 'tab2',
-      title: 'Treatment Plan',
-      type: 'timeline' as CanvasType,
-      isActive: false,
+    { 
+      id: 'tab2', 
+      title: 'Treatment Timeline', 
+      type: CanvasType.TIMELINE,
+      nodes: [],
+      edges: [],
       createdAt: new Date(),
+      updatedAt: new Date()
     }
   ]);
+  
+  const [activeTab, setActiveTab] = useState<string>('tab1');
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  const [activeTabId, setActiveTabId] = useState<string>('tab1');
+  // Handle node selection
+  const handleNodeSelect = useCallback((nodeId: string) => {
+    console.log('Selected node:', nodeId);
+    setSelectedNodeId(nodeId);
+  }, []);
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTabId(tabId);
-    setTabs(tabs.map(tab => ({
-      ...tab,
-      isActive: tab.id === tabId
-    })));
-  };
-
+  // Add a new tab
   const addNewTab = () => {
-    const newTabId = uuidv4();
+    const newTabId = `tab${tabs.length + 1}`;
     const newTab: CanvasTab = {
       id: newTabId,
       title: `New Canvas ${tabs.length + 1}`,
-      type: 'freeform',
-      isActive: false,
+      type: CanvasType.FREEFORM,
+      nodes: [],
+      edges: [],
       createdAt: new Date(),
+      updatedAt: new Date()
     };
     
     setTabs([...tabs, newTab]);
-    // Automatically select the new tab
-    handleTabChange(newTabId);
-  };
-
-  const handleNodeSelected = (nodeId: string) => {
-    console.log('Node selected:', nodeId);
-  };
-
-  const handleNodeCreated = (node: any) => {
-    console.log('Node created:', node);
+    setActiveTab(newTabId);
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-sophera-gradient-start to-sophera-gradient-end">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold text-charcoal-900">Canvas System Demo</h1>
-        <p className="text-charcoal-600 mt-2">
-          Explore the infinite canvas capabilities with Neo-Brutalism design principles.
-        </p>
-      </div>
-
-      <div className="flex-1 flex flex-col p-6 pt-0">
-        <div className="bg-white border-4 border-black rounded-xl flex-1 flex flex-col overflow-hidden shadow-[8px_8px_0px_rgba(0,0,0,0.2)]">
-          <div className="p-4 border-b-4 border-black bg-gray-50">
-            <Tabs value={activeTabId} onValueChange={handleTabChange} className="w-full">
-              <div className="flex items-center justify-between mb-4">
-                <TabsList className="border-2 border-black bg-gray-100">
-                  {tabs.map((tab) => (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      className={`
-                        data-[state=active]:bg-sophera-brand-primary 
-                        data-[state=active]:text-white 
-                        border-r-2 border-black last:border-r-0
-                        px-4 py-2
-                      `}
-                    >
-                      {tab.title}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                <button 
-                  onClick={addNewTab}
-                  className="flex items-center justify-center px-3 py-2 bg-neo-cyan-300 border-2 border-black text-sm font-medium hover:bg-neo-cyan-500 transition-colors shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                >
-                  + New Canvas
-                </button>
-              </div>
-
-              {tabs.map((tab) => (
-                <TabsContent 
-                  key={tab.id} 
-                  value={tab.id}
-                  className="flex-1 mt-0 border-t-0 h-[calc(100vh-220px)]"
-                >
-                  <div className="w-full h-full border border-gray-200 rounded">
-                    <LiteGraphWrapper 
-                      onNodeSelected={handleNodeSelected}
-                      onNodeCreated={handleNodeCreated}
-                      className="w-full h-full"
-                    />
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
-          </div>
+    <div className="flex flex-col h-screen">
+      <div className="px-6 py-4 bg-white border-b border-gray-200 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Canvas Demo</h1>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" className="neo-brutalism-btn">
+            <RotateCcw size={16} className="mr-2" />
+            Reset
+          </Button>
+          <Button variant="outline" size="sm" className="neo-brutalism-btn">
+            <Upload size={16} className="mr-2" />
+            Import
+          </Button>
+          <Button variant="outline" size="sm" className="neo-brutalism-btn">
+            <Download size={16} className="mr-2" />
+            Export
+          </Button>
+          <Button variant="default" size="sm" className="neo-brutalism-btn">
+            <Save size={16} className="mr-2" />
+            Save
+          </Button>
         </div>
       </div>
+      
+      <div className="flex-grow overflow-hidden">
+        <Tabs 
+          defaultValue="tab1" 
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full h-full flex flex-col"
+        >
+          <div className="px-4 pt-2 bg-muted/20 border-b">
+            <div className="flex items-center justify-between">
+              <TabsList className="neo-brutalism-tabs">
+                {tabs.map(tab => (
+                  <TabsTrigger 
+                    key={tab.id} 
+                    value={tab.id}
+                    className="neo-brutalism-tab"
+                  >
+                    {tab.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={addNewTab}
+                className="neo-brutalism-btn"
+              >
+                <PlusCircle size={16} className="mr-1" />
+                New Canvas
+              </Button>
+            </div>
+          </div>
+          
+          {tabs.map(tab => (
+            <TabsContent 
+              key={tab.id} 
+              value={tab.id}
+              className="flex-grow mt-0 relative"
+            >
+              <div className="absolute inset-0">
+                <LiteGraphWrapper 
+                  onNodeSelected={handleNodeSelect}
+                  className="w-full h-full"
+                />
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+      
+      {selectedNodeId && (
+        <div className="absolute right-4 top-20 w-80">
+          <Card>
+            <CardHeader>
+              <CardTitle>Node Properties</CardTitle>
+              <CardDescription>Edit the selected node</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Selected Node ID: {selectedNodeId}</p>
+              {/* Node properties editor would go here */}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

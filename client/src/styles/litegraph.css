@@ -1,212 +1,198 @@
-/* Basic LiteGraph Styles */
-.lgraphcanvas {
-  border-radius: 0;
-  outline: none;
-  background-color: #f5f5f5;
-}
+/**
+ * Custom styling for LiteGraph.js to match Sophera's Neo-Brutalism design
+ */
 
-/* Canvas background styling */
-.graphcanvas-grid {
-  opacity: 0.5;
+/* Canvas background */
+.litegraph canvas {
+  background-color: #FFFFFF !important;
+  background-image: 
+    linear-gradient(rgba(206, 206, 206, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(206, 206, 206, 0.2) 1px, transparent 1px) !important;
+  background-size: 25px 25px !important;
 }
 
 /* Node styling */
-.graphcanvas-node {
-  border: 3px solid black;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
-  font-family: 'Inter', sans-serif;
+.litegraph .lgraphnode {
+  border: 3px solid #000000 !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  background-color: #FFFFFF !important;
 }
 
-.graphcanvas-node:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
+/* Node title */
+.litegraph .lgraphnode .litemtitle {
+  border-bottom: 3px solid #000000 !important;
+  background-color: #0D9488 !important; /* Primary color */
+  color: #FFFFFF !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-family: 'Inter', sans-serif !important;
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  padding: 8px !important;
 }
 
-.graphcanvas-node.selected {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 rgba(13, 148, 136, 0.3);
+/* Node selected state */
+.litegraph .lgraphnode.selected {
+  border-color: #FF7F50 !important; /* Secondary color */
+  border-width: 4px !important;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.9) !important;
+  transform: translate(-2px, -2px) !important;
 }
 
-/* Node title bar */
-.graphcanvas-node .graphcanvas-title {
-  color: #2D3748;
-  background-color: #f8f9fa;
-  border-bottom: 2px solid black;
-  text-align: center;
-  padding: 8px 10px;
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: uppercase;
+.litegraph .lgraphnode:hover:not(.selected) {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.8) !important;
 }
 
-.graphcanvas-node .graphcanvas-title-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Node I/O slots */
+.litegraph .lgraphnode .litemtitle, 
+.litegraph .lgraphnode .litem,
+.litegraph .lgraphnode .litemcontexmenu {
+  background-color: transparent !important;
+  padding: 0.5rem !important;
+  font-size: 14px !important;
 }
 
-/* Node inputs/outputs */
-.graphcanvas-node .graphcanvas-input,
-.graphcanvas-node .graphcanvas-output {
-  background-color: #f5f5f5;
-  border: 2px solid #2D3748;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+/* Input and output slots */
+.litegraph .lgraphnode .lightslot {
+  border: 2px solid #000000 !important;
+  border-radius: 50% !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-top: 5px !important;
 }
 
-.graphcanvas-node .graphcanvas-input-title,
-.graphcanvas-node .graphcanvas-output-title {
-  color: #4A5568;
-  font-size: 12px;
-  padding: 2px 4px;
+.litegraph .lgraphnode .lightslot.slot-input {
+  background-color: #0D9488 !important; /* Primary color */
 }
 
-/* Node type indicators */
-.graphcanvas-node.node-treatment {
-  border-left: 6px solid #F56565;
+.litegraph .lgraphnode .lightslot.slot-output {
+  background-color: #FF7F50 !important; /* Secondary color */
 }
 
-.graphcanvas-node.node-document {
-  border-left: 6px solid #4FD1C5;
+/* Connection links */
+.litegraph svg path.connection {
+  stroke: #000000 !important;
+  stroke-width: 3px !important;
+  stroke-dasharray: none !important;
 }
 
-.graphcanvas-node.node-journal {
-  border-left: 6px solid #9F7AEA;
-}
-
-.graphcanvas-node.node-research {
-  border-left: 6px solid #68D391;
-}
-
-.graphcanvas-node.node-hope {
-  border-left: 6px solid #FFD600;
-}
-
-/* Links/Connections */
-.graphcanvas-link {
-  stroke: #2D3748;
-  stroke-width: 3px;
-}
-
-.graphcanvas-link.connecting {
-  stroke: #0D9488;
-  stroke-width: 4px;
-  stroke-dasharray: 5 5;
-}
-
-.graphcanvas-link.selected {
-  stroke: #FF7F50;
-  stroke-width: 4px;
-}
-
-/* Connection points */
-.graphcanvas-connectionpoint {
-  fill: white;
-  stroke: #2D3748;
-  stroke-width: 2px;
-}
-
-.graphcanvas-connectionpoint.input {
-  fill: #E2E8F0;
-}
-
-.graphcanvas-connectionpoint.output {
-  fill: #CBD5E0;
-}
-
-.graphcanvas-connectionpoint.input.connected {
-  fill: #0D9488;
-}
-
-.graphcanvas-connectionpoint.output.connected {
-  fill: #FF7F50;
-}
-
-/* Mini-map */
-.graphcanvas-minimap {
-  border: 3px solid black;
-  background-color: white;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+.litegraph svg path.connection.selected,
+.litegraph svg path.connection:hover {
+  stroke: #FF7F50 !important; /* Secondary color */
+  stroke-width: 4px !important;
 }
 
 /* Context menu */
-.graphcanvas-context-menu {
-  background-color: white;
-  border: 3px solid black;
-  border-radius: 8px;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
-  padding: 8px 0;
+.litegraph .contextmenu {
+  border: 3px solid #000000 !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8) !important;
+  background-color: #FFFFFF !important;
+  padding: 8px 0 !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-.graphcanvas-context-menu-option {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #2D3748;
+.litegraph .contextmenu .contextmenuitem {
+  padding: 8px 16px !important;
+  border-bottom: 1px solid #EEEEEE !important;
+  color: #2D3748 !important;
+  font-weight: 500 !important;
+  transition: background-color 0.2s ease !important;
 }
 
-.graphcanvas-context-menu-option:hover {
-  background-color: #E6FFFA;
-  color: #0D9488;
-}
-
-.graphcanvas-context-menu-separator {
-  border-top: 2px solid #E2E8F0;
-  margin: 4px 0;
-}
-
-/* Node resize handle */
-.graphcanvas-node-resize-handle {
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border: 2px solid black;
+.litegraph .contextmenu .contextmenuitem:hover {
+  background-color: #F3F4F6 !important;
+  color: #0D9488 !important; /* Primary color */
 }
 
 /* Node widgets */
-.graphcanvas-widget {
-  margin: 4px;
-  background-color: white;
-  border: 2px solid #E2E8F0;
-  border-radius: 4px;
-  padding: 4px;
+.litegraph .lgraphnode input, 
+.litegraph .lgraphnode textarea,
+.litegraph .lgraphnode select {
+  border: 2px solid #000000 !important;
+  border-radius: 8px !important;
+  padding: 6px !important;
+  background-color: #FFFFFF !important;
+  font-family: 'Inter', sans-serif !important;
+  color: #2D3748 !important;
 }
 
-.graphcanvas-widget-button {
-  background-color: #0D9488;
-  border: 2px solid black;
-  box-shadow: 2px 2px 0 black;
-  color: white;
-  font-weight: 600;
-  font-size: 12px;
-  padding: 4px 8px;
+.litegraph .lgraphnode input:focus, 
+.litegraph .lgraphnode textarea:focus,
+.litegraph .lgraphnode select:focus {
+  border-color: #0D9488 !important; /* Primary color */
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.25) !important; /* 25% opacity primary */
 }
 
-.graphcanvas-widget-button:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 black;
+/* Canvas toolbar */
+.litegraph .litegraph-editor-toolbar {
+  border: 3px solid #000000 !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8) !important;
+  background-color: #FFFFFF !important;
+  padding: 8px !important;
+  margin: 10px !important;
 }
 
-.graphcanvas-widget-input,
-.graphcanvas-widget-textarea {
-  border: 2px solid #E2E8F0;
-  padding: 4px;
-  font-size: 12px;
+.litegraph .litegraph-editor-toolbar button {
+  border: 2px solid #000000 !important;
+  border-radius: 8px !important;
+  background-color: #FFFFFF !important;
+  padding: 4px 8px !important;
+  margin: 0 4px !important;
+  color: #2D3748 !important;
+  font-weight: bold !important;
+  transition: all 0.2s ease !important;
 }
 
-.graphcanvas-widget-input:focus,
-.graphcanvas-widget-textarea:focus {
-  border-color: #0D9488;
-  outline: none;
+.litegraph .litegraph-editor-toolbar button:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8) !important;
 }
 
-/* Comment nodes */
-.graphcanvas-comment {
-  background-color: #FFFDE7;
-  border: 2px dashed #FFD600;
-  border-radius: 8px;
-  padding: 8px;
-  font-size: 12px;
-  color: #4A5568;
+.litegraph .litegraph-editor-toolbar button:active {
+  transform: translate(0, 0) !important;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Dialog windows */
+.litegraph dialog {
+  border: 3px solid #000000 !important;
+  border-radius: 12px !important;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.8) !important;
+  background-color: #FFFFFF !important;
+  padding: 16px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.litegraph dialog h2 {
+  border-bottom: 3px solid #000000 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 16px !important;
+  color: #2D3748 !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.litegraph dialog button {
+  border: 2px solid #000000 !important;
+  border-radius: 8px !important;
+  background-color: #0D9488 !important; /* Primary color */
+  color: #FFFFFF !important;
+  padding: 8px 16px !important;
+  margin: 0 8px !important;
+  font-weight: bold !important;
+  transition: all 0.2s ease !important;
+  text-transform: uppercase !important;
+}
+
+.litegraph dialog button:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.8) !important;
 }
