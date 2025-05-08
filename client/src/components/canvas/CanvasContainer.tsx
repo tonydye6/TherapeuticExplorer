@@ -344,7 +344,46 @@ export default function CanvasContainer({
           selectedNode={selectedNode}
           onNodeUpdate={(node, props) => {
             console.log('Updating node:', node.id, props);
-            // TODO: Update node in graph and state
+            
+            // Update node properties in the graph
+            if (node && node.properties) {
+              // Update the properties in the LiteGraph node
+              Object.assign(node.properties, props);
+              
+              // Force a redraw of the graph
+              const graph = (window as any).sophGraph;
+              if (graph) {
+                graph.setDirtyCanvas(true);
+              }
+              
+              // Find the node in our state
+              if (activeTabId) {
+                setTabs(prevTabs => 
+                  prevTabs.map(tab => {
+                    if (tab.id !== activeTabId) return tab;
+                    
+                    const updatedNodes = tab.nodes.map(canvasNode => {
+                      // Match node based on properties or ID
+                      if (node.id && canvasNode.id === node.id) {
+                        return {
+                          ...canvasNode,
+                          properties: { ...canvasNode.properties, ...props },
+                          title: props.title || props.name || canvasNode.title,
+                          updatedAt: new Date()
+                        };
+                      }
+                      return canvasNode;
+                    });
+                    
+                    return {
+                      ...tab,
+                      nodes: updatedNodes,
+                      updatedAt: new Date()
+                    };
+                  })
+                );
+              }
+            }
           }}
           onClose={handleCloseNodeDetails}
         />
