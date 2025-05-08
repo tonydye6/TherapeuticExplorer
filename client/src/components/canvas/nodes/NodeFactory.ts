@@ -9,6 +9,24 @@ import SymptomNode from './SymptomNode';
 import DocumentNode from './DocumentNode';
 import NoteNode from './NoteNode';
 
+// String-based node types for flexibility
+export const NODE_TYPES = {
+  TREATMENT: 'treatment',
+  MEDICATION: 'medication',
+  SYMPTOM: 'symptom',
+  LAB_RESULT: 'lab_result',
+  JOURNAL_ENTRY: 'journal_entry',
+  MOOD_ENTRY: 'mood_entry',
+  SYMPTOM_LOG: 'symptom_log',
+  DIET_LOG: 'diet_log',
+  EXERCISE_LOG: 'exercise_log',
+  DOCUMENT: 'document',
+  MILESTONE: 'milestone',
+  HOPE_SNIPPET: 'hope_snippet',
+  VICTORY: 'victory',
+  NOTE: 'note'
+};
+
 /**
  * NodeFactory provides a central system for creating and registering node types.
  * It handles the creation of various node types with appropriate defaults.
@@ -31,31 +49,47 @@ export class NodeFactory {
    */
   static createLGraphNode(
     graph: LGraph,
-    type: NodeType,
-    title: string,
-    position: CanvasPosition,
-    properties: Record<string, any> = {}
+    type: NodeType | string,
+    properties: Record<string, any> = {},
+    position: CanvasPosition
   ): LGraphNode | null {
     // Map our node types to LiteGraph node types
-    const nodeTypeMap = {
+    const stringToLiteGraphMap: Record<string, string> = {
+      // String type mapping
+      [NODE_TYPES.TREATMENT]: 'sophera/treatment',
+      [NODE_TYPES.MEDICATION]: 'sophera/treatment',
+      [NODE_TYPES.SYMPTOM]: 'sophera/symptom',
+      [NODE_TYPES.LAB_RESULT]: 'sophera/document',
+      [NODE_TYPES.JOURNAL_ENTRY]: 'sophera/journal-entry',
+      [NODE_TYPES.MOOD_ENTRY]: 'sophera/journal-entry',
+      [NODE_TYPES.SYMPTOM_LOG]: 'sophera/journal-entry',
+      [NODE_TYPES.DIET_LOG]: 'sophera/journal-entry',
+      [NODE_TYPES.EXERCISE_LOG]: 'sophera/journal-entry',
+      [NODE_TYPES.DOCUMENT]: 'sophera/document',
+      [NODE_TYPES.MILESTONE]: 'sophera/note',
+      [NODE_TYPES.HOPE_SNIPPET]: 'sophera/note',
+      [NODE_TYPES.VICTORY]: 'sophera/note',
+      [NODE_TYPES.NOTE]: 'sophera/note',
+      
+      // Enum type mapping (as fallback)
       [NodeType.TREATMENT]: 'sophera/treatment',
-      [NodeType.MEDICATION]: 'sophera/treatment', // Use treatment node for now
+      [NodeType.MEDICATION]: 'sophera/treatment', 
       [NodeType.SYMPTOM]: 'sophera/symptom',
-      [NodeType.LAB_RESULT]: 'sophera/document', // Use document node for now
+      [NodeType.LAB_RESULT]: 'sophera/document',
       [NodeType.JOURNAL_ENTRY]: 'sophera/journal-entry',
       [NodeType.MOOD_ENTRY]: 'sophera/journal-entry',
       [NodeType.SYMPTOM_LOG]: 'sophera/journal-entry', 
       [NodeType.DIET_LOG]: 'sophera/journal-entry',
       [NodeType.EXERCISE_LOG]: 'sophera/journal-entry',
       [NodeType.DOCUMENT]: 'sophera/document',
-      [NodeType.MILESTONE]: 'sophera/note', // Use note node for now
-      [NodeType.HOPE_SNIPPET]: 'sophera/note', // Use note node for now
-      [NodeType.VICTORY]: 'sophera/note', // Use note node for now
+      [NodeType.MILESTONE]: 'sophera/note',
+      [NodeType.HOPE_SNIPPET]: 'sophera/note',
+      [NodeType.VICTORY]: 'sophera/note',
       [NodeType.NOTE]: 'sophera/note'
     };
     
     // Get the LiteGraph node type
-    const liteGraphType = nodeTypeMap[type];
+    const liteGraphType = stringToLiteGraphMap[type as string];
     if (!liteGraphType) {
       console.error(`Unknown node type: ${type}`);
       return null;
@@ -71,11 +105,12 @@ export class NodeFactory {
     // Set position
     node.pos = [position.x, position.y];
     
-    // Update properties (including title)
-    if (title) {
-      node.properties.name = title;
-      node.properties.title = title;
-    }
+    // Extract title from properties
+    const title = properties.title || properties.name || 'New Node';
+    
+    // Set title/name properties
+    node.properties.name = title;
+    node.properties.title = title;
     
     // Add other properties
     if (properties) {
@@ -94,17 +129,43 @@ export class NodeFactory {
    * Create a new node of the specified type
    */
   static createNode(
-    type: NodeType, 
-    title: string, 
+    type: NodeType | string, 
     position: CanvasPosition, 
     properties: Record<string, any> = {}
   ): CanvasNode {
     const now = new Date();
+    const title = properties.title || properties.name || 'New Node';
+    
+    // Normalize the type to handle both enum and string types
+    let normalizedType: NodeType;
+    
+    if (typeof type === 'string') {
+      // Map string types to NodeType enum
+      const stringToNodeTypeMap: Record<string, NodeType> = {
+        [NODE_TYPES.TREATMENT]: NodeType.TREATMENT,
+        [NODE_TYPES.MEDICATION]: NodeType.MEDICATION,
+        [NODE_TYPES.SYMPTOM]: NodeType.SYMPTOM,
+        [NODE_TYPES.LAB_RESULT]: NodeType.LAB_RESULT,
+        [NODE_TYPES.JOURNAL_ENTRY]: NodeType.JOURNAL_ENTRY || NodeType.MOOD_ENTRY,
+        [NODE_TYPES.MOOD_ENTRY]: NodeType.MOOD_ENTRY,
+        [NODE_TYPES.SYMPTOM_LOG]: NodeType.SYMPTOM_LOG,
+        [NODE_TYPES.DIET_LOG]: NodeType.DIET_LOG,
+        [NODE_TYPES.EXERCISE_LOG]: NodeType.EXERCISE_LOG,
+        [NODE_TYPES.DOCUMENT]: NodeType.DOCUMENT || NodeType.LAB_RESULT,
+        [NODE_TYPES.MILESTONE]: NodeType.MILESTONE,
+        [NODE_TYPES.HOPE_SNIPPET]: NodeType.HOPE_SNIPPET,
+        [NODE_TYPES.VICTORY]: NodeType.VICTORY || NodeType.MILESTONE,
+        [NODE_TYPES.NOTE]: NodeType.NOTE
+      };
+      normalizedType = stringToNodeTypeMap[type] || NodeType.NOTE;
+    } else {
+      normalizedType = type;
+    }
     
     // Base node structure
     const baseNode: CanvasNode = {
       id: uuidv4(),
-      type,
+      type: normalizedType,
       title,
       position,
       size: this.DEFAULT_NODE_SIZE,
@@ -116,7 +177,7 @@ export class NodeFactory {
     };
     
     // Customize based on node type
-    switch (type) {
+    switch (normalizedType) {
       case NodeType.TREATMENT:
         return this.createTreatmentNode(baseNode, properties);
       case NodeType.MEDICATION:

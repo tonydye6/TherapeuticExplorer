@@ -118,13 +118,27 @@ export default function CanvasContainer({
       )
     );
     
-    // Add to canvas
-    if (graphWrapperRef.current) {
-      const graph = graphWrapperRef.current.getGraph();
-      if (graph) {
-        NodeFactory.createLGraphNode(graph, node.type, node.properties, node.position);
+    // Add to canvas using the global reference as a workaround
+    // This will be improved later with a more robust approach
+    const graph = (window as any).sophGraph;
+    if (graph) {
+      try {
+        // Use the updated NodeFactory API with string-based node types
+        NodeFactory.createLGraphNode(
+          graph, 
+          node.type, 
+          { 
+            ...node.properties,
+            title: node.title
+          }, 
+          node.position
+        );
         console.log('Node added to canvas:', node);
+      } catch (err) {
+        console.error('Error adding node to canvas:', err);
       }
+    } else {
+      console.warn('Graph not available yet, node only added to state');
     }
   }, [activeTabId]);
   
@@ -214,9 +228,9 @@ export default function CanvasContainer({
             onClick={() => {
               const position = { x: 100, y: 100 };
               const node = NodeFactory.createNode(
-                'treatment', 
-                { title: 'New Treatment', description: 'Treatment details' },
-                position
+                NodeFactory.NODE_TYPES.TREATMENT, 
+                position,
+                { title: 'New Treatment', description: 'Treatment details' }
               );
               addNode(node);
             }}
@@ -231,9 +245,9 @@ export default function CanvasContainer({
             onClick={() => {
               const position = { x: 100, y: 200 };
               const node = NodeFactory.createNode(
-                'symptom', 
-                { title: 'New Symptom', severity: 3 },
-                position
+                NodeFactory.NODE_TYPES.SYMPTOM, 
+                position,
+                { title: 'New Symptom', severity: 3 }
               );
               addNode(node);
             }}
@@ -248,9 +262,9 @@ export default function CanvasContainer({
             onClick={() => {
               const position = { x: 200, y: 100 };
               const node = NodeFactory.createNode(
-                'journal', 
-                { title: 'Journal Entry', content: 'My thoughts for today...' },
-                position
+                NodeFactory.NODE_TYPES.JOURNAL_ENTRY, 
+                position,
+                { title: 'Journal Entry', content: 'My thoughts for today...' }
               );
               addNode(node);
             }}
@@ -265,9 +279,9 @@ export default function CanvasContainer({
             onClick={() => {
               const position = { x: 300, y: 100 };
               const node = NodeFactory.createNode(
-                'document', 
-                { title: 'Medical Document', documentType: 'Lab Results' },
-                position
+                NodeFactory.NODE_TYPES.DOCUMENT, 
+                position,
+                { title: 'Medical Document', documentType: 'Lab Results' }
               );
               addNode(node);
             }}
@@ -282,9 +296,9 @@ export default function CanvasContainer({
             onClick={() => {
               const position = { x: 300, y: 200 };
               const node = NodeFactory.createNode(
-                'note', 
-                { title: 'Quick Note', content: 'Write your note here...' },
-                position
+                NodeFactory.NODE_TYPES.NOTE, 
+                position,
+                { title: 'Quick Note', content: 'Write your note here...' }
               );
               addNode(node);
             }}
