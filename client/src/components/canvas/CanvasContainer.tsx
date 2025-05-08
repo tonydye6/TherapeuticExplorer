@@ -435,6 +435,17 @@ export default function CanvasContainer({
                       handleCloseNodeDetails();
                     }
                     
+                    // Add visual notification
+                    const container = document.querySelector('.canvas-container');
+                    if (container) {
+                      const notification = document.createElement('div');
+                      notification.classList.add('connection-notification');
+                      notification.textContent = 'Connection created! Edit details in the panel ➡️';
+                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px; border-radius: 6px; z-index: 9999; animation: fadeOut 3s forwards 2s;';
+                      container.appendChild(notification);
+                      setTimeout(() => notification.remove(), 5000);
+                    }
+                    
                     // Force an update to render edge panel first by temporarily clearing then setting
                     setSelectedEdge(null);
                     setTimeout(() => {
@@ -530,7 +541,7 @@ export default function CanvasContainer({
       
       {/* Edge details panel (conditionally rendered) */}
       {selectedEdge && activeTab && selectedEdge.sourceNodeId && selectedEdge.targetNodeId && (
-        <div className="absolute right-0 top-0 m-4 z-50 bg-white">
+        <div className="fixed right-8 top-20 z-50">
           {/* EdgeDetailsPanel being rendered */}
           <EdgeDetailsPanel
             edge={selectedEdge}

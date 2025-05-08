@@ -65,7 +65,7 @@ export default function EdgeDetailsPanel({
   };
 
   return (
-    <Card className="border-2 border-black shadow-neo neo-brutalism-card w-80 ml-4">
+    <Card className="border-4 border-black shadow-neo neo-brutalism-card w-80 ml-4 bg-white">
       <CardHeader className="border-b border-black p-4">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg font-bold flex items-center">

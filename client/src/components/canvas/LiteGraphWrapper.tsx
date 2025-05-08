@@ -170,8 +170,11 @@ export default function LiteGraphWrapper({
             // The link object contains the origin_node, origin_slot, target_node, and target_slot
             const linkId = Math.floor(Math.random() * 100000);
             
-            console.log('Link selected:', linkId, link);
-            console.log('Link properties:', link.origin_node, link.target_node);
+            console.log('Link selected in LiteGraphWrapper:', linkId, link);
+            console.log('Link properties:', {
+              sourceId: link.origin_node.id,
+              targetId: link.target_node.id
+            });
             onLinkSelected(linkId, link);
           }
           
