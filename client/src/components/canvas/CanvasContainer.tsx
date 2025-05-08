@@ -194,6 +194,14 @@ export default function CanvasContainer({
       if (graph) {
         console.log('LiteGraph instance is ready');
         setGraphReady(true);
+        
+        // Reset camera position whenever tab changes
+        setTimeout(() => {
+          if ((window as any).sophResetCamera) {
+            console.log('Resetting camera position for consistent view');
+            (window as any).sophResetCamera();
+          }
+        }, 200); // Small delay to ensure graph is fully loaded
       } else {
         // Try again in a moment
         setTimeout(checkGraph, 100);

@@ -128,6 +128,25 @@ export default function LiteGraphWrapper({
 
       // Start the graph
       graph.start();
+      
+      // Set default camera position and zoom (centered view)
+      if (canvasInstance) {
+        // Reset camera to center position with proper zoom level
+        canvasInstance.ds.offset = [canvasInstance.canvas.width / 2, canvasInstance.canvas.height / 2];
+        canvasInstance.ds.scale = 1; // Reset zoom level to 1
+        
+        // Disable debug info that shows FPS, etc.
+        canvasInstance.render_canvas_border = false;
+        canvasInstance.render_connection_arrows = true;
+        canvasInstance.render_curved_connections = true;
+        canvasInstance.render_execution_order = false; // Don't show execution order
+        canvasInstance.render_info = false; // This disables the debug text (T, I, N, etc.)
+        canvasInstance.renderMenuOptions = { 
+          default: null,
+          animation: { fps: false }
+        };
+      }
+      
       setIsReady(true);
       
       // Register event handlers
@@ -295,8 +314,37 @@ export default function LiteGraphWrapper({
     
     // Resize the canvas when the container size changes
     canvasInstanceRef.current.resize(width, height);
+    
+    // Recenter the view
+    resetCamera();
   }, [width, height]);
+  
+  // Function to reset camera position and zoom
+  const resetCamera = () => {
+    if (!canvasInstanceRef.current || !canvasRef.current) return;
+    
+    // Set camera to center position with default zoom
+    canvasInstanceRef.current.ds.offset = [
+      canvasRef.current.width / 2, 
+      canvasRef.current.height / 2
+    ];
+    canvasInstanceRef.current.ds.scale = 1;
+    
+    // Turn off debug info
+    canvasInstanceRef.current.render_info = false;
+    
+    // Force redraw
+    canvasInstanceRef.current.setDirtyCanvas(true, true);
+  };
 
+  // Expose resetCamera to parent components
+  useEffect(() => {
+    if (canvasInstanceRef.current) {
+      // Make resetCamera available globally for external components to call
+      (window as any).sophResetCamera = resetCamera;
+    }
+  }, []);
+  
   return (
     <div ref={containerRef} className={`w-full h-full ${className || ''}`}>
       <canvas 
