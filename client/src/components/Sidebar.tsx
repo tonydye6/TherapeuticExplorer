@@ -101,7 +101,7 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
     { 
       href: "/my-journey/canvas", 
       label: "Canvas", 
-      icon: <PenTool className="h-5 w-5" />,
+      icon: <Map className="h-5 w-5" />,
       section: "2. My Journey",
       ariaLabel: "Create and manage your visual canvas"
     },

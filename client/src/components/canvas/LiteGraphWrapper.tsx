@@ -11,8 +11,7 @@ type LGraphNodeType = any;
 
 const LiteGraphWrapper = ({ className = '' }: { className?: string }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useResizeDetector().ref;
-  const { width, height } = useResizeDetector({ targetRef: containerRef });
+  const { ref: containerRef, width, height } = useResizeDetector();
   const [LiteGraph, setLiteGraph] = useState<LiteGraphType | null>(null);
   const [graph, setGraph] = useState<LGraphType | null>(null);
   const [canvas, setCanvas] = useState<LGraphCanvasType | null>(null);
