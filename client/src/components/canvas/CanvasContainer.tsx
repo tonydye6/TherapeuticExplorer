@@ -1,13 +1,13 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { CanvasTab, CanvasType, CanvasNode, CanvasEdge } from '@shared/canvas-types';
+import React, { useCallback, useRef } from 'react';
+import { CanvasTab, CanvasType, CanvasNode } from '@shared/canvas-types';
 import LiteGraphWrapper from './LiteGraphWrapper';
 import CanvasTabBar from './CanvasTabBar';
 import NodeDetailsPanel from './NodeDetailsPanel';
 import { PlusCircle, Stethoscope, Activity, FileText, Book, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { v4 as uuidv4 } from 'uuid';
 import { LGraphNode, LGraph } from 'litegraph.js';
 import { NodeFactory } from './nodes/NodeFactory';
+import { useCanvasState } from '@/hooks/canvas/useCanvasState';
 
 interface CanvasContainerProps {
   initialTabs?: CanvasTab[];
@@ -20,110 +20,65 @@ export default function CanvasContainer({
   className,
   userId = '1' // Default user ID, should be replaced with actual user ID from auth
 }: CanvasContainerProps) {
-  // State for tabs and active tab
-  const [tabs, setTabs] = useState<CanvasTab[]>(initialTabs || [
-    { 
-      id: 'tab1', 
-      title: 'My Journey', 
-      type: CanvasType.JOURNEY,
-      nodes: [],
-      edges: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
-  
-  const [activeTabId, setActiveTabId] = useState<string>(tabs[0]?.id || '');
-  const [selectedNode, setSelectedNode] = useState<LGraphNode | null>(null);
   const graphRef = useRef<LGraph | null>(null);
+  const graphWrapperRef = useRef<any>(null);
   
-  // Get the currently active tab
-  const activeTab = tabs.find(tab => tab.id === activeTabId);
+  // Use our canvas state hook to manage all canvas state
+  const {
+    tabs,
+    activeTabId,
+    activeTab,
+    setActiveTabId,
+    addTab,
+    renameTab,
+    deleteTab,
+    addNode,
+    selectNode,
+    selectedNodeId,
+    selectedNode: canvasSelectedNode,
+    updateNodeProperties
+  } = useCanvasState({
+    initialTabs,
+    userId,
+    autoSave: true
+  });
+  
+  // Track the selected LiteGraph node separately from our canvas state
+  const [selectedLGraphNode, setSelectedLGraphNode] = React.useState<LGraphNode | null>(null);
   
   // Handle node selection from LiteGraph
   const handleNodeSelect = useCallback((nodeId: string, node: LGraphNode) => {
     console.log('Selected node:', nodeId, node);
-    setSelectedNode(node);
+    setSelectedLGraphNode(node);
+    
+    // Also select the corresponding node in our canvas state
+    // This requires mapping from LiteGraph node ID to our canvas node ID
+    // For now, we'll just log it
+    console.log('Would set selected node ID in canvas state');
   }, []);
   
   // Close node details panel
   const handleCloseNodeDetails = useCallback(() => {
-    setSelectedNode(null);
-  }, []);
+    setSelectedLGraphNode(null);
+    selectNode(null);
+  }, [selectNode]);
   
-  // Add a new tab
-  const addNewTab = useCallback(() => {
-    const newTabId = uuidv4();
-    const newTab: CanvasTab = {
-      id: newTabId,
-      title: `New Canvas ${tabs.length + 1}`,
-      type: CanvasType.FREEFORM,
-      nodes: [],
-      edges: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    setTabs(prevTabs => [...prevTabs, newTab]);
-    setActiveTabId(newTabId);
-  }, [tabs.length]);
-  
-  // Rename a tab
-  const renameTab = useCallback((tabId: string, newTitle: string) => {
-    setTabs(prevTabs => 
-      prevTabs.map(tab => 
-        tab.id === tabId 
-          ? { ...tab, title: newTitle, updatedAt: new Date() } 
-          : tab
-      )
-    );
-  }, []);
-  
-  // Delete a tab
-  const deleteTab = useCallback((tabId: string) => {
-    setTabs(prevTabs => prevTabs.filter(tab => tab.id !== tabId));
-    
-    // If the active tab is being deleted, switch to another tab
-    if (activeTabId === tabId) {
-      const remainingTabs = tabs.filter(tab => tab.id !== tabId);
-      if (remainingTabs.length > 0) {
-        setActiveTabId(remainingTabs[0].id);
-      }
-    }
-  }, [activeTabId, tabs]);
-  
-  // Handle tab switch
-  const handleTabChange = useCallback((tabId: string) => {
-    setActiveTabId(tabId);
-    setSelectedNode(null); // Clear selected node when changing tabs
-  }, []);
-  
-  // Graph reference
-  const graphWrapperRef = useRef<any>(null);
-  
-  // Create a new node
-  const addNode = useCallback((node: CanvasNode) => {
-    if (!activeTabId) return;
-    
-    // Add to state
-    setTabs(prevTabs => 
-      prevTabs.map(tab => 
-        tab.id === activeTabId 
-          ? { 
-              ...tab, 
-              nodes: [...tab.nodes, node],
-              updatedAt: new Date() 
-            } 
-          : tab
-      )
+  // Add a node to the graph
+  const addNodeToGraph = useCallback((nodeType: string, position: {x: number, y: number}, properties: any) => {
+    // Create the node using our factory
+    const node = NodeFactory.createNode(
+      nodeType,
+      position,
+      properties
     );
     
-    // Add to canvas using the global reference as a workaround
-    // This will be improved later with a more robust approach
+    // Add to our canvas state
+    addNode(node);
+    
+    // Add to LiteGraph canvas (this part will be improved with more robust integration)
     const graph = (window as any).sophGraph;
     if (graph) {
       try {
-        // Use the updated NodeFactory API with string-based node types
         NodeFactory.createLGraphNode(
           graph, 
           node.type, 
@@ -140,59 +95,7 @@ export default function CanvasContainer({
     } else {
       console.warn('Graph not available yet, node only added to state');
     }
-  }, [activeTabId]);
-  
-  // Create a new edge
-  const addEdge = useCallback((edge: CanvasEdge) => {
-    if (!activeTabId) return;
-    
-    setTabs(prevTabs => 
-      prevTabs.map(tab => 
-        tab.id === activeTabId 
-          ? { 
-              ...tab, 
-              edges: [...tab.edges, edge],
-              updatedAt: new Date() 
-            } 
-          : tab
-      )
-    );
-  }, [activeTabId]);
-  
-  // Save canvas state to backend (would connect to actual API)
-  const saveCanvas = useCallback(async () => {
-    console.log('Saving canvas state:', tabs);
-    // TODO: Implement actual API call to save canvas state
-    // Example: await apiClient.post('/api/canvas/save', { userId, tabs });
-  }, [tabs]);
-  
-  // Load canvas state from backend (would connect to actual API)
-  useEffect(() => {
-    // This would be replaced with an actual API call
-    const loadCanvasState = async () => {
-      try {
-        // Example: const response = await apiClient.get(`/api/canvas/${userId}`);
-        // setTabs(response.data.tabs);
-        console.log('Would load canvas state for user:', userId);
-      } catch (error) {
-        console.error('Error loading canvas state:', error);
-      }
-    };
-    
-    if (userId && !initialTabs) {
-      // Only load if no initial tabs were provided
-      // loadCanvasState();
-    }
-  }, [userId, initialTabs]);
-  
-  // Autosave on tab changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      saveCanvas();
-    }, 3000);
-    
-    return () => clearTimeout(timer);
-  }, [tabs, saveCanvas]);
+  }, [addNode]);
   
   return (
     <div className={`flex flex-col h-full ${className || ''}`}>
@@ -202,14 +105,14 @@ export default function CanvasContainer({
           <CanvasTabBar 
             tabs={tabs}
             activeTabId={activeTabId}
-            onTabChange={handleTabChange}
+            onTabChange={setActiveTabId}
             onRenameTab={renameTab}
             onDeleteTab={deleteTab}
           />
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={addNewTab}
+            onClick={() => addTab(CanvasType.FREEFORM)}
             className="neo-brutalism-btn"
           >
             <PlusCircle size={16} className="mr-1" />
@@ -226,13 +129,11 @@ export default function CanvasContainer({
             variant="outline" 
             size="sm"
             onClick={() => {
-              const position = { x: 100, y: 100 };
-              const node = NodeFactory.createNode(
-                NodeFactory.NODE_TYPES.TREATMENT, 
-                position,
+              addNodeToGraph(
+                NodeFactory.NODE_TYPES.TREATMENT,
+                { x: 100, y: 100 },
                 { title: 'New Treatment', description: 'Treatment details' }
               );
-              addNode(node);
             }}
             className="neo-brutalism-btn"
           >
@@ -243,13 +144,11 @@ export default function CanvasContainer({
             variant="outline" 
             size="sm"
             onClick={() => {
-              const position = { x: 100, y: 200 };
-              const node = NodeFactory.createNode(
-                NodeFactory.NODE_TYPES.SYMPTOM, 
-                position,
+              addNodeToGraph(
+                NodeFactory.NODE_TYPES.SYMPTOM,
+                { x: 100, y: 200 },
                 { title: 'New Symptom', severity: 3 }
               );
-              addNode(node);
             }}
             className="neo-brutalism-btn"
           >
@@ -260,13 +159,11 @@ export default function CanvasContainer({
             variant="outline" 
             size="sm"
             onClick={() => {
-              const position = { x: 200, y: 100 };
-              const node = NodeFactory.createNode(
-                NodeFactory.NODE_TYPES.JOURNAL_ENTRY, 
-                position,
+              addNodeToGraph(
+                NodeFactory.NODE_TYPES.JOURNAL_ENTRY,
+                { x: 200, y: 100 },
                 { title: 'Journal Entry', content: 'My thoughts for today...' }
               );
-              addNode(node);
             }}
             className="neo-brutalism-btn"
           >
@@ -277,13 +174,11 @@ export default function CanvasContainer({
             variant="outline" 
             size="sm"
             onClick={() => {
-              const position = { x: 300, y: 100 };
-              const node = NodeFactory.createNode(
-                NodeFactory.NODE_TYPES.DOCUMENT, 
-                position,
+              addNodeToGraph(
+                NodeFactory.NODE_TYPES.DOCUMENT,
+                { x: 300, y: 100 },
                 { title: 'Medical Document', documentType: 'Lab Results' }
               );
-              addNode(node);
             }}
             className="neo-brutalism-btn"
           >
@@ -294,13 +189,11 @@ export default function CanvasContainer({
             variant="outline" 
             size="sm"
             onClick={() => {
-              const position = { x: 300, y: 200 };
-              const node = NodeFactory.createNode(
-                NodeFactory.NODE_TYPES.NOTE, 
-                position,
+              addNodeToGraph(
+                NodeFactory.NODE_TYPES.NOTE,
+                { x: 300, y: 200 },
                 { title: 'Quick Note', content: 'Write your note here...' }
               );
-              addNode(node);
             }}
             className="neo-brutalism-btn"
           >
@@ -329,7 +222,10 @@ export default function CanvasContainer({
             <div className="text-center p-8">
               <h3 className="text-xl font-semibold mb-4">No Canvas Selected</h3>
               <p className="mb-4">Create a new canvas to get started.</p>
-              <Button onClick={addNewTab} className="neo-brutalism-btn">
+              <Button 
+                onClick={() => addTab(CanvasType.FREEFORM)} 
+                className="neo-brutalism-btn"
+              >
                 <PlusCircle size={16} className="mr-2" />
                 Create New Canvas
               </Button>
@@ -339,9 +235,9 @@ export default function CanvasContainer({
       </div>
       
       {/* Node details panel (conditionally rendered) */}
-      {selectedNode && activeTab && (
+      {selectedLGraphNode && activeTab && (
         <NodeDetailsPanel 
-          selectedNode={selectedNode}
+          selectedNode={selectedLGraphNode}
           onNodeUpdate={(node, props) => {
             console.log('Updating node:', node.id, props);
             
@@ -356,32 +252,15 @@ export default function CanvasContainer({
                 graph.setDirtyCanvas(true);
               }
               
-              // Find the node in our state
-              if (activeTabId) {
-                setTabs(prevTabs => 
-                  prevTabs.map(tab => {
-                    if (tab.id !== activeTabId) return tab;
-                    
-                    const updatedNodes = tab.nodes.map(canvasNode => {
-                      // Match node based on properties or ID
-                      if (node.id && canvasNode.id === node.id) {
-                        return {
-                          ...canvasNode,
-                          properties: { ...canvasNode.properties, ...props },
-                          title: props.title || props.name || canvasNode.title,
-                          updatedAt: new Date()
-                        };
-                      }
-                      return canvasNode;
-                    });
-                    
-                    return {
-                      ...tab,
-                      nodes: updatedNodes,
-                      updatedAt: new Date()
-                    };
-                  })
-                );
+              // Find the node in our state by matching properties
+              // This is a temporary solution until we have better ID mapping
+              const matchingNode = activeTab.nodes.find(canvasNode => 
+                canvasNode.title === node.properties.title || 
+                canvasNode.title === node.properties.name
+              );
+              
+              if (matchingNode) {
+                updateNodeProperties(matchingNode.id, props);
               }
             }
           }}
