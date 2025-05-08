@@ -29,6 +29,7 @@ import {
   TrendingUp,
   FileQuestion,
   Palette,
+  PenTool,
   LogOut,
   Map
 } from "lucide-react";
@@ -96,6 +97,13 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       icon: <TrendingUp className="h-5 w-5" />,
       section: "2. My Journey",
       ariaLabel: "Analyze trends in your health data"
+    },
+    { 
+      href: "/my-journey/canvas", 
+      label: "Canvas", 
+      icon: <PenTool className="h-5 w-5" />,
+      section: "2. My Journey",
+      ariaLabel: "Create and manage your visual canvas"
     },
     
     // Understand section
