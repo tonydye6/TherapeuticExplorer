@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, lazy } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -31,7 +31,10 @@ import NeoBrutalismDemo from "./pages/NeoBrutalismDemo";
 import DesignSystemAccess from "./pages/DesignSystemAccess";
 import DirectAccessDemo from "./pages/DirectAccessDemo";
 import NeoBrutalismLayout from "./components/layouts/NeoBrutalismLayout";
-//import CanvasPage from "./pages/CanvasPage";
+
+// Lazy load Canvas components
+const CanvasDemo = lazy(() => import('./pages/CanvasDemo'));
+const CanvasPage = lazy(() => import('./pages/CanvasPage'));
 
 // Import Connect & Hope section pages
 import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
@@ -135,10 +138,18 @@ function Router() {
         
         {/* Development/Testing Routes (not in main navigation) */}
         <Route path="/canvas-demo" component={() => {
-          const CanvasDemo = React.lazy(() => import('./pages/CanvasDemo'));
           return (
             <Suspense fallback={<div className="p-8">Loading Canvas Demo...</div>}>
               <CanvasDemo />
+            </Suspense>
+          );
+        }} />
+        
+        {/* Canvas Routes */}
+        <Route path="/canvas" component={() => {
+          return (
+            <Suspense fallback={<div className="p-8">Loading Canvas...</div>}>
+              <CanvasPage />
             </Suspense>
           );
         }} />

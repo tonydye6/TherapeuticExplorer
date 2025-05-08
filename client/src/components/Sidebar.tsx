@@ -213,6 +213,13 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       section: "6. Settings & Profile",
       ariaLabel: "Explore the Canvas Demo"
     },
+    { 
+      href: "/canvas", 
+      label: "Canvas", 
+      icon: <Map className="h-5 w-5" />,
+      section: "6. Settings & Profile",
+      ariaLabel: "Open the Canvas"
+    },
   ];
 
   return (
