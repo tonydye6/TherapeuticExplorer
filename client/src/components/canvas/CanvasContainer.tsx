@@ -3,6 +3,7 @@ import { CanvasTab, CanvasType, CanvasNode, CanvasEdge } from '@shared/canvas-ty
 import LiteGraphWrapper from './LiteGraphWrapper';
 import CanvasTabBar from './CanvasTabBar';
 import NodeDetailsPanel from './NodeDetailsPanel';
+import EdgeDetailsPanel from './EdgeDetailsPanel';
 import { PlusCircle, Stethoscope, Activity, FileText, Book, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LGraphNode, LGraph } from 'litegraph.js';
@@ -40,7 +41,8 @@ export default function CanvasContainer({
     selectedNode: canvasSelectedNode,
     updateNodeProperties,
     addEdge,
-    removeEdge
+    removeEdge,
+    updateEdgeProperties
   } = useCanvasState({
     initialTabs,
     userId,
@@ -55,6 +57,9 @@ export default function CanvasContainer({
   
   // Track when the graph is ready
   const [graphReady, setGraphReady] = useState(false);
+  
+  // Track selected edge
+  const [selectedEdge, setSelectedEdge] = useState<CanvasEdge | null>(null);
   
   // Handle node selection from LiteGraph
   const handleNodeSelect = useCallback((nodeId: string, node: LGraphNode) => {

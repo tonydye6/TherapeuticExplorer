@@ -139,6 +139,30 @@ export const useCanvasState = ({
     );
   }, [activeTabId]);
   
+  // Update edge properties
+  const updateEdgeProperties = useCallback((edgeId: string, properties: Record<string, any>) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              edges: tab.edges.map(edge => 
+                edge.id === edgeId
+                  ? { 
+                      ...edge, 
+                      properties: { ...edge.properties, ...properties } 
+                    }
+                  : edge
+              ),
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
+    );
+  }, [activeTabId]);
+  
   // Save canvas state to the backend
   const saveCanvasState = useCallback(async () => {
     if (!userId) return;
@@ -245,6 +269,7 @@ export const useCanvasState = ({
     // Edges
     addEdge,
     removeEdge,
+    updateEdgeProperties,
     
     // Persistence
     saveCanvasState,
