@@ -85,6 +85,9 @@ class JournalNode extends LGraphNode {
   
   // Handle mouse interaction
   onMouseDown(e, pos, graphCanvas) {
+    // Call the default onMouseDown first to ensure dragging works
+    const superClassResult = LGraphNode.prototype.onMouseDown.call(this, e, pos, graphCanvas);
+    
     // Open node details panel when clicked
     if (pos[0] > 0 && pos[0] < this.size[0] && 
         pos[1] > 0 && pos[1] < this.size[1]) {
@@ -94,7 +97,9 @@ class JournalNode extends LGraphNode {
       }
       return true;
     }
-    return false;
+    
+    // Return the superclass result to maintain default behavior
+    return superClassResult;
   }
 
   // Utility methods
