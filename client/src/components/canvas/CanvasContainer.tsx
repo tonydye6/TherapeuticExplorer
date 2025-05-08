@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { LGraphNode, LGraph } from 'litegraph.js';
 import { NodeFactory } from './nodes/NodeFactory';
 import { useCanvasState } from '@/hooks/canvas/useCanvasState';
+import { useNodeMapping } from '@/hooks/canvas/useNodeMapping';
 
 interface CanvasContainerProps {
   initialTabs?: CanvasTab[];
@@ -43,6 +44,9 @@ export default function CanvasContainer({
     autoSave: true
   });
   
+  // Use our node mapping hook to maintain the relationship between canvas and LiteGraph nodes
+  const nodeMapping = useNodeMapping();
+  
   // Track the selected LiteGraph node separately from our canvas state
   const [selectedLGraphNode, setSelectedLGraphNode] = React.useState<LGraphNode | null>(null);
   
@@ -51,11 +55,23 @@ export default function CanvasContainer({
     console.log('Selected node:', nodeId, node);
     setSelectedLGraphNode(node);
     
-    // Also select the corresponding node in our canvas state
-    // This requires mapping from LiteGraph node ID to our canvas node ID
-    // For now, we'll just log it
-    console.log('Would set selected node ID in canvas state');
-  }, []);
+    // Find the corresponding canvas node ID
+    const canvasNodeId = nodeMapping.getCanvasNodeId(nodeId);
+    
+    if (canvasNodeId) {
+      // If we have a mapping, use it to select the node in our state
+      selectNode(canvasNodeId);
+    } else if (activeTab) {
+      // If no mapping exists, try to find a matching node by properties
+      const matchingNode = nodeMapping.findCanvasNodeMatch(node, activeTab.nodes);
+      
+      if (matchingNode) {
+        // If found, establish the mapping for future use
+        nodeMapping.addMapping(matchingNode.id, nodeId);
+        selectNode(matchingNode.id);
+      }
+    }
+  }, [nodeMapping, selectNode, activeTab]);
   
   // Close node details panel
   const handleCloseNodeDetails = useCallback(() => {
@@ -75,27 +91,35 @@ export default function CanvasContainer({
     // Add to our canvas state
     addNode(node);
     
-    // Add to LiteGraph canvas (this part will be improved with more robust integration)
+    // Add to LiteGraph canvas with node mapping
     const graph = (window as any).sophGraph;
     if (graph) {
       try {
-        NodeFactory.createLGraphNode(
-          graph, 
-          node.type, 
-          { 
-            ...node.properties,
-            title: node.title
-          }, 
-          node.position
+        // Create LiteGraph node and establish mapping
+        const liteNode = nodeMapping.createNodeInLiteGraph(
+          node,
+          graph,
+          (canvasNode, liteGraph) => NodeFactory.createLGraphNode(
+            liteGraph, 
+            canvasNode.type, 
+            { 
+              ...canvasNode.properties,
+              title: canvasNode.title
+            }, 
+            canvasNode.position
+          )
         );
-        console.log('Node added to canvas:', node);
+        
+        if (liteNode) {
+          console.log('Node added to canvas with mapping:', node.id, '→', liteNode.id);
+        }
       } catch (err) {
         console.error('Error adding node to canvas:', err);
       }
     } else {
       console.warn('Graph not available yet, node only added to state');
     }
-  }, [addNode]);
+  }, [addNode, nodeMapping]);
   
   return (
     <div className={`flex flex-col h-full ${className || ''}`}>
@@ -252,15 +276,23 @@ export default function CanvasContainer({
                 graph.setDirtyCanvas(true);
               }
               
-              // Find the node in our state by matching properties
-              // This is a temporary solution until we have better ID mapping
-              const matchingNode = activeTab.nodes.find(canvasNode => 
-                canvasNode.title === node.properties.title || 
-                canvasNode.title === node.properties.name
-              );
+              // Get the canvas node ID from our mapping
+              const canvasNodeId = nodeMapping.getCanvasNodeId(node.id.toString());
               
-              if (matchingNode) {
-                updateNodeProperties(matchingNode.id, props);
+              if (canvasNodeId) {
+                // If we have a mapping, use it to update the node in our state
+                updateNodeProperties(canvasNodeId, props);
+              } else if (activeTab) {
+                // If no mapping exists, try to find a matching node by properties
+                const matchingNode = nodeMapping.findCanvasNodeMatch(node, activeTab.nodes);
+                
+                if (matchingNode) {
+                  // If found, establish the mapping for future use
+                  nodeMapping.addMapping(matchingNode.id, node.id.toString());
+                  updateNodeProperties(matchingNode.id, props);
+                } else {
+                  console.warn('Could not find matching canvas node for', node.id);
+                }
               }
             }
           }}
