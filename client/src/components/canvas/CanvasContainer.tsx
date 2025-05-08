@@ -250,7 +250,7 @@ export default function CanvasContainer({
   }, [addNode, nodeMapping]);
   
   return (
-    <div className={`flex flex-col h-full ${className || ''}`}>
+    <div className={`flex flex-col h-full canvas-container ${className || ''}`}>
       {/* Tab bar */}
       <div className="px-4 pt-2 bg-muted/20 border-b border-border">
         <div className="flex items-center justify-between">
