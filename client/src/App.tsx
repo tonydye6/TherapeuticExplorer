@@ -30,7 +30,7 @@ import NeoBrutalismDemo from "./pages/NeoBrutalismDemo";
 import DesignSystemAccess from "./pages/DesignSystemAccess";
 import DirectAccessDemo from "./pages/DirectAccessDemo";
 import NeoBrutalismLayout from "./components/layouts/NeoBrutalismLayout";
-import CanvasPage from "./pages/CanvasPage";
+//import CanvasPage from "./pages/CanvasPage";
 
 // Import Connect & Hope section pages
 import SurvivorStoriesPage from "./pages/SurvivorStoriesPage";
@@ -86,7 +86,6 @@ function Router() {
 
         <Route path="/my-journey/metrics" component={() => <div>My Metrics - Coming Soon</div>} />
         <Route path="/my-journey/trends" component={() => <div>Trends - Coming Soon</div>} />
-        <Route path="/my-journey/canvas" component={CanvasPage} />
 
         {/* Understand Section */}
         <Route path="/understand/explainer" component={SemanticSearchWrapper} />
