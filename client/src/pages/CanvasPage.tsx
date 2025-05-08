@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import CanvasContainer from '@/components/canvas/CanvasContainer';
 import { NodeType, CanvasType } from '@shared/canvas-types';
-import NodeFactory from '@/components/canvas/nodes/NodeFactory';
+import { NodeFactory } from '@/components/canvas/nodes/NodeFactory';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Grid, Calendar, Table, Map, LayoutTemplate } from 'lucide-react';
@@ -133,8 +133,35 @@ const CanvasPage: React.FC = () => {
   // Handle selecting a node type from the palette
   const handleNodeSelect = (nodeType: NodeType) => {
     console.log('Selected node type:', nodeType);
-    // In a real implementation, this would create a node in the canvas at the cursor position
-    // This would be handled by passing a callback to CanvasContainer
+    
+    // Create a node at the center of the canvas
+    // In a real implementation, this would be at the mouse cursor position
+    try {
+      // Get the graph instance from the global we added in LiteGraphWrapper
+      const graph = (window as any).sophGraph;
+      if (graph) {
+        const center = { x: 400, y: 300 }; // Default center position
+        
+        // Create the node using NodeFactory
+        const node = NodeFactory.createLGraphNode(
+          graph,
+          nodeType,
+          { title: `New ${nodeType.toString()}` },
+          center
+        );
+        
+        if (node) {
+          console.log('Created node:', node);
+          graph.setDirtyCanvas(true); // Force canvas redraw
+        } else {
+          console.error('Failed to create node');
+        }
+      } else {
+        console.error('Graph not available');
+      }
+    } catch (error) {
+      console.error('Error creating node:', error);
+    }
   };
   
   return (

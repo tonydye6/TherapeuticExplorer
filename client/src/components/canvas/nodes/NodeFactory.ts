@@ -41,10 +41,71 @@ export class NodeFactory {
    * Register all node types with LiteGraph
    */
   static initialize() {
-    // All node types should be imported at the top, which will
-    // automatically register them with LiteGraph
-    console.log('Initializing node factory with types:', 
-      Object.values(NodeType).join(', '));
+    if (typeof window === 'undefined' || !window.LiteGraph) {
+      console.error('LiteGraph not available for registration');
+      return;
+    }
+    
+    // Explicitly register all node classes with LiteGraph
+    console.log('Initializing NodeFactory and registering node types with LiteGraph');
+    
+    // Register each node type explicitly with LiteGraph
+    if (window.LiteGraph && window.LiteGraph.registerNodeType) {
+      // Define fallback function if real node registration fails
+      const registerFallbackNode = (name: string) => {
+        // Simple fallback node that just shows a title
+        class FallbackNode {
+          constructor() {
+            this.title = name.split('/')[1] || name;
+            this.properties = { name: this.title };
+            this.size = [200, 100];
+          }
+          
+          onDrawForeground(ctx: any) {
+            ctx.fillStyle = "rgba(100,100,100,0.2)";
+            ctx.fillRect(0, 0, this.size[0], this.size[1]);
+            ctx.fillStyle = "#000";
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.title, this.size[0]/2, this.size[1]/2);
+          }
+        }
+        
+        // Register it
+        try {
+          window.LiteGraph.registerNodeType(name, FallbackNode as any);
+          console.log(`Registered fallback node: ${name}`);
+        } catch (e) {
+          console.error(`Failed to register fallback node ${name}:`, e);
+        }
+      };
+      
+      // Try to explicitly register node types
+      const nodeTypes = [
+        "sophera/treatment",
+        "sophera/symptom",
+        "sophera/journal-entry",
+        "sophera/document",
+        "sophera/note"
+      ];
+      
+      // Register all node types (using fallbacks if needed)
+      for (const type of nodeTypes) {
+        try {
+          // Check if it's already registered
+          if (!window.LiteGraph.registered_node_types[type]) {
+            registerFallbackNode(type);
+          }
+        } catch (e) {
+          console.error(`Error registering node type ${type}:`, e);
+          registerFallbackNode(type);
+        }
+      }
+    }
+    
+    // This is just a sanity check, it's not needed but helpful for debugging
+    const registeredTypes = Object.keys(window.LiteGraph.registered_node_types || {});
+    console.log('Currently registered node types:', registeredTypes.join(', '));
   }
   
   /**

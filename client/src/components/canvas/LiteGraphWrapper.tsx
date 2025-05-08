@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
+import { NodeFactory } from './nodes/NodeFactory';
+import TreatmentNode from './nodes/TreatmentNode';
+import SymptomNode from './nodes/SymptomNode';
+import JournalNode from './nodes/JournalNode';
+import DocumentNode from './nodes/DocumentNode';
+import NoteNode from './nodes/NoteNode';
 
 // Will be populated after dynamic import
 let LiteGraph: any = null;
@@ -83,6 +89,15 @@ export default function LiteGraphWrapper({
         output_on: "#FF7F50",  // sophera-accent-secondary
       };
 
+      // Initialize our custom node types first
+      if (LiteGraph.LiteGraph) {
+        // Make LiteGraph available globally for node registration
+        (window as any).LiteGraph = LiteGraph.LiteGraph;
+      }
+      
+      // Initialize and register all node types
+      NodeFactory.initialize();
+      
       // Create a new graph
       const graph = new LiteGraph.LGraph();
       graphRef.current = graph;
