@@ -37,13 +37,25 @@ export default function LiteGraphWrapper({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Dynamic import - only runs in browser
-    import('litegraph.js').then((module) => {
-      LiteGraph = module.default || module;
-      console.log("LiteGraph.js loaded", LiteGraph);
-    }).catch(err => {
-      console.error("Failed to load LiteGraph.js:", err);
-    });
+    const loadLiteGraph = async () => {
+      try {
+        // Use import() as a function to dynamically load the module
+        const module = await import('litegraph.js');
+        
+        // Assign the imported module to our variable
+        LiteGraph = module.default || module;
+        
+        console.log("LiteGraph.js loaded successfully");
+        
+        // Once loaded, we need to trigger a re-render
+        setIsReady(false); // Force a re-render cycle
+        setTimeout(() => setIsReady(true), 100);
+      } catch (err) {
+        console.error("Failed to load LiteGraph.js:", err);
+      }
+    };
+    
+    loadLiteGraph();
   }, []);
 
   // Initialize LiteGraph canvas

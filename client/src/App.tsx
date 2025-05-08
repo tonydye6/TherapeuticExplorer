@@ -134,7 +134,13 @@ function Router() {
         <Route path="/neo-brutalism-direct" component={DirectAccessDemo} />
         
         {/* Development/Testing Routes (not in main navigation) */}
-        <Route path="/canvas-demo" component={() => <div>Loading Canvas Demo...</div>} />
+        <Route path="/canvas-demo" component={() => import('./pages/CanvasDemo').then(module => {
+          const CanvasDemo = module.default;
+          return <CanvasDemo />;
+        }).catch(error => {
+          console.error("Error loading Canvas Demo:", error);
+          return <div>Error loading Canvas Demo. Check console for details.</div>;
+        })} />
 
         {/* 404 route */}
         <Route component={NotFound} />

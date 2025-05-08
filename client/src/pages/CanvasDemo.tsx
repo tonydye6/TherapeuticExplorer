@@ -1,98 +1,117 @@
-import React, { useState } from 'react';
-import CanvasContainer from '@/components/canvas/CanvasContainer';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LiteGraphWrapper from '@/components/canvas/LiteGraphWrapper';
 import { v4 as uuidv4 } from 'uuid';
-
-// Define canvas tab interface
-interface CanvasTab {
-  id: string;
-  title: string;
-  type: 'freeform' | 'timeline' | 'spreadsheet' | 'journey';
-  isActive: boolean;
-  createdAt: Date;
-}
+import { CanvasTab, CanvasType } from '@shared/canvas-types';
 
 export default function CanvasDemo() {
-  // State for canvas tabs
-  const [canvasTabs, setCanvasTabs] = useState<CanvasTab[]>([
+  const [tabs, setTabs] = useState<CanvasTab[]>([
     {
-      id: 'default-canvas',
-      title: 'My Journey Canvas',
-      type: 'freeform',
+      id: 'tab1',
+      title: 'My Journey',
+      type: 'freeform' as CanvasType,
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
+    },
+    {
+      id: 'tab2',
+      title: 'Treatment Plan',
+      type: 'timeline' as CanvasType,
+      isActive: false,
+      createdAt: new Date(),
     }
   ]);
-  
-  // Function to add a new canvas tab
-  const addCanvasTab = () => {
-    const newTab: CanvasTab = {
-      id: uuidv4(),
-      title: `New Canvas ${canvasTabs.length + 1}`,
-      type: 'freeform',
-      isActive: false,
-      createdAt: new Date()
-    };
-    
-    setCanvasTabs([...canvasTabs, newTab]);
-  };
-  
-  // Function to activate a tab
-  const setActiveTab = (tabId: string) => {
-    setCanvasTabs(canvasTabs.map(tab => ({
+
+  const [activeTabId, setActiveTabId] = useState<string>('tab1');
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTabId(tabId);
+    setTabs(tabs.map(tab => ({
       ...tab,
       isActive: tab.id === tabId
     })));
   };
-  
-  // Get the active tab
-  const activeTab = canvasTabs.find(tab => tab.isActive) || canvasTabs[0];
-  
+
+  const addNewTab = () => {
+    const newTabId = uuidv4();
+    const newTab: CanvasTab = {
+      id: newTabId,
+      title: `New Canvas ${tabs.length + 1}`,
+      type: 'freeform',
+      isActive: false,
+      createdAt: new Date(),
+    };
+    
+    setTabs([...tabs, newTab]);
+    // Automatically select the new tab
+    handleTabChange(newTabId);
+  };
+
+  const handleNodeSelected = (nodeId: string) => {
+    console.log('Node selected:', nodeId);
+  };
+
+  const handleNodeCreated = (node: any) => {
+    console.log('Node created:', node);
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="p-4 border-b border-black border-3">
-        <h1 className="text-3xl font-bold uppercase tracking-wider">Sophera Canvas Demo</h1>
-        <p className="text-muted-foreground">
-          An interactive canvas system for visualizing your healthcare journey
+    <div className="flex flex-col h-screen bg-gradient-to-br from-sophera-gradient-start to-sophera-gradient-end">
+      <div className="p-6">
+        <h1 className="text-3xl font-bold text-charcoal-900">Canvas System Demo</h1>
+        <p className="text-charcoal-600 mt-2">
+          Explore the infinite canvas capabilities with Neo-Brutalism design principles.
         </p>
       </div>
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Canvas Tabs */}
-        <Tabs defaultValue={activeTab.id} className="w-full">
-          <div className="flex items-center border-b border-black border-3 px-4">
-            <TabsList className="mr-2 h-12 rounded-none border-border-secondary flex bg-transparent">
-              {canvasTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className="neo-brutalism-tab px-4 py-2 uppercase"
-                  data-state={tab.id === activeTab.id ? "active" : "inactive"}
+
+      <div className="flex-1 flex flex-col p-6 pt-0">
+        <div className="bg-white border-4 border-black rounded-xl flex-1 flex flex-col overflow-hidden shadow-[8px_8px_0px_rgba(0,0,0,0.2)]">
+          <div className="p-4 border-b-4 border-black bg-gray-50">
+            <Tabs value={activeTabId} onValueChange={handleTabChange} className="w-full">
+              <div className="flex items-center justify-between mb-4">
+                <TabsList className="border-2 border-black bg-gray-100">
+                  {tabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className={`
+                        data-[state=active]:bg-sophera-brand-primary 
+                        data-[state=active]:text-white 
+                        border-r-2 border-black last:border-r-0
+                        px-4 py-2
+                      `}
+                    >
+                      {tab.title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                
+                <button 
+                  onClick={addNewTab}
+                  className="flex items-center justify-center px-3 py-2 bg-neo-cyan-300 border-2 border-black text-sm font-medium hover:bg-neo-cyan-500 transition-colors shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                 >
-                  {tab.title}
-                </TabsTrigger>
+                  + New Canvas
+                </button>
+              </div>
+
+              {tabs.map((tab) => (
+                <TabsContent 
+                  key={tab.id} 
+                  value={tab.id}
+                  className="flex-1 mt-0 border-t-0 h-[calc(100vh-220px)]"
+                >
+                  <div className="w-full h-full border border-gray-200 rounded">
+                    <LiteGraphWrapper 
+                      onNodeSelected={handleNodeSelected}
+                      onNodeCreated={handleNodeCreated}
+                      className="w-full h-full"
+                    />
+                  </div>
+                </TabsContent>
               ))}
-            </TabsList>
-            <Button 
-              onClick={addCanvasTab}
-              variant="ghost" 
-              size="icon" 
-              className="ml-2 flex-shrink-0 neo-brutalism-btn"
-            >
-              <PlusCircle className="h-5 w-5" />
-            </Button>
+            </Tabs>
           </div>
-          
-          {/* Canvas Content */}
-          {canvasTabs.map(tab => (
-            <TabsContent key={tab.id} value={tab.id} className="flex-1 overflow-hidden mt-0 border-0">
-              <CanvasContainer title={tab.title} />
-            </TabsContent>
-          ))}
-        </Tabs>
+        </div>
       </div>
     </div>
   );

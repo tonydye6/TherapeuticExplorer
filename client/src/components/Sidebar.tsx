@@ -31,7 +31,8 @@ import {
   Palette,
   PenTool,
   LogOut,
-  Map
+  Map,
+  Grid
 } from "lucide-react";
 
 
@@ -204,6 +205,13 @@ export default function Sidebar({ closeSidebar }: SidebarProps) {
       icon: <Palette className="h-5 w-5" />,
       section: "6. Settings & Profile",
       ariaLabel: "View Neo Brutalism design system"
+    },
+    { 
+      href: "/canvas-demo", 
+      label: "Canvas Demo", 
+      icon: <Grid className="h-5 w-5" />,
+      section: "6. Settings & Profile",
+      ariaLabel: "Explore the Canvas Demo"
     },
   ];
 
