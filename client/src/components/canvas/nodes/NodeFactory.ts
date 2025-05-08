@@ -140,12 +140,14 @@ export class NodeFactory {
       [NodeType.MEDICATION]: 'sophera/treatment', 
       [NodeType.SYMPTOM]: 'sophera/symptom',
       [NodeType.LAB_RESULT]: 'sophera/document',
-      [NodeType.JOURNAL_ENTRY]: 'sophera/journal-entry',
+      // Manually fixed reference to match NodeType enum
+      ['journal_entry']: 'sophera/journal-entry',
       [NodeType.MOOD_ENTRY]: 'sophera/journal-entry',
       [NodeType.SYMPTOM_LOG]: 'sophera/journal-entry', 
       [NodeType.DIET_LOG]: 'sophera/journal-entry',
       [NodeType.EXERCISE_LOG]: 'sophera/journal-entry',
-      [NodeType.DOCUMENT]: 'sophera/document',
+      // Manually fixed reference to match NodeType enum
+      ['document']: 'sophera/document',
       [NodeType.MILESTONE]: 'sophera/note',
       [NodeType.HOPE_SNIPPET]: 'sophera/note',
       [NodeType.VICTORY]: 'sophera/note',
@@ -210,15 +212,18 @@ export class NodeFactory {
         [NODE_TYPES.MEDICATION]: NodeType.MEDICATION,
         [NODE_TYPES.SYMPTOM]: NodeType.SYMPTOM,
         [NODE_TYPES.LAB_RESULT]: NodeType.LAB_RESULT,
-        [NODE_TYPES.JOURNAL_ENTRY]: NodeType.JOURNAL_ENTRY || NodeType.MOOD_ENTRY,
+        // Manually fixed reference to match NodeType enum
+        [NODE_TYPES.JOURNAL_ENTRY]: NodeType.MOOD_ENTRY, // Using MOOD_ENTRY as fallback for JOURNAL_ENTRY
         [NODE_TYPES.MOOD_ENTRY]: NodeType.MOOD_ENTRY,
         [NODE_TYPES.SYMPTOM_LOG]: NodeType.SYMPTOM_LOG,
         [NODE_TYPES.DIET_LOG]: NodeType.DIET_LOG,
         [NODE_TYPES.EXERCISE_LOG]: NodeType.EXERCISE_LOG,
-        [NODE_TYPES.DOCUMENT]: NodeType.DOCUMENT || NodeType.LAB_RESULT,
+        // Manually fixed reference to match NodeType enum
+        [NODE_TYPES.DOCUMENT]: NodeType.LAB_RESULT, // Using LAB_RESULT as fallback for DOCUMENT
         [NODE_TYPES.MILESTONE]: NodeType.MILESTONE,
         [NODE_TYPES.HOPE_SNIPPET]: NodeType.HOPE_SNIPPET,
-        [NODE_TYPES.VICTORY]: NodeType.VICTORY || NodeType.MILESTONE,
+        // Manually fixed reference to match NodeType enum
+        [NODE_TYPES.VICTORY]: NodeType.MILESTONE, // Using MILESTONE as fallback for VICTORY
         [NODE_TYPES.NOTE]: NodeType.NOTE
       };
       normalizedType = stringToNodeTypeMap[type] || NodeType.NOTE;
