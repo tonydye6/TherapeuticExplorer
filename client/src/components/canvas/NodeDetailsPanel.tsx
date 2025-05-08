@@ -1,10 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { LGraphNode } from 'litegraph.js';
 import { NodeType } from '@shared/canvas-types';
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardFooter,
+  CardDescription
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from 'lucide-react';
+import { 
+  Calendar, 
+  X, 
+  Pill, 
+  BookOpen, 
+  FileText, 
+  StickyNote,
+  Activity,
+  Link as LinkIcon,
+  MessageSquare,
+  BrainCircuit
+} from 'lucide-react';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 
 interface NodeDetailsPanelProps {
   selectedNode: LGraphNode | null;
@@ -433,56 +458,183 @@ const NodeDetailsPanel: React.FC<NodeDetailsPanelProps> = ({
     );
   };
   
+  // Function to get the appropriate icon component based on node type
+  const getNodeIconComponent = () => {
+    switch (nodeType) {
+      case 'treatment':
+        return <Pill className="w-5 h-5 mr-2 text-primary" />;
+      case 'journal-entry':
+        return <BookOpen className="w-5 h-5 mr-2 text-primary" />;
+      case 'symptom':
+        return <Activity className="w-5 h-5 mr-2 text-primary" />;
+      case 'document':
+        return <FileText className="w-5 h-5 mr-2 text-primary" />;
+      case 'note':
+        return <StickyNote className="w-5 h-5 mr-2 text-primary" />;
+      default:
+        return <StickyNote className="w-5 h-5 mr-2 text-primary" />;
+    }
+  };
+
+  // Mock data for related nodes - in a real implementation this would come from the database
+  const relatedNodes = [
+    { id: '1', title: 'Related Treatment', type: 'treatment' },
+    { id: '2', title: 'Journal Entry from March', type: 'journal-entry' },
+    { id: '3', title: 'Doctor\'s Note', type: 'document' }
+  ];
+
+  // Mock data for AI insights - in a real implementation this would come from an AI service
+  const aiInsights = nodeProperties.aiInsights || [
+    "This symptom is commonly associated with the treatment you started on March 15th.",
+    "83% of patients with similar symptoms reported improvement after 3 weeks of treatment.",
+    "Consider tracking your hydration levels alongside this symptom."
+  ];
+
+  // Format the node title for display
+  const displayTitle = nodeTitle || (nodeType ? nodeType.charAt(0).toUpperCase() + nodeType.slice(1).replace(/-/g, ' ') : 'Node');
+  
   return (
-    <div className="border-l-2 border-black w-72 h-full bg-white overflow-y-auto flex flex-col neo-brutalism shadow-md">
-      <div className="p-4 border-b-2 border-black bg-gray-50 flex justify-between items-center">
-        <h3 className="font-bold text-lg flex items-center">
-          <span className="mr-2">{getNodeIcon()}</span>
-          {nodeType.charAt(0).toUpperCase() + nodeType.slice(1).replace(/-/g, ' ')}
-        </h3>
-        {onClose && (
-          <button 
+    <Card className="border-4 border-black shadow-neo-sm neo-brutalism-card w-80 h-full bg-white animate-fadeIn node-details-panel overflow-hidden">
+      {/* Animated corner elements */}
+      <div className="absolute -top-1 -left-1 w-3 h-3 bg-secondary rounded-full animate-pulse"></div>
+      <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full animate-pulse"></div>
+      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+      <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+      
+      <CardHeader className="border-b-4 border-black p-4 bg-gradient-to-r from-primary/20 to-secondary/20">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-bold flex items-center">
+            {getNodeIconComponent()}
+            {nodeType.toUpperCase().replace(/-/g, ' ')}
+          </CardTitle>
+          <Button 
+            variant="ghost" 
+            size="icon" 
             onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200"
+            className="h-8 w-8 hover:bg-red-100 hover:text-red-600 transition-colors"
           >
-            ×
-          </button>
-        )}
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <CardDescription className="text-md font-medium mt-1 truncate">{displayTitle}</CardDescription>
+      </CardHeader>
+      
+      <div className="flex-grow overflow-y-auto max-h-[calc(100vh-200px)]">
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="w-full border-b-4 border-black bg-background grid grid-cols-3">
+            <TabsTrigger value="details" className="uppercase font-bold">Details</TabsTrigger>
+            <TabsTrigger value="insights" className="uppercase font-bold">AI Insights</TabsTrigger>
+            <TabsTrigger value="connections" className="uppercase font-bold">Connections</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details" className="p-0">
+            <CardContent className="p-4 space-y-4 overflow-y-auto">
+              {renderNodeForm()}
+            </CardContent>
+          </TabsContent>
+          
+          <TabsContent value="insights" className="p-0">
+            <CardContent className="p-4 space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <BrainCircuit className="w-5 h-5 mr-2 text-primary" />
+                  <h3 className="font-bold uppercase">AI Analysis</h3>
+                </div>
+                
+                {aiInsights.map((insight: string, index: number) => (
+                  <div 
+                    key={index} 
+                    className="p-3 bg-primary/10 rounded-md border-2 border-black shadow-neo-xs flex items-start"
+                  >
+                    <div className="mr-3 mt-1 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm">{insight}</p>
+                  </div>
+                ))}
+                
+                <div className="pt-2">
+                  <Button 
+                    className="w-full border-2 border-black bg-secondary hover:bg-secondary/80 text-white shadow-neo-xs"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Ask About This {nodeType.replace(/-/g, ' ')}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </TabsContent>
+          
+          <TabsContent value="connections" className="p-0">
+            <CardContent className="p-4 space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <LinkIcon className="w-5 h-5 mr-2 text-primary" />
+                  <h3 className="font-bold uppercase">Connected Nodes</h3>
+                </div>
+                
+                {relatedNodes.map((node) => (
+                  <div 
+                    key={node.id} 
+                    className="p-3 bg-secondary/10 rounded-md border-2 border-black shadow-neo-xs cursor-pointer hover:bg-secondary/20 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      {/* Display appropriate icon based on node type */}
+                      {node.type === 'treatment' && <Pill className="w-4 h-4 mr-2 text-primary" />}
+                      {node.type === 'journal-entry' && <BookOpen className="w-4 h-4 mr-2 text-primary" />}
+                      {node.type === 'document' && <FileText className="w-4 h-4 mr-2 text-primary" />}
+                      {node.type === 'symptom' && <Activity className="w-4 h-4 mr-2 text-primary" />}
+                      {node.type === 'note' && <StickyNote className="w-4 h-4 mr-2 text-primary" />}
+                      <div className="flex-1 truncate">
+                        <div className="font-medium truncate">{node.title}</div>
+                        <div className="text-xs text-gray-500 uppercase">{node.type.replace(/-/g, ' ')}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="pt-2">
+                  <Button 
+                    className="w-full border-2 border-black bg-primary hover:bg-primary/80 text-white shadow-neo-xs"
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    Create New Connection
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </TabsContent>
+        </Tabs>
       </div>
       
-      <div className="p-4 flex-grow overflow-y-auto">
-        {renderNodeForm()}
-      </div>
-      
-      <div className="p-4 border-t-2 border-black bg-gray-50 flex justify-end space-x-3">
+      <CardFooter className="p-4 border-t-4 border-black flex justify-end space-x-3 bg-gradient-to-r from-primary/5 to-secondary/5">
         {isEditing ? (
           <>
             <Button 
               variant="outline" 
               onClick={handleCancel}
-              className="neo-brutalism-btn border-2 border-black"
+              className="border-2 border-black hover:bg-gray-100 transition-colors"
             >
               Cancel
             </Button>
             <Button 
-              variant="default" 
               onClick={handleSave}
-              className="neo-brutalism-btn border-2 border-black bg-cyan-200 hover:bg-cyan-300"
+              className="border-2 border-black bg-primary text-white hover:bg-primary-hover transition-colors"
             >
-              Save
+              Save Changes
             </Button>
           </>
         ) : (
           <Button 
             variant="default" 
             onClick={() => setIsEditing(true)}
-            className="neo-brutalism-btn border-2 border-black bg-violet-200 hover:bg-violet-300"
+            className="border-2 border-black bg-primary text-white hover:bg-primary-hover transition-colors"
           >
-            Edit
+            Edit Node
           </Button>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 
