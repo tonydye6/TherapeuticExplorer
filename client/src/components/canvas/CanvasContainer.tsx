@@ -428,7 +428,18 @@ export default function CanvasContainer({
                     const createdEdge = addEdge(newEdge);
                     
                     // Select the newly created edge for editing
-                    setSelectedEdge(createdEdge || newEdge);
+                    console.log('Setting selectedEdge for editing:', createdEdge || newEdge);
+                    
+                    // Clear any selected node first to avoid UI conflicts
+                    if (selectedLGraphNode) {
+                      handleCloseNodeDetails();
+                    }
+                    
+                    // Force an update to render edge panel first by temporarily clearing then setting
+                    setSelectedEdge(null);
+                    setTimeout(() => {
+                      setSelectedEdge(createdEdge || newEdge);
+                    }, 50);
                   }
                 } else if (!connected && sourceNodeId && targetNodeId) {
                   // Connection was removed - find and remove the edge from our data model
@@ -518,14 +529,19 @@ export default function CanvasContainer({
       )}
       
       {/* Edge details panel (conditionally rendered) */}
-      {selectedEdge && activeTab && (
-        <div className="absolute right-0 top-0 m-4">
+      {selectedEdge && activeTab && selectedEdge.sourceNodeId && selectedEdge.targetNodeId && (
+        <div className="absolute right-0 top-0 m-4 z-50 bg-white">
+          {/* EdgeDetailsPanel being rendered */}
           <EdgeDetailsPanel
             edge={selectedEdge}
             sourceTitle={activeTab.nodes.find(n => n.id === selectedEdge.sourceNodeId)?.title ?? 'Source Node'}
             targetTitle={activeTab.nodes.find(n => n.id === selectedEdge.targetNodeId)?.title ?? 'Target Node'}
-            onClose={() => setSelectedEdge(null)}
+            onClose={() => {
+              console.log('Closing edge panel');
+              setSelectedEdge(null);
+            }}
             onUpdate={(edge, properties) => {
+              console.log('Updating edge properties:', edge.id, properties);
               updateEdgeProperties(edge.id, properties);
             }}
           />
