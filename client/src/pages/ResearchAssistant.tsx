@@ -376,9 +376,9 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
   
   return (
     <div className="fixed inset-0 p-4 overflow-hidden" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}>
-      <div className="flex h-full w-full gap-4">
+      <div className="flex flex-col md:flex-row h-full w-full gap-4">
         {/* Left Panel - Chat Interface */}
-        <div className="w-[65%] flex flex-col h-full">
+        <div className="w-full md:w-[65%] flex flex-col h-full mb-4 md:mb-0">
           {/* Header */}
           <div 
             className="bg-[#3db4ab] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] relative"
@@ -580,7 +580,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
         </div>
         
         {/* Right Panel - Research Library */}
-        <div className="w-[35%] flex flex-col h-full">
+        <div className="w-full md:w-[35%] flex flex-col h-full">
           {/* Header */}
           <div 
             className="bg-[#4a88db] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] relative"

@@ -263,7 +263,7 @@ export default function MultimodalChatPage() {
       <div className="flex flex-col h-full w-full">
         {/* Page Header - Neo Brutalism style */}
         <div 
-          className="relative w-full bg-[#fb9678] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px]"
+          className="relative w-full bg-[#fb9678] border-4 border-black rounded-xl p-4 md:p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px]"
           style={{
             clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
           }}
@@ -347,7 +347,7 @@ export default function MultimodalChatPage() {
                       
                       {/* Display uploaded images if any */}
                       {message.images && message.images.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                           {message.images.map((img, imgIndex) => (
                             <div key={imgIndex} className="relative border-2 border-black rounded-lg overflow-hidden shadow-[0.1rem_0.1rem_0_#000] bg-white">
                               <img 
@@ -432,7 +432,7 @@ export default function MultimodalChatPage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {filePreviews.map((preview, index) => (
                   <div key={index} className="relative">
                     <img 
@@ -454,7 +454,7 @@ export default function MultimodalChatPage() {
           
           {/* Input Area - Always at bottom */}
           <div className="bg-[#3db4ab] bg-opacity-5 border-t-3 border-black p-3">
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <Input 
                   className="h-12 px-4 py-2 border-3 border-black rounded-xl bg-white shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#3db4ab] focus-visible:ring-offset-2 font-medium text-gray-800 translate-x-[-2px] translate-y-[-2px]"
@@ -465,7 +465,7 @@ export default function MultimodalChatPage() {
                 />
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -521,9 +521,9 @@ export default function MultimodalChatPage() {
       
       {/* Disclaimer Dialog */}
       <Dialog open={isDisclaimerOpen} onOpenChange={setIsDisclaimerOpen}>
-        <DialogContent className="border-4 border-black rounded-xl shadow-[0.4rem_0.4rem_0_#000] max-w-lg">
+        <DialogContent className="border-4 border-black rounded-xl shadow-[0.4rem_0.4rem_0_#000] max-w-lg mx-4 overflow-y-auto max-h-[90vh] md:max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-extrabold">CREATIVE EXPLORATION DISCLAIMER</DialogTitle>
+            <DialogTitle className="text-xl md:text-2xl font-extrabold">CREATIVE EXPLORATION DISCLAIMER</DialogTitle>
             <DialogDescription>
               Before using the Creative Exploration space, please read and acknowledge the following:
             </DialogDescription>
@@ -547,8 +547,8 @@ export default function MultimodalChatPage() {
               </ul>
             </div>
             
-            <div className="flex items-center gap-3 p-4 bg-amber-50 border-3 border-black rounded-xl">
-              <div className="flex items-center h-5">
+            <div className="flex items-start sm:items-center gap-3 p-4 bg-amber-50 border-3 border-black rounded-xl">
+              <div className="flex items-center h-5 mt-0.5 sm:mt-0">
                 <Checkbox
                   id="disclaimer-checkbox"
                   checked={isDisclaimerAccepted}
@@ -558,18 +558,18 @@ export default function MultimodalChatPage() {
               </div>
               <Label
                 htmlFor="disclaimer-checkbox"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 I understand this is for exploratory purposes only and not medical advice
               </Label>
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
             <NeoButton 
               buttonText="CANCEL" 
-              color="gray"
-              className="border-black"
+              color="pink"
+              className="border-black w-full sm:w-auto"
               onClick={() => {
                 setIsDisclaimerOpen(false);
                 // In a real implementation, you might redirect from this page
@@ -582,8 +582,8 @@ export default function MultimodalChatPage() {
             
             <NeoButton 
               buttonText="I UNDERSTAND" 
-              color="primary"
-              className="border-black"
+              color="cyan"
+              className="border-black bg-[#3db4ab] w-full sm:w-auto"
               disabled={!isDisclaimerAccepted}
               onClick={handleDisclaimerAccept}
             />
