@@ -8,30 +8,36 @@ export enum CanvasType {
   CALENDAR = 'calendar',
   SPREADSHEET = 'spreadsheet',
   JOURNEY = 'journey',
-  TEMPLATE = 'template'
+  TEMPLATE = 'template',
+  TIMELINE = 'timeline'
 }
+
+// For backward compatibility with older code that uses CanvasTabType
+export type CanvasTabType = CanvasType;
 
 export enum NodeType {
   // Core medical data nodes
   TREATMENT = 'treatment',
   MEDICATION = 'medication',
   SYMPTOM = 'symptom',
-  LAB_RESULT = 'labResult',
+  LAB_RESULT = 'lab_result',
   
   // Document-related nodes
   RESEARCH = 'research',
-  DOCTOR_NOTE = 'doctorNote',
-  MEDICAL_IMAGE = 'medicalImage',
+  DOCTOR_NOTE = 'doctor_note',
+  DOCUMENT = 'document',
+  MEDICAL_IMAGE = 'medical_image',
   
   // Journal-related nodes
-  SYMPTOM_LOG = 'symptomLog',
-  DIET_LOG = 'dietLog',
-  EXERCISE_LOG = 'exerciseLog',
-  MOOD_ENTRY = 'moodEntry',
+  JOURNAL_ENTRY = 'journal_entry',
+  SYMPTOM_LOG = 'symptom_log',
+  DIET_LOG = 'diet_log',
+  EXERCISE_LOG = 'exercise_log',
+  MOOD_ENTRY = 'mood_entry',
   
   // Support and emotional nodes
-  HOPE_SNIPPET = 'hopeSnippet',
-  CAREGIVER_NOTE = 'caregiverNote',
+  HOPE_SNIPPET = 'hope_snippet',
+  CAREGIVER_NOTE = 'caregiver_note',
   MILESTONE = 'milestone',
   VICTORY = 'victory',
   
@@ -98,6 +104,17 @@ export interface CanvasEdge {
   properties?: Record<string, any>;
 }
 
+export interface CanvasConnection {
+  id: string;
+  fromNode: string;
+  fromOutput: number;
+  toNode: string;
+  toInput: number;
+  // Alias properties for compatibility with existing code
+  originNode?: string;
+  targetNode?: string;
+}
+
 export interface CanvasConfig {
   gridSize?: number;
   background?: string;
@@ -116,6 +133,8 @@ export interface CanvasTab {
   nodes: CanvasNode[];
   edges: CanvasEdge[];
   config?: CanvasConfig;
+  userId?: string;    // Optional user ID for ownership
+  name?: string;      // Alternative to title for backward compatibility
   createdAt: Date;
   updatedAt: Date;
 }
