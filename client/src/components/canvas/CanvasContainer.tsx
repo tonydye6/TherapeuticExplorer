@@ -1,11 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { CanvasTab, CanvasType, CanvasNode, CanvasEdge } from '@shared/canvas-types';
 import LiteGraphWrapper from './LiteGraphWrapper';
 import CanvasTabBar from './CanvasTabBar';
 import NodeDetailsPanel from './NodeDetailsPanel';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Stethoscope, Activity, FileText, Book, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
+import { LGraphNode, LGraph } from 'litegraph.js';
+import { NodeFactory } from './nodes/NodeFactory';
 
 interface CanvasContainerProps {
   initialTabs?: CanvasTab[];
@@ -32,20 +34,21 @@ export default function CanvasContainer({
   ]);
   
   const [activeTabId, setActiveTabId] = useState<string>(tabs[0]?.id || '');
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<LGraphNode | null>(null);
+  const graphRef = useRef<LGraph | null>(null);
   
   // Get the currently active tab
   const activeTab = tabs.find(tab => tab.id === activeTabId);
   
-  // Handle node selection
-  const handleNodeSelect = useCallback((nodeId: string) => {
-    console.log('Selected node:', nodeId);
-    setSelectedNodeId(nodeId);
+  // Handle node selection from LiteGraph
+  const handleNodeSelect = useCallback((nodeId: string, node: LGraphNode) => {
+    console.log('Selected node:', nodeId, node);
+    setSelectedNode(node);
   }, []);
   
   // Close node details panel
   const handleCloseNodeDetails = useCallback(() => {
-    setSelectedNodeId(null);
+    setSelectedNode(null);
   }, []);
   
   // Add a new tab
@@ -92,7 +95,7 @@ export default function CanvasContainer({
   // Handle tab switch
   const handleTabChange = useCallback((tabId: string) => {
     setActiveTabId(tabId);
-    setSelectedNodeId(null); // Clear selected node when changing tabs
+    setSelectedNode(null); // Clear selected node when changing tabs
   }, []);
   
   // Create a new node
@@ -214,10 +217,13 @@ export default function CanvasContainer({
       </div>
       
       {/* Node details panel (conditionally rendered) */}
-      {selectedNodeId && activeTab && (
+      {selectedNode && activeTab && (
         <NodeDetailsPanel 
-          nodeId={selectedNodeId}
-          tabId={activeTabId}
+          selectedNode={selectedNode}
+          onNodeUpdate={(node, props) => {
+            console.log('Updating node:', node.id, props);
+            // TODO: Update node in graph and state
+          }}
           onClose={handleCloseNodeDetails}
         />
       )}

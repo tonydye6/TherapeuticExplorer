@@ -5,7 +5,7 @@ import { useResizeDetector } from 'react-resize-detector';
 let LiteGraph: any = null;
 
 interface LiteGraphWrapperProps {
-  onNodeSelected?: (nodeId: string) => void;
+  onNodeSelected?: (nodeId: string, node: any) => void;
   onNodeCreated?: (node: any) => void;
   onNodeRemoved?: (node: any) => void;
   onConnectionChanged?: (connection: any) => void;
@@ -98,7 +98,7 @@ export default function LiteGraphWrapper({
       // Register event handlers
       if (onNodeSelected) {
         graph.onNodeSelected = (node: any) => {
-          onNodeSelected(node.id);
+          onNodeSelected(node.id, node);
         };
       }
 
