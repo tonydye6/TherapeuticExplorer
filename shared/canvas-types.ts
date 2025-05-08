@@ -1,63 +1,104 @@
-/**
- * Canvas system type definitions
- */
-
-export type CanvasTabType = "freeform" | "calendar" | "spreadsheet" | "journey" | "template";
-
 export interface CanvasTab {
   id: string;
-  userId: string;
-  name: string;
-  type: CanvasTabType;
-  config: {
-    gridSize?: number;
-    background?: string;
-    dateRange?: { start: Date; end: Date };
-    template?: string;
-    // Other type-specific configuration
-    [key: string]: any;
-  };
-  created: Date;
-  updated: Date;
+  title: string;
+  type: CanvasType;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+  data?: any;
 }
+
+export type CanvasType = 'freeform' | 'timeline' | 'spreadsheet' | 'journey';
 
 export interface CanvasNode {
   id: string;
-  tabId: string;
-  type: string;  // treatment, journal, document, etc.
+  type: string;
   title: string;
-  position: [number, number];
-  size: [number, number];
-  inputs: {
-    name: string;
-    type: string;
-    linkedTo?: { nodeId: string; output: number };
-  }[];
-  outputs: {
-    name: string;
-    type: string;
-  }[];
-  properties: Record<string, any>;
-  dataRef?: {
-    collection: string;
-    docId: string;
-  };
-  visual?: {
-    color?: string;
-    icon?: string;
-    shape?: string;
-  };
-  created: Date;
-  updated: Date;
+  content?: string;
+  position: CanvasPosition;
+  size?: CanvasSize;
+  inputs?: CanvasNodeInput[];
+  outputs?: CanvasNodeOutput[];
+  properties?: Record<string, any>;
+}
+
+export interface CanvasNodeInput {
+  name: string;
+  type: string;
+  link?: string;
+}
+
+export interface CanvasNodeOutput {
+  name: string;
+  type: string;
+  links?: string[];
+}
+
+export interface CanvasPosition {
+  x: number;
+  y: number;
+}
+
+export interface CanvasSize {
+  width: number;
+  height: number;
 }
 
 export interface CanvasConnection {
   id: string;
-  tabId: string;
   originNode: string;
-  originOutput: number;
+  originOutput: string;
   targetNode: string;
-  targetInput: number;
-  type?: string;  // relationship type
+  targetInput: string;
+  type?: string;
+}
+
+export interface CanvasData {
+  id: string;
+  title: string;
+  nodes: CanvasNode[];
+  connections: CanvasConnection[];
+  type: CanvasType;
+  createdAt: Date;
+  updatedAt?: Date;
+  createdBy?: string;
   properties?: Record<string, any>;
+}
+
+// Node Templates for the palette
+export interface NodeTemplate {
+  id: string;
+  type: string;
+  title: string;
+  category: string;
+  description: string;
+  properties?: Record<string, any>;
+}
+
+// Node configuration map for different node types
+export interface NodeConfig {
+  type: string;
+  label: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  inputs?: {
+    name: string;
+    type: string;
+    label?: string;
+  }[];
+  outputs?: {
+    name: string;
+    type: string;
+    label?: string;
+  }[];
+  fields?: {
+    name: string;
+    type: string;
+    label?: string;
+    required?: boolean;
+    placeholder?: string;
+    options?: string[];
+    default?: any;
+  }[];
 }

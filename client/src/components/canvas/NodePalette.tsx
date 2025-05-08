@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import React from 'react';
 import { 
-  Card, CardContent, CardDescription, CardHeader, CardTitle 
-} from '@/components/ui/card';
-import { 
-  Tabs, TabsContent, TabsList, TabsTrigger 
-} from '@/components/ui/tabs';
-import { 
-  FileText, HeartPulse, FlaskConical, BookOpen, Heart, 
-  CalendarRange, Pill, Stethoscope, User
+  FileText, Pill, Calendar, Book, HeartPulse, 
+  BookOpen, FileQuestion, Clock, Search, BarChart, 
+  Feather, Leaf, 
+  Microscope
 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
 
-// Define a node template interface
 export interface NodeTemplate {
   id: string;
   type: string;
@@ -24,152 +27,176 @@ interface NodePaletteProps {
   onNodeSelect: (template: NodeTemplate) => void;
 }
 
-// Node templates organized by category
-const nodeTemplates: NodeTemplate[] = [
-  // Treatment nodes
-  {
-    id: 'treatment-medication',
-    type: 'treatment',
-    title: 'Medication',
-    category: 'treatment',
-    description: 'Track a medication treatment',
-    icon: <Pill className="h-5 w-5" />
-  },
-  {
-    id: 'treatment-therapy',
-    type: 'treatment',
-    title: 'Therapy',
-    category: 'treatment',
-    description: 'Track a therapy session or plan',
-    icon: <HeartPulse className="h-5 w-5" />
-  },
-  {
-    id: 'treatment-procedure',
-    type: 'treatment',
-    title: 'Procedure',
-    category: 'treatment',
-    description: 'Track a medical procedure',
-    icon: <Stethoscope className="h-5 w-5" />
-  },
-  
-  // Document nodes
-  {
-    id: 'document-report',
-    type: 'document',
-    title: 'Medical Report',
-    category: 'document',
-    description: 'Link to a medical report',
-    icon: <FileText className="h-5 w-5" />
-  },
-  {
-    id: 'document-research',
-    type: 'document',
-    title: 'Research Item',
-    category: 'document',
-    description: 'Link to saved research',
-    icon: <FlaskConical className="h-5 w-5" />
-  },
-
-  // Journal nodes
-  {
-    id: 'journal-note',
-    type: 'journal',
-    title: 'Journal Entry',
-    category: 'journal',
-    description: 'Add a journal entry',
-    icon: <BookOpen className="h-5 w-5" />
-  },
-  {
-    id: 'journal-milestone',
-    type: 'journal',
-    title: 'Milestone',
-    category: 'journal',
-    description: 'Mark an important milestone',
-    icon: <CalendarRange className="h-5 w-5" />
-  },
-
-  // Hope nodes
-  {
-    id: 'hope-snippet',
-    type: 'hope',
-    title: 'Hope Snippet',
-    category: 'hope',
-    description: 'Add an inspirational note',
-    icon: <Heart className="h-5 w-5" />
-  },
-  {
-    id: 'hope-contact',
-    type: 'hope',
-    title: 'Support Contact',
-    category: 'hope',
-    description: 'Add a support contact',
-    icon: <User className="h-5 w-5" />
-  }
-];
-
 export default function NodePalette({ onNodeSelect }: NodePaletteProps) {
-  const [activeCategory, setActiveCategory] = useState('treatment');
-
-  // Filter templates by active category
-  const filteredTemplates = nodeTemplates.filter(
-    template => template.category === activeCategory
-  );
-
+  // Node templates categorized
+  const nodeTemplates: NodeTemplate[] = [
+    // Journey Nodes
+    {
+      id: 'treatment-node',
+      type: 'treatment',
+      title: 'Treatment',
+      category: 'journey',
+      description: 'Track a treatment or medication',
+      icon: <Pill className="h-4 w-4" />
+    },
+    {
+      id: 'appointment-node',
+      type: 'appointment',
+      title: 'Appointment',
+      category: 'journey',
+      description: 'Schedule a healthcare appointment',
+      icon: <Calendar className="h-4 w-4" />
+    },
+    {
+      id: 'milestone-node',
+      type: 'milestone',
+      title: 'Milestone',
+      category: 'journey',
+      description: 'Mark an important point in your journey',
+      icon: <HeartPulse className="h-4 w-4" />
+    },
+    
+    // Document Nodes
+    {
+      id: 'report-node',
+      type: 'report',
+      title: 'Medical Report',
+      category: 'documents',
+      description: 'Medical or lab report',
+      icon: <FileText className="h-4 w-4" />
+    },
+    {
+      id: 'journal-node',
+      type: 'journal',
+      title: 'Journal Entry',
+      category: 'documents',
+      description: 'Personal reflection or journal entry',
+      icon: <Book className="h-4 w-4" />
+    },
+    {
+      id: 'resource-node',
+      type: 'resource',
+      title: 'Resource',
+      category: 'documents',
+      description: 'Link to helpful resource',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    
+    // Research Nodes
+    {
+      id: 'question-node',
+      type: 'question',
+      title: 'Research Question',
+      category: 'research',
+      description: 'Question for research',
+      icon: <FileQuestion className="h-4 w-4" />
+    },
+    {
+      id: 'clinical-trial-node',
+      type: 'clinicalTrial',
+      title: 'Clinical Trial',
+      category: 'research',
+      description: 'Information about a clinical trial',
+      icon: <Microscope className="h-4 w-4" />
+    },
+    {
+      id: 'finding-node',
+      type: 'finding',
+      title: 'Research Finding',
+      category: 'research',
+      description: 'Insights from research',
+      icon: <Search className="h-4 w-4" />
+    },
+    
+    // Insights Nodes
+    {
+      id: 'symptom-tracker-node',
+      type: 'symptomTracker',
+      title: 'Symptom Tracker',
+      category: 'insights',
+      description: 'Track and analyze symptoms',
+      icon: <BarChart className="h-4 w-4" />
+    },
+    {
+      id: 'timeline-node',
+      type: 'timeline',
+      title: 'Timeline',
+      category: 'insights',
+      description: 'Visualize event timeline',
+      icon: <Clock className="h-4 w-4" />
+    },
+    
+    // Hope Nodes
+    {
+      id: 'hope-snippet-node',
+      type: 'hopeSnippet',
+      title: 'Hope Snippet',
+      category: 'hope',
+      description: 'Inspirational note or reminder',
+      icon: <Feather className="h-4 w-4" />
+    },
+    {
+      id: 'mindfulness-node',
+      type: 'mindfulness',
+      title: 'Mindfulness',
+      category: 'hope',
+      description: 'Mindfulness exercise or reflection',
+      icon: <Leaf className="h-4 w-4" />
+    }
+  ];
+  
+  // Group templates by category
+  const categories = nodeTemplates.reduce((acc, node) => {
+    if (!acc[node.category]) {
+      acc[node.category] = [];
+    }
+    acc[node.category].push(node);
+    return acc;
+  }, {} as Record<string, NodeTemplate[]>);
+  
+  // Render the palette
   return (
-    <Card className="w-[280px] shadow-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Add Node</CardTitle>
-        <CardDescription>
-          Drag a node to the canvas
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="treatment" className="px-2">
-              <Pill className="h-4 w-4" />
-            </TabsTrigger>
-            <TabsTrigger value="document" className="px-2">
-              <FileText className="h-4 w-4" />
-            </TabsTrigger>
-            <TabsTrigger value="journal" className="px-2">
-              <BookOpen className="h-4 w-4" />
-            </TabsTrigger>
-            <TabsTrigger value="hope" className="px-2">
-              <Heart className="h-4 w-4" />
-            </TabsTrigger>
-          </TabsList>
-          
-          {/* Node templates grid */}
-          <div className="grid grid-cols-1 gap-2">
-            {filteredTemplates.map(template => (
-              <div
-                key={template.id}
-                className={`p-3 bg-white border-2 border-gray-800 rounded-lg 
-                  cursor-grab hover:shadow-neo-sm transition-shadow
-                  border-l-4 border-l-${template.type === 'treatment' ? 'neo-red-300' : 
-                    template.type === 'document' ? 'neo-cyan-300' : 
-                    template.type === 'journal' ? 'neo-violet-300' : 
-                    'neo-yellow-300'}`}
-                onClick={() => onNodeSelect(template)}
-                draggable
-                onDragStart={(e) => {
-                  // Set drag data for canvas to interpret
-                  e.dataTransfer.setData('node-template', JSON.stringify(template));
-                }}
-              >
-                <div className="flex items-center space-x-2">
-                  {template.icon}
-                  <div>
-                    <h4 className="font-medium text-sm">{template.title}</h4>
-                    <p className="text-xs text-gray-500">{template.description}</p>
-                  </div>
+    <div className="w-full flex flex-col">
+      <div className="mb-4">
+        <Input
+          type="text"
+          placeholder="Search nodes..."
+          className="mb-2"
+        />
+      </div>
+      
+      <ScrollArea className="h-[calc(100vh-270px)] pr-3">
+        <Accordion type="multiple" defaultValue={['journey', 'documents', 'research']}>
+          {Object.entries(categories).map(([category, templates]) => (
+            <AccordionItem key={category} value={category}>
+              <AccordionTrigger className="text-sm font-semibold capitalize">
+                {category}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 gap-2 pt-2">
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className="bg-white p-3 rounded-md border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all"
+                      onClick={() => onNodeSelect(template)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 rounded-md bg-gray-100">
+                          {template.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm">{template.title}</h3>
+                          <p className="text-xs text-gray-500">{template.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        </Tabs>
-      </CardContent>
-    </Card>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </ScrollArea>
+    </div>
   );
 }
