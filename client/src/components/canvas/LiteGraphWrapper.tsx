@@ -129,22 +129,29 @@ export default function LiteGraphWrapper({
       // Start the graph
       graph.start();
       
-      // Set default camera position and zoom (centered view)
+      // Set default camera position and zoom with a consistent starting point
       if (canvasInstance) {
-        // Reset camera to center position with proper zoom level
-        canvasInstance.ds.offset = [canvasInstance.canvas.width / 2, canvasInstance.canvas.height / 2];
-        canvasInstance.ds.scale = 1; // Reset zoom level to 1
-        
-        // Disable debug info that shows FPS, etc.
-        canvasInstance.render_canvas_border = false;
-        canvasInstance.render_connection_arrows = true;
-        canvasInstance.render_curved_connections = true;
-        canvasInstance.render_execution_order = false; // Don't show execution order
-        canvasInstance.render_info = false; // This disables the debug text (T, I, N, etc.)
-        canvasInstance.renderMenuOptions = { 
-          default: null,
-          animation: { fps: false }
-        };
+        try {
+          // Disable all debug info that shows FPS, etc.
+          canvasInstance.render_canvas_border = false;
+          canvasInstance.render_connection_arrows = true;
+          canvasInstance.render_curved_connections = true;
+          canvasInstance.render_execution_order = false; // Don't show execution order
+          canvasInstance.render_info = false; // This disables the debug text (T, I, N, etc.)
+          canvasInstance.renderMenuOptions = { 
+            default: null,
+            animation: { fps: false }
+          };
+          
+          // Set initial camera position 
+          // Use 0,0 as center point with a slightly zoomed out view
+          canvasInstance.ds.offset = [0, 0];
+          canvasInstance.ds.scale = 0.8;
+          
+          console.log('Camera position initialized with clean view');
+        } catch (err) {
+          console.error('Error setting up initial camera view:', err);
+        }
       }
       
       setIsReady(true);
@@ -323,18 +330,27 @@ export default function LiteGraphWrapper({
   const resetCamera = () => {
     if (!canvasInstanceRef.current || !canvasRef.current) return;
     
-    // Set camera to center position with default zoom
-    canvasInstanceRef.current.ds.offset = [
-      canvasRef.current.width / 2, 
-      canvasRef.current.height / 2
-    ];
-    canvasInstanceRef.current.ds.scale = 1;
-    
-    // Turn off debug info
-    canvasInstanceRef.current.render_info = false;
-    
-    // Force redraw
-    canvasInstanceRef.current.setDirtyCanvas(true, true);
+    try {
+      // Set camera to center position with zoomed out view
+      const canvas = canvasRef.current;
+      
+      // Zero out the position so it's at origin
+      canvasInstanceRef.current.ds.offset = [0, 0];
+      
+      // Use a zoomed out scale to show more of the canvas
+      canvasInstanceRef.current.ds.scale = 0.8; 
+      
+      // Turn off debug info
+      canvasInstanceRef.current.render_info = false;
+      
+      // Use the graph's setDirtyCanvas method to trigger redraw
+      const graph = (window as any).sophGraph;
+      if (graph) {
+        graph.setDirtyCanvas(true);
+      }
+    } catch (err) {
+      console.error("Error resetting camera:", err);
+    }
   };
 
   // Expose resetCamera to parent components

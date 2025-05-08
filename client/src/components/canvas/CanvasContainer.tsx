@@ -144,6 +144,19 @@ export default function CanvasContainer({
     }
   }, [graphReady, activeTab, createConnection]);
   
+  // Effect to reset camera position when active tab changes
+  useEffect(() => {
+    if (activeTabId) {
+      console.log('Tab changed, resetting camera position');
+      // Short delay to allow canvas to initialize
+      setTimeout(() => {
+        if ((window as any).sophResetCamera) {
+          (window as any).sophResetCamera();
+        }
+      }, 300);
+    }
+  }, [activeTabId]);
+  
   // Effect to initialize nodes from active tab
   useEffect(() => {
     if (graphReady && activeTab && activeTab.nodes.length > 0) {
@@ -272,7 +285,18 @@ export default function CanvasContainer({
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => addTab(CanvasType.FREEFORM)}
+            onClick={() => {
+              // Create new canvas
+              addTab(CanvasType.FREEFORM);
+              
+              // Reset camera position after a short delay to allow canvas to initialize
+              setTimeout(() => {
+                if ((window as any).sophResetCamera) {
+                  console.log('Resetting camera after new canvas creation');
+                  (window as any).sophResetCamera();
+                }
+              }, 300);
+            }}
             className="neo-brutalism-btn"
           >
             <PlusCircle size={16} className="mr-1" />
