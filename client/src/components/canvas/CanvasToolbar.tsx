@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { Button } from '@/components/ui/button';
+import CanvasMenu from './CanvasMenu';
 import {
   Plus,
   Trash2,
@@ -260,17 +261,8 @@ const CanvasToolbar = ({
         >
           <Upload className="h-5 w-5" />
         </Button>
-        {activeTabId && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDeleteTab}
-            title="Delete Canvas"
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        )}
+        {/* Canvas Menu */}
+        <CanvasMenu />
       </div>
     </div>
   );
