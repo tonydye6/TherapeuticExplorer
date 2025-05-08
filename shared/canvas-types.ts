@@ -1,144 +1,251 @@
 /**
- * Type definitions for the Canvas system
+ * Canvas Types
+ * This file defines all types related to the Canvas system.
  */
 
-// Canvas Type - base type indicating the type of canvas
 export enum CanvasType {
   FREEFORM = 'freeform',
-  TIMELINE = 'timeline',
-  JOURNEY = 'journey', 
-  MINDMAP = 'mindmap',
+  CALENDAR = 'calendar',
   SPREADSHEET = 'spreadsheet',
-  GALLERY = 'gallery'
+  JOURNEY = 'journey',
+  TEMPLATE = 'template'
 }
 
-// Tab definition for a canvas
-export interface CanvasTab {
-  id: string;
-  title: string; 
-  type: CanvasType;
-  nodes: CanvasNode[];
-  edges: CanvasEdge[];
-  metadata?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Edge definition for connecting nodes
-export interface CanvasEdge {
-  id: string;
-  source: string;  // ID of the source node
-  sourceHandle?: string; // Optional specific connection point on source
-  target: string;  // ID of the target node
-  targetHandle?: string; // Optional specific connection point on target
-  type?: string; // Type of connection 
-  label?: string; // Optional label text
-  style?: CanvasEdgeStyle;
-}
-
-// Style options for edges
-export interface CanvasEdgeStyle {
-  color?: string;
-  strokeWidth?: number;
-  strokeDasharray?: string;
-  isAnimated?: boolean;
-  animationSpeed?: number;
-}
-
-// Base node structure
-export interface CanvasNode {
-  id: string;
-  type: CanvasNodeType;
-  position: {
-    x: number;
-    y: number;
-  };
-  size?: {
-    width: number;
-    height: number;
-  };
-  data: Record<string, any>; // Flexible data structure for each node type
-  style?: CanvasNodeStyle;
-}
-
-// Style options for nodes
-export interface CanvasNodeStyle {
-  backgroundColor?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  borderRadius?: number;
-  opacity?: number;
-  shadow?: boolean;
-}
-
-// Node types available in the system
-export enum CanvasNodeType {
-  // General node types
-  TEXT = 'text',
-  IMAGE = 'image',
-  FILE = 'file',
-  NOTE = 'note',
-  LINK = 'link',
-  CONTAINER = 'container',
-  
-  // Domain-specific node types for medical journey
+export enum NodeType {
+  // Core medical data nodes
   TREATMENT = 'treatment',
   MEDICATION = 'medication',
   SYMPTOM = 'symptom',
-  APPOINTMENT = 'appointment',
-  TEST_RESULT = 'test_result',
-  JOURNAL_ENTRY = 'journal_entry',
-  DIET_ENTRY = 'diet_entry',
-  MEDICAL_DOCUMENT = 'medical_document',
-  RESEARCH_ITEM = 'research_item',
-  QUESTION = 'question',
+  LAB_RESULT = 'labResult',
   
-  // Timeline-specific node types
-  TIMELINE_EVENT = 'timeline_event',
-  TIMELINE_MILESTONE = 'timeline_milestone',
+  // Document-related nodes
+  RESEARCH = 'research',
+  DOCTOR_NOTE = 'doctorNote',
+  MEDICAL_IMAGE = 'medicalImage',
   
-  // Journey-specific node types
-  JOURNEY_STAGE = 'journey_stage',
-  JOURNEY_DECISION = 'journey_decision',
+  // Journal-related nodes
+  SYMPTOM_LOG = 'symptomLog',
+  DIET_LOG = 'dietLog',
+  EXERCISE_LOG = 'exerciseLog',
+  MOOD_ENTRY = 'moodEntry',
   
-  // MindMap-specific node types
-  MINDMAP_CONCEPT = 'mindmap_concept',
-  MINDMAP_RELATION = 'mindmap_relation',
+  // Support and emotional nodes
+  HOPE_SNIPPET = 'hopeSnippet',
+  CAREGIVER_NOTE = 'caregiverNote',
+  MILESTONE = 'milestone',
+  VICTORY = 'victory',
   
-  // Spreadsheet-specific node types
-  SPREADSHEET_CELL = 'spreadsheet_cell',
-  SPREADSHEET_FORMULA = 'spreadsheet_formula'
+  // Generic nodes
+  NOTE = 'note',
+  CUSTOM = 'custom'
 }
 
-// Canvas operation for undo/redo
-export interface CanvasOperation {
+export interface CanvasPosition {
+  x: number;
+  y: number;
+}
+
+export interface CanvasSize {
+  width: number;
+  height: number;
+}
+
+export interface CanvasNodeInput {
+  name: string;
+  type: string;
+  linkedTo?: {
+    nodeId: string;
+    output: number;
+  };
+}
+
+export interface CanvasNodeOutput {
+  name: string;
+  type: string;
+}
+
+export interface CanvasNodeVisual {
+  color?: string;
+  icon?: string;
+  shape?: string;
+}
+
+export interface CanvasNode {
   id: string;
-  type: 'create' | 'update' | 'delete';
-  target: 'node' | 'edge' | 'tab';
-  targetId: string;
-  before: any; // State before change
-  after: any;  // State after change
-  timestamp: Date;
-}
-
-// Canvas view settings
-export interface CanvasViewSettings {
-  zoom: number;
-  pan: { x: number; y: number };
-  grid: boolean;
-  snapToGrid: boolean;
-  minimap: boolean;
-  readOnly: boolean;
-  showControls: boolean;
-}
-
-// Canvas save/export format
-export interface CanvasExport {
-  version: string;
-  tabs: CanvasTab[];
-  settings: CanvasViewSettings;
+  type: NodeType | string;
+  title: string;
+  position: CanvasPosition;
+  size: CanvasSize;
+  inputs?: CanvasNodeInput[];
+  outputs?: CanvasNodeOutput[];
+  properties: Record<string, any>;
+  dataRef?: {
+    collection: string;
+    docId: string;
+  };
+  visual?: CanvasNodeVisual;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CanvasEdge {
+  id: string;
+  sourceNodeId: string;
+  sourceOutputIndex: number;
+  targetNodeId: string;
+  targetInputIndex: number;
+  type?: string;
+  properties?: Record<string, any>;
+}
+
+export interface CanvasConfig {
+  gridSize?: number;
+  background?: string;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  templateId?: string;
+  [key: string]: any;
+}
+
+export interface CanvasTab {
+  id: string;
+  title: string;
+  type: CanvasType;
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+  config?: CanvasConfig;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// For database storage
+export interface StoredCanvasTab {
+  id: string;
   userId: string;
-  metadata?: Record<string, any>;
+  title: string;
+  type: string;
+  config: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoredCanvasNode {
+  id: string;
+  tabId: string;
+  type: string;
+  title: string;
+  position: [number, number];
+  size: [number, number];
+  inputs: CanvasNodeInput[];
+  outputs: CanvasNodeOutput[];
+  properties: Record<string, any>;
+  dataRef?: {
+    collection: string;
+    docId: string;
+  };
+  visual?: CanvasNodeVisual;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoredCanvasEdge {
+  id: string;
+  tabId: string;
+  sourceNodeId: string;
+  sourceOutputIndex: number;
+  targetNodeId: string;
+  targetInputIndex: number;
+  type?: string;
+  properties?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Node-specific interfaces
+export interface TreatmentNode extends CanvasNode {
+  type: NodeType.TREATMENT;
+  properties: {
+    treatmentId?: string;
+    name: string;
+    treatmentType: string;
+    startDate: Date;
+    endDate?: Date;
+    dosage?: string;
+    frequency?: string;
+    sideEffects?: string[];
+    effectiveness?: number;
+    active: boolean;
+  };
+}
+
+export interface MedicationNode extends CanvasNode {
+  type: NodeType.MEDICATION;
+  properties: {
+    medicationId?: string;
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDate: Date;
+    endDate?: Date;
+    purpose: string;
+    sideEffects?: string[];
+    active: boolean;
+  };
+}
+
+export interface SymptomNode extends CanvasNode {
+  type: NodeType.SYMPTOM;
+  properties: {
+    symptomId?: string;
+    name: string;
+    severity: number;
+    frequency: string;
+    firstObserved: Date;
+    lastObserved?: Date;
+    notes: string;
+    relatedTo?: string[];
+    active: boolean;
+  };
+}
+
+export interface JournalNode extends CanvasNode {
+  type: NodeType.MOOD_ENTRY | NodeType.SYMPTOM_LOG | NodeType.DIET_LOG | NodeType.EXERCISE_LOG;
+  properties: {
+    entryId?: string;
+    content: string;
+    date: Date;
+    mood?: string;
+    energyLevel?: number;
+    painLevel?: number;
+    tags?: string[];
+  };
+}
+
+export interface MilestoneNode extends CanvasNode {
+  type: NodeType.MILESTONE;
+  properties: {
+    title: string;
+    date: Date;
+    description: string;
+    type: 'treatment' | 'personal' | 'medical' | 'other';
+    importance: number;
+  };
+}
+
+export interface HopeSnippetNode extends CanvasNode {
+  type: NodeType.HOPE_SNIPPET;
+  properties: {
+    content: string;
+    author?: string;
+    source?: string;
+    date: Date;
+    tags?: string[];
+  };
+}
+
+export interface CustomNode extends CanvasNode {
+  type: NodeType.CUSTOM;
+  properties: Record<string, any>;
 }
