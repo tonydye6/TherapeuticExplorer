@@ -9,6 +9,12 @@ export default {
         // Ensure 'Inter' is the default sans-serif font
         sans: ['Inter', 'sans-serif'],
       },
+      zIndex: {
+        'canvas': '10',
+        'canvas-ui': '20',
+        'canvas-modal': '30',
+        'canvas-tooltip': '40',
+      },
       borderRadius: {
         // Existing theme-driven radius (likely from theme.json via --radius CSS variable)
         // You might want to update the value of --radius in your theme setup

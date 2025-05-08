@@ -1,159 +1,143 @@
 import { useEffect, useRef, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
-import { useCanvas } from '@/contexts/CanvasContext';
+import type { LGraph, LiteGraph as LiteGraphType, LGraphCanvas } from 'litegraph.js';
 
-// We're using any type for LiteGraph since its TypeScript definitions are incomplete
-// This is a common approach for libraries that don't have proper TypeScript support
-type LiteGraphType = any;
-type LGraphType = any;
-type LGraphCanvasType = any;
-type LGraphNodeType = any;
+// Dynamically import LiteGraph.js to avoid SSR issues
+let LiteGraph: typeof LiteGraphType | null = null;
+if (typeof window !== 'undefined') {
+  // This dynamic import is necessary for browser-only libraries
+  import('litegraph.js').then((module) => {
+    LiteGraph = module.default;
+  });
+}
 
-const LiteGraphWrapper = ({ className = '' }: { className?: string }) => {
+interface LiteGraphWrapperProps {
+  onNodeSelected?: (nodeId: string) => void;
+  onNodeCreated?: (node: any) => void;
+  onNodeRemoved?: (node: any) => void;
+  onConnectionChanged?: (connection: any) => void;
+  className?: string;
+}
+
+export default function LiteGraphWrapper({
+  onNodeSelected,
+  onNodeCreated,
+  onNodeRemoved,
+  onConnectionChanged,
+  className
+}: LiteGraphWrapperProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { ref: containerRef, width, height } = useResizeDetector();
-  const [LiteGraph, setLiteGraph] = useState<LiteGraphType | null>(null);
-  const [graph, setGraph] = useState<LGraphType | null>(null);
-  const [canvas, setCanvas] = useState<LGraphCanvasType | null>(null);
-  
-  const {
-    activeTabId,
-    nodes,
-    connections,
-    scale,
-    offset,
-    setScale,
-    setOffset,
-  } = useCanvas();
+  const graphRef = useRef<LGraph | null>(null);
+  const canvasInstanceRef = useRef<LGraphCanvas | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-  // Load LiteGraph.js script
+  // Use resize detector to handle canvas resizing
+  const { width, height, ref: containerRef } = useResizeDetector({
+    refreshMode: 'debounce',
+    refreshRate: 100,
+  });
+
+  // Initialize LiteGraph canvas
   useEffect(() => {
-    // If LiteGraph is already available on window, use it
-    if ((window as any).LiteGraph) {
-      setLiteGraph((window as any).LiteGraph);
-      return;
-    }
+    if (!LiteGraph || !canvasRef.current) return;
 
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/litegraph.js@0.7.14/build/litegraph.min.js';
-    script.async = true;
-    
-    script.onload = () => {
-      setLiteGraph((window as any).LiteGraph);
-      console.log('LiteGraph.js loaded');
-    };
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+    // Only initialize once
+    if (graphRef.current) return;
 
-  // Initialize graph when LiteGraph is loaded and activeTabId changes
-  useEffect(() => {
-    if (!LiteGraph || !canvasRef.current || !activeTabId) return;
-    
     try {
-      // Create the graph instance
-      const newGraph = new LiteGraph.LGraph();
-      
+      // Customize LiteGraph appearance to match Sophera design
+      LiteGraph.NODE_TITLE_COLOR = "#2D3748"; // sophera-text-heading
+      LiteGraph.NODE_DEFAULT_COLOR = "#FFFFFF"; // white
+      LiteGraph.NODE_DEFAULT_BGCOLOR = "#FFFFFF"; // white
+      LiteGraph.NODE_DEFAULT_BOXCOLOR = "#0D9488"; // sophera-brand-primary
+      LiteGraph.NODE_DEFAULT_SHAPE = "box";
+      LiteGraph.DEFAULT_SHADOW_COLOR = "rgba(0,0,0,0.1)";
+      LiteGraph.CONNECTING_LINK_COLOR = "#0D9488"; // sophera-brand-primary
+      LiteGraph.DEFAULT_CONNECTION_COLOR = {
+        input_off: "#CBD5E0", // sophera-border-primary
+        input_on: "#0D9488",  // sophera-brand-primary
+        output_off: "#CBD5E0", // sophera-border-primary
+        output_on: "#FF7F50",  // sophera-accent-secondary
+      };
+
+      // Create a new graph
+      const graph = new LiteGraph.LGraph();
+      graphRef.current = graph;
+
       // Create the canvas instance
-      const newCanvas = new LiteGraph.LGraphCanvas(canvasRef.current, newGraph);
-      
-      // Configure the canvas
-      newCanvas.background_image = ''; // Empty string instead of null
-      newCanvas.allow_searchbox = true;
-      newCanvas.allow_reconnect_links = true;
-      newCanvas.allow_dragnodes = true;
-      newCanvas.always_render_background = true;
-      newCanvas.show_info = true;
-      
-      // Start the graph loop
-      newGraph.start();
-      
-      // Store references
-      setGraph(newGraph);
-      setCanvas(newCanvas);
-      
-      // Clean up on unmount
-      return () => {
-        newGraph.stop();
-        setGraph(null);
-        setCanvas(null);
-      };
-    } catch (err) {
-      console.error("Error initializing LiteGraph:", err);
-    }
-  }, [LiteGraph, activeTabId]);
+      const canvasInstance = new LiteGraph.LGraphCanvas(canvasRef.current, graph);
+      canvasInstanceRef.current = canvasInstance;
 
-  // Update canvas size when container size changes
+      // Start the graph
+      graph.start();
+      setIsReady(true);
+      
+      // Register event handlers
+      if (onNodeSelected) {
+        graph.onNodeSelected = (node: any) => {
+          onNodeSelected(node.id);
+        };
+      }
+
+      if (onNodeCreated) {
+        graph.onNodeAdded = (node: any) => {
+          onNodeCreated(node);
+        };
+      }
+
+      if (onNodeRemoved) {
+        graph.onNodeRemoved = (node: any) => {
+          onNodeRemoved(node);
+        };
+      }
+
+      if (onConnectionChanged) {
+        graph.onConnectionChange = (node: any, inputIndex: number, outputIndex: number, linkInfo: any, connected: boolean) => {
+          onConnectionChanged({
+            node,
+            inputIndex,
+            outputIndex,
+            linkInfo,
+            connected
+          });
+        };
+      }
+
+    } catch (error) {
+      console.error("Error initializing LiteGraph:", error);
+    }
+
+    // Cleanup function
+    return () => {
+      if (graphRef.current) {
+        graphRef.current.stop();
+      }
+    };
+  }, [onNodeSelected, onNodeCreated, onNodeRemoved, onConnectionChanged]);
+
+  // Handle resize events
   useEffect(() => {
-    if (!canvasRef.current || !canvas || !width || !height) return;
+    if (!canvasInstanceRef.current || !width || !height) return;
     
-    canvasRef.current.width = width;
-    canvasRef.current.height = height;
-    
-    // Force a redraw
-    try {
-      canvas.draw(true, true);
-    } catch (err) {
-      console.error("Error resizing canvas:", err);
-    }
-  }, [width, height, canvas]);
+    // Resize the canvas when the container size changes
+    canvasInstanceRef.current.resize(width, height);
+  }, [width, height]);
 
-  // Initialize zoom and pan
-  useEffect(() => {
-    if (!canvas) return;
-    
-    try {
-      // Set scale and offset (zoom and pan)
-      canvas.ds.scale = scale;
-      canvas.ds.offset = offset;
-      
-      // Set callback for when scale or offset changes
-      canvas.onDrawBackground = function() {
-        try {
-          // Store current scale and offset in context
-          if (this.ds.scale !== scale) {
-            setScale(this.ds.scale);
-          }
-          if (this.ds.offset[0] !== offset[0] || this.ds.offset[1] !== offset[1]) {
-            setOffset([this.ds.offset[0], this.ds.offset[1]]);
-          }
-        } catch (err) {
-          console.error("Error in onDrawBackground:", err);
-        }
-      };
-    } catch (err) {
-      console.error("Error setting canvas scale/offset:", err);
-    }
-  }, [canvas, scale, offset, setScale, setOffset]);
-
-  // Simplified version - we'll add actual node rendering in a later iteration
   return (
-    <div 
-      ref={containerRef} 
-      className={`relative w-full h-full overflow-hidden ${className}`}
-    >
+    <div ref={containerRef} className={`w-full h-full ${className || ''}`}>
       <canvas 
-        ref={canvasRef}
-        className="litegraph-canvas absolute inset-0 touch-none"
+        ref={canvasRef} 
+        className="w-full h-full"
       />
-      <div className="litegraph-grid absolute inset-0 pointer-events-none" />
-      
-      {/* Placeholder message */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-500">
-        <div className="bg-white/80 p-4 rounded-md shadow-sm">
-          <p className="text-center">
-            {LiteGraph 
-              ? "Canvas initialized. Node functionality coming soon." 
-              : "Loading LiteGraph.js..."}
-          </p>
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+          <div className="loading-wave-container">
+            <div className="loading-wave"></div>
+            <div className="loading-wave"></div>
+            <div className="loading-wave"></div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
-};
-
-export default LiteGraphWrapper;
+}
