@@ -9,7 +9,9 @@ import {
   CalendarCheck, 
   FileText, 
   Heart,
-  BrainCircuit
+  BrainCircuit,
+  Map,
+  Grid
 } from 'lucide-react';
 //
 import { TodaysFocus } from '@/components/dashboard/TodaysFocus';
@@ -72,6 +74,45 @@ export default function DashboardPage() {
         icon={<Home className="h-6 w-6 text-sophera-brand-primary" />}
         decorationColor="bg-sophera-accent-secondary"
       />
+
+      {/* NEW: Canvas Feature Access */}
+      <div className="mb-8 mt-4">
+        <NeoCard>
+          <NeoCardDecoration />
+          <NeoCardHeader>
+            <NeoCardTitle className="flex items-center">
+              <Map className="h-5 w-5 mr-2 text-sophera-brand-primary" />
+              Canvas - Your Visual Journey
+            </NeoCardTitle>
+            <NeoCardDescription>
+              Explore and organize your cancer journey in a visual, interactive way
+            </NeoCardDescription>
+          </NeoCardHeader>
+          <NeoCardContent>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between py-3">
+              <div className="flex-1 max-w-md">
+                <p className="text-sm text-sophera-text-body mb-3">
+                  Our new Canvas feature allows you to visually map your medical journey, create treatment timelines, 
+                  track symptoms, and organize your care in an intuitive, visual workspace.
+                </p>
+                <div className="flex gap-4 mt-4">
+                  <Link href="/canvas">
+                    <NeoButton buttonText="Open Canvas" color="lime" className="font-bold" />
+                  </Link>
+                  <Link href="/canvas-demo">
+                    <NeoButton buttonText="Try Demo" color="primary" className="font-bold" />
+                  </Link>
+                </div>
+              </div>
+              <div className="flex-shrink-0 border-3 border-black p-1 bg-white shadow-neo">
+                <div className="w-[150px] h-[100px] bg-gray-100 flex items-center justify-center">
+                  <Grid className="h-10 w-10 text-sophera-brand-primary opacity-70" />
+                </div>
+              </div>
+            </div>
+          </NeoCardContent>
+        </NeoCard>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         <div className="grid grid-cols-1 gap-6 md:gap-8">
