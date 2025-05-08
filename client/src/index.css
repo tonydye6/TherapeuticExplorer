@@ -700,13 +700,16 @@
 /* Canvas system styles */
 @layer components {
   .canvas-container {
-    @apply relative w-full h-full bg-white;
-    height: calc(100vh - 4rem); /* Adjust based on header height */
+    @apply relative w-full h-full;
+    height: calc(100vh - 4rem);
+    background-color: #fafafa;
+    background-image: linear-gradient(rgba(55, 65, 81, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(55, 65, 81, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
   .canvas-toolbar {
-    @apply flex items-center justify-between px-4 py-2 border-b border-border bg-white z-canvas-ui;
-    min-height: 50px;
+    @apply flex items-center h-12 px-3 bg-white border-b border-gray-200;
   }
 
   .canvas-toolbar button {
@@ -740,9 +743,19 @@
   }
 
   .canvas-node {
-    @apply bg-white border-2 border-gray-800 rounded-lg p-2 shadow-neo-sm overflow-hidden;
-    min-width: 150px;
-    min-height: 80px;
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+    min-width: 280px;
+    min-height: 150px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .canvas-node:hover {
+    @apply shadow-lg;
+    border-color: #d1d5db;
+  }
+
+  .canvas-node.selected {
+    @apply ring-2 ring-blue-500;
   }
 
   .canvas-node-treatment {
@@ -782,9 +795,10 @@
   }
 
   .canvas-minimap {
-    @apply absolute bottom-4 right-4 border border-border bg-white/80 rounded-sophera-card shadow-md z-canvas-ui;
+    @apply fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border border-gray-200;
     width: 200px;
     height: 150px;
+    opacity: 0.9;
   }
 
   /* Customize LiteGraph styles to match Sophera design */
