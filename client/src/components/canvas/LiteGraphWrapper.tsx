@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
-import type { LGraph, LiteGraph as LiteGraphType, LGraphCanvas } from 'litegraph.js';
 
-// Dynamically import LiteGraph.js to avoid SSR issues
-let LiteGraph: typeof LiteGraphType | null = null;
-if (typeof window !== 'undefined') {
-  // This dynamic import is necessary for browser-only libraries
-  import('litegraph.js').then((module) => {
-    LiteGraph = module.default;
-  });
-}
+// We need to use a type-only import first to satisfy TypeScript
+import type { LGraph, LGraphCanvas } from 'litegraph.js';
+
+// LiteGraph will be loaded at runtime
+let LiteGraph: any = null;
 
 interface LiteGraphWrapperProps {
   onNodeSelected?: (nodeId: string) => void;
@@ -37,10 +33,26 @@ export default function LiteGraphWrapper({
     refreshRate: 100,
   });
 
+  // Load LiteGraph.js
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Dynamic import - only runs in browser
+    import('litegraph.js').then((module) => {
+      LiteGraph = module.default || module;
+      console.log("LiteGraph.js loaded", LiteGraph);
+    }).catch(err => {
+      console.error("Failed to load LiteGraph.js:", err);
+    });
+  }, []);
+
   // Initialize LiteGraph canvas
   useEffect(() => {
-    if (!LiteGraph || !canvasRef.current) return;
-
+    if (!canvasRef.current) return;
+    
+    // Wait for LiteGraph to be loaded
+    if (!LiteGraph) return;
+    
     // Only initialize once
     if (graphRef.current) return;
 
