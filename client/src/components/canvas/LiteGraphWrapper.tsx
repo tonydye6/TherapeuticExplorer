@@ -131,13 +131,24 @@ export default function LiteGraphWrapper({
 
       if (onConnectionChanged) {
         graph.onConnectionChange = (node: any, inputIndex: number, outputIndex: number, linkInfo: any, connected: boolean) => {
-          onConnectionChanged({
+          // Enhanced connection change handling with more information
+          // This allows us to create or remove edges in our data model
+          const connectionInfo = {
             node,
+            nodeId: node.id,
             inputIndex,
             outputIndex,
             linkInfo,
-            connected
-          });
+            connected,
+            sourceNode: linkInfo?.origin_node,
+            sourceNodeId: linkInfo?.origin_node?.id,
+            sourceOutputIndex: linkInfo?.origin_slot,
+            targetNode: node,
+            targetNodeId: node.id,
+            targetInputIndex: inputIndex
+          };
+          
+          onConnectionChanged(connectionInfo);
         };
       }
 

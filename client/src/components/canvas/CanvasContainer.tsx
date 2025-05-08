@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { CanvasTab, CanvasType, CanvasNode } from '@shared/canvas-types';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
+import { CanvasTab, CanvasType, CanvasNode, CanvasEdge } from '@shared/canvas-types';
 import LiteGraphWrapper from './LiteGraphWrapper';
 import CanvasTabBar from './CanvasTabBar';
 import NodeDetailsPanel from './NodeDetailsPanel';
@@ -9,6 +9,7 @@ import { LGraphNode, LGraph } from 'litegraph.js';
 import { NodeFactory } from './nodes/NodeFactory';
 import { useCanvasState } from '@/hooks/canvas/useCanvasState';
 import { useNodeMapping } from '@/hooks/canvas/useNodeMapping';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CanvasContainerProps {
   initialTabs?: CanvasTab[];
@@ -37,7 +38,9 @@ export default function CanvasContainer({
     selectNode,
     selectedNodeId,
     selectedNode: canvasSelectedNode,
-    updateNodeProperties
+    updateNodeProperties,
+    addEdge,
+    removeEdge
   } = useCanvasState({
     initialTabs,
     userId,
@@ -49,6 +52,9 @@ export default function CanvasContainer({
   
   // Track the selected LiteGraph node separately from our canvas state
   const [selectedLGraphNode, setSelectedLGraphNode] = React.useState<LGraphNode | null>(null);
+  
+  // Track when the graph is ready
+  const [graphReady, setGraphReady] = useState(false);
   
   // Handle node selection from LiteGraph
   const handleNodeSelect = useCallback((nodeId: string, node: LGraphNode) => {
@@ -78,6 +84,123 @@ export default function CanvasContainer({
     setSelectedLGraphNode(null);
     selectNode(null);
   }, [selectNode]);
+  
+  // Helper function to create connections for an edge
+  const createConnection = useCallback((edge: CanvasEdge) => {
+    const graph = (window as any).sophGraph;
+    if (!graph) return;
+    
+    // Get the LiteGraph nodes
+    const sourceLiteNodeId = nodeMapping.getLiteNodeId(edge.sourceNodeId);
+    const targetLiteNodeId = nodeMapping.getLiteNodeId(edge.targetNodeId);
+    
+    if (!sourceLiteNodeId || !targetLiteNodeId) {
+      console.warn(`Cannot create connection: missing LiteGraph node IDs for edge ${edge.id}`);
+      return;
+    }
+    
+    // Get the actual nodes from the graph
+    const sourceLiteNode = graph.getNodeById(parseInt(sourceLiteNodeId));
+    const targetLiteNode = graph.getNodeById(parseInt(targetLiteNodeId));
+    
+    if (!sourceLiteNode || !targetLiteNode) {
+      console.warn(`Cannot create connection: LiteGraph nodes not found for edge ${edge.id}`);
+      return;
+    }
+    
+    // Create the connection
+    try {
+      const connected = graph.connect(
+        sourceLiteNode.id, 
+        edge.sourceOutputIndex || 0, 
+        targetLiteNode.id, 
+        edge.targetInputIndex || 0
+      );
+      
+      if (connected) {
+        console.log(`Created connection for edge ${edge.id}: ${sourceLiteNode.id} -> ${targetLiteNode.id}`);
+      } else {
+        console.warn(`Failed to create connection for edge ${edge.id}`);
+      }
+    } catch (err) {
+      console.error(`Error creating connection for edge ${edge.id}:`, err);
+    }
+  }, [nodeMapping]);
+  
+  // Effect to initialize connections when graph and node mappings are ready
+  useEffect(() => {
+    if (graphReady && activeTab && activeTab.edges.length > 0) {
+      console.log('Initializing edges from canvas state:', activeTab.edges);
+      
+      // Create connections for all edges in the active tab
+      activeTab.edges.forEach(edge => {
+        createConnection(edge);
+      });
+    }
+  }, [graphReady, activeTab, createConnection]);
+  
+  // Effect to initialize nodes from active tab
+  useEffect(() => {
+    if (graphReady && activeTab && activeTab.nodes.length > 0) {
+      console.log('Initializing nodes from canvas state:', activeTab.nodes);
+      
+      const graph = (window as any).sophGraph;
+      if (graph) {
+        // First clear any existing nodes
+        graph.clear();
+        
+        // Reset node mappings since we're rebuilding everything
+        nodeMapping.clearMappings();
+        
+        // Then add all nodes from our canvas state
+        activeTab.nodes.forEach(canvasNode => {
+          try {
+            // Create LiteGraph node
+            const liteNode = NodeFactory.createLGraphNode(
+              graph,
+              canvasNode.type,
+              {
+                ...canvasNode.properties,
+                title: canvasNode.title
+              },
+              canvasNode.position
+            );
+            
+            if (liteNode) {
+              // Establish the mapping
+              nodeMapping.addMapping(canvasNode.id, liteNode.id.toString());
+              console.log(`Created node mapping: ${canvasNode.id} → ${liteNode.id}`);
+            }
+          } catch (err) {
+            console.error(`Error creating node for ${canvasNode.id}:`, err);
+          }
+        });
+        
+        // Force a redraw
+        graph.setDirtyCanvas(true);
+      }
+    }
+  }, [graphReady, activeTab, nodeMapping]);
+  
+  // Effect to set graph ready flag when the graph is accessible
+  useEffect(() => {
+    const checkGraph = () => {
+      const graph = (window as any).sophGraph;
+      if (graph) {
+        console.log('LiteGraph instance is ready');
+        setGraphReady(true);
+      } else {
+        // Try again in a moment
+        setTimeout(checkGraph, 100);
+      }
+    };
+    
+    checkGraph();
+    
+    return () => {
+      setGraphReady(false);
+    };
+  }, [activeTabId]); // Re-check when the active tab changes
   
   // Add a node to the graph
   const addNodeToGraph = useCallback((nodeType: string, position: {x: number, y: number}, properties: any) => {
@@ -235,6 +358,65 @@ export default function CanvasContainer({
               onNodeSelected={handleNodeSelect}
               onNodeCreated={(node) => {
                 console.log('Node created:', node);
+              }}
+              onConnectionChanged={(connectionInfo) => {
+                // Handle connection changes
+                const { 
+                  connected, 
+                  sourceNodeId, 
+                  sourceOutputIndex, 
+                  targetNodeId, 
+                  targetInputIndex 
+                } = connectionInfo;
+                
+                if (connected && sourceNodeId && targetNodeId) {
+                  // Connection was created - add an edge to our data model
+                  console.log('Connection created:', sourceNodeId, '->', targetNodeId);
+                  
+                  // Get the canvas node IDs from our mapping
+                  const canvasSourceNodeId = nodeMapping.getCanvasNodeId(sourceNodeId.toString());
+                  const canvasTargetNodeId = nodeMapping.getCanvasNodeId(targetNodeId.toString());
+                  
+                  if (canvasSourceNodeId && canvasTargetNodeId) {
+                    // Create a new edge
+                    const newEdge: CanvasEdge = {
+                      id: uuidv4(),
+                      sourceNodeId: canvasSourceNodeId,
+                      sourceOutputIndex: sourceOutputIndex || 0,
+                      targetNodeId: canvasTargetNodeId,
+                      targetInputIndex: targetInputIndex || 0,
+                      type: 'default',
+                      properties: { 
+                        createdAt: new Date(),
+                        relationship: 'related'
+                      }
+                    };
+                    
+                    // Add the edge to our data model
+                    addEdge(newEdge);
+                  }
+                } else if (!connected && sourceNodeId && targetNodeId) {
+                  // Connection was removed - find and remove the edge from our data model
+                  console.log('Connection removed:', sourceNodeId, '->', targetNodeId);
+                  
+                  // Find the corresponding edge in the active tab
+                  if (activeTab) {
+                    const canvasSourceNodeId = nodeMapping.getCanvasNodeId(sourceNodeId.toString());
+                    const canvasTargetNodeId = nodeMapping.getCanvasNodeId(targetNodeId.toString());
+                    
+                    if (canvasSourceNodeId && canvasTargetNodeId) {
+                      const edge = activeTab.edges.find(e => 
+                        e.sourceNodeId === canvasSourceNodeId &&
+                        e.targetNodeId === canvasTargetNodeId
+                      );
+                      
+                      if (edge) {
+                        // Remove the edge from our data model
+                        removeEdge(edge.id);
+                      }
+                    }
+                  }
+                }
               }}
               className="w-full h-full"
             />
