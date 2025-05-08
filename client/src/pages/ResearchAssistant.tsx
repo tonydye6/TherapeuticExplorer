@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { ModelType } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -376,392 +375,394 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
   };
   
   return (
-    <div className="flex h-full max-h-screen overflow-hidden p-4 gap-4">
-      {/* Left Panel - Chat Interface */}
-      <div className="w-[65%] flex flex-col h-full overflow-hidden">
-        {/* Header */}
-        <div 
-          className="bg-[#3db4ab] border-4 border-black rounded-xl p-6 shadow-[0.3rem_0.3rem_0_#000000] mb-4 relative"
-          style={{
-            clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
-          }}
-        >
-          <div className="absolute left-0 top-0 w-10 h-10 bg-[#2a8f87] border-r-4 border-b-4 border-black"></div>
-          <h1 className="text-2xl font-extrabold text-white tracking-wide ml-8">GUIDED RESEARCH</h1>
-          <p className="text-white text-opacity-90 font-medium ml-8">
-            Get clear answers from trusted medical sources tailored to your needs
-          </p>
-        </div>
-        
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white">
-          {/* Info Banner */}
-          <div className="p-4">
-            <Alert className="border-3 border-black bg-amber-50 rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000]">
-              <Info className="h-5 w-5 text-[#3db4ab]" />
-              <AlertTitle className="font-extrabold text-black">HUMAN-FRIENDLY EXPLANATIONS</AlertTitle>
-              <AlertDescription className="text-gray-800">
-                We explain medical information in clear, everyday language to help you understand your options.
-              </AlertDescription>
-            </Alert>
+    <div className="fixed inset-0 p-4 overflow-hidden" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div className="flex h-full w-full gap-4">
+        {/* Left Panel - Chat Interface */}
+        <div className="w-[65%] flex flex-col h-full">
+          {/* Header */}
+          <div 
+            className="bg-[#3db4ab] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] relative"
+            style={{
+              clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 40px 0, 40px 40px, 0 40px)"
+            }}
+          >
+            <div className="absolute left-0 top-0 w-10 h-10 bg-[#2a8f87] border-r-4 border-b-4 border-black"></div>
+            <h1 className="text-2xl font-extrabold text-white tracking-wide ml-8">GUIDED RESEARCH</h1>
+            <p className="text-white text-opacity-90 font-medium ml-8">
+              Get clear answers from trusted medical sources tailored to your needs
+            </p>
           </div>
           
-          {/* Message Area */}
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full px-4 pb-4">
-              <div className="space-y-6">
-                {messages.map((message) => (
-                  <div 
-                    key={message.id} 
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {message.role === 'assistant' && (
+          {/* Main Chat Area */}
+          <div className="flex-grow flex flex-col min-h-0 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-white overflow-hidden">
+            {/* Info Banner */}
+            <div className="p-4">
+              <Alert className="border-3 border-black bg-amber-50 rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000]">
+                <Info className="h-5 w-5 text-[#3db4ab]" />
+                <AlertTitle className="font-extrabold text-black">HUMAN-FRIENDLY EXPLANATIONS</AlertTitle>
+                <AlertDescription className="text-gray-800">
+                  We explain medical information in clear, everyday language to help you understand your options.
+                </AlertDescription>
+              </Alert>
+            </div>
+            
+            {/* Message Area */}
+            <div className="flex-grow min-h-0 overflow-hidden">
+              <ScrollArea className="h-full px-4 pb-4">
+                <div className="space-y-6">
+                  {messages.map((message) => (
+                    <div 
+                      key={message.id} 
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {message.role === 'assistant' && (
+                        <div className="flex-shrink-0 mr-3">
+                          <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
+                            <BookOpen className="h-5 w-5 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div 
+                        className={`relative max-w-[85%] ${
+                          message.role === 'user' 
+                            ? 'bg-blue-50 border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]' 
+                            : 'bg-white border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12'
+                        }`}
+                      >
+                        {message.role === 'assistant' && (
+                          <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-4 border-black"></div>
+                        )}
+                        
+                        {message.role === 'user' && (
+                          <div className="flex-shrink-0 ml-3 absolute -right-14 top-0">
+                            <Avatar className="h-10 w-10 border-3 border-black shadow-[0.15rem_0.15rem_0_#000]">
+                              <AvatarFallback className="bg-amber-200 text-amber-800 font-bold">U</AvatarFallback>
+                            </Avatar>
+                          </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                          {message.role === 'assistant' && (
+                            <div className="font-extrabold text-black uppercase">
+                              {message.content.split("\n")[0].length > 50 
+                                ? message.content.split("\n")[0].substring(0, 50) + "..." 
+                                : message.content.split("\n")[0]}
+                            </div>
+                          )}
+                          
+                          <div className="whitespace-pre-wrap text-gray-800">
+                            {message.role === 'assistant' 
+                              ? message.content.split("\n").slice(message.content.includes("\n\n") ? 2 : 1).join("\n")
+                              : message.content}
+                          </div>
+                          
+                          <div className="pt-2 mt-2 border-t-2 border-dashed border-gray-300 flex justify-between items-center">
+                            <div className="text-xs text-gray-500 font-medium">
+                              {format(message.timestamp, 'MMM d, yyyy · h:mm a')}
+                            </div>
+                            
+                            {message.role === 'assistant' && (
+                              <div className="flex gap-2">
+                                <NeoButton
+                                  buttonText="COPY"
+                                  size="sm"
+                                  color="white"
+                                  icon={<Copy className="h-4 w-4" />}
+                                  className="border-2 border-black text-gray-700"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(message.content);
+                                    toast({
+                                      title: "Copied!",
+                                      description: "Text copied to clipboard.",
+                                    });
+                                  }}
+                                />
+                                
+                                <NeoButton
+                                  buttonText="SAVE"
+                                  size="sm"
+                                  color="primary"
+                                  icon={<Save className="h-4 w-4" />}
+                                  onClick={() => handleSaveResearch(message)}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isProcessing && (
+                    <div className="flex justify-start">
                       <div className="flex-shrink-0 mr-3">
                         <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
                           <BookOpen className="h-5 w-5 text-white" />
                         </div>
                       </div>
-                    )}
-                    
-                    <div 
-                      className={`relative max-w-[85%] ${
-                        message.role === 'user' 
-                          ? 'bg-blue-50 border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]' 
-                          : 'bg-white border-4 border-black rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12'
-                      }`}
-                    >
-                      {message.role === 'assistant' && (
+                      
+                      <div className="relative bg-white border-4 border-black rounded-xl p-5 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12 max-w-[85%]">
                         <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-4 border-black"></div>
-                      )}
-                      
-                      {message.role === 'user' && (
-                        <div className="flex-shrink-0 ml-3 absolute -right-14 top-0">
-                          <Avatar className="h-10 w-10 border-3 border-black shadow-[0.15rem_0.15rem_0_#000]">
-                            <AvatarFallback className="bg-amber-200 text-amber-800 font-bold">U</AvatarFallback>
-                          </Avatar>
-                        </div>
-                      )}
-                      
-                      <div className="space-y-2">
-                        {message.role === 'assistant' && (
-                          <div className="font-extrabold text-black uppercase">
-                            {message.content.split("\n")[0].length > 50 
-                              ? message.content.split("\n")[0].substring(0, 50) + "..." 
-                              : message.content.split("\n")[0]}
-                          </div>
-                        )}
                         
-                        <div className="whitespace-pre-wrap text-gray-800">
-                          {message.role === 'assistant' 
-                            ? message.content.split("\n").slice(message.content.includes("\n\n") ? 2 : 1).join("\n")
-                            : message.content}
-                        </div>
-                        
-                        <div className="pt-2 mt-2 border-t-2 border-dashed border-gray-300 flex justify-between items-center">
-                          <div className="text-xs text-gray-500 font-medium">
-                            {format(message.timestamp, 'MMM d, yyyy · h:mm a')}
-                          </div>
-                          
-                          {message.role === 'assistant' && (
-                            <div className="flex gap-2">
-                              <NeoButton
-                                buttonText="COPY"
-                                size="sm"
-                                color="white"
-                                icon={<Copy className="h-4 w-4" />}
-                                className="border-2 border-black text-gray-700"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(message.content);
-                                  toast({
-                                    title: "Copied!",
-                                    description: "Text copied to clipboard.",
-                                  });
-                                }}
-                              />
-                              
-                              <NeoButton
-                                buttonText="SAVE"
-                                size="sm"
-                                color="primary"
-                                icon={<Save className="h-4 w-4" />}
-                                onClick={() => handleSaveResearch(message)}
-                              />
-                            </div>
-                          )}
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
+                          <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          <span className="font-bold text-gray-400 ml-1">Researching...</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="h-10 w-10 rounded-full bg-[#3db4ab] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-white" />
-                      </div>
-                    </div>
-                    
-                    <div className="relative bg-white border-4 border-black rounded-xl p-5 shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] pl-12 max-w-[85%]">
-                      <div className="absolute left-0 top-0 bottom-0 w-8 rounded-l-lg bg-[#3db4ab] border-r-4 border-black"></div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                        <span className="font-bold text-gray-400 ml-1">Researching...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-          </div>
-          
-          {/* Input Area */}
-          <div className="border-t-4 border-black p-4 bg-gray-50">
-            <div className="relative border-4 border-black rounded-xl p-4 bg-white shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                <div className="relative">
-                  <Input
-                    className="border-3 border-black rounded-lg pl-4 pr-12 py-3 h-16 text-base shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-offset-2 focus-visible:ring-[#3db4ab]"
-                    placeholder="Ask about treatments, side effects, or research..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    disabled={isProcessing}
-                  />
-                  <NeoButton
-                    type="submit"
-                    size="sm"
-                    color="primary"
-                    className="absolute right-2 top-2"
-                    icon={<SendIcon className="h-5 w-5" />}
-                    disabled={!inputValue.trim() || isProcessing}
-                  />
+                  )}
+                  
+                  <div ref={messagesEndRef} />
                 </div>
-                
-                <div className="flex items-center gap-2 py-1">
-                  <span className="text-xs font-extrabold text-gray-700">SUGGESTED:</span>
-                  <div className="flex-1 overflow-x-auto flex gap-2 pb-1">
-                    {activeCategory
-                      ? suggestedPrompts
-                          .find(cat => cat.category === activeCategory)
-                          ?.examples.map((prompt, i) => (
+              </ScrollArea>
+            </div>
+            
+            {/* Input Area */}
+            <div className="border-t-4 border-black p-4 bg-gray-50">
+              <div className="border-4 border-black rounded-xl p-4 bg-white shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px]">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                  <div className="relative">
+                    <Input
+                      className="border-3 border-black rounded-lg pl-4 pr-12 py-3 h-16 text-base shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-offset-2 focus-visible:ring-[#3db4ab]"
+                      placeholder="Ask about treatments, side effects, or research..."
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      disabled={isProcessing}
+                    />
+                    <NeoButton
+                      type="submit"
+                      size="sm"
+                      color="primary"
+                      className="absolute right-2 top-2"
+                      icon={<SendIcon className="h-5 w-5" />}
+                      disabled={!inputValue.trim() || isProcessing}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2 py-1">
+                    <span className="text-xs font-extrabold text-gray-700">SUGGESTED:</span>
+                    <div className="flex-1 overflow-x-auto flex gap-2 pb-1">
+                      {activeCategory
+                        ? suggestedPrompts
+                            .find(cat => cat.category === activeCategory)
+                            ?.examples.map((prompt, i) => (
+                              <button
+                                key={i}
+                                onClick={() => handleSelectPrompt(prompt)}
+                                className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
+                              >
+                                {prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt}
+                              </button>
+                            ))
+                        : suggestedPrompts.map((category, idx) => (
                             <button
-                              key={i}
-                              onClick={() => handleSelectPrompt(prompt)}
+                              key={idx}
+                              onClick={() => setActiveCategory(category.category)}
                               className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
                             >
-                              {prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt}
+                              <span className="flex items-center gap-1">
+                                {category.icon}
+                                {category.category}
+                              </span>
                             </button>
                           ))
-                      : suggestedPrompts.map((category, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setActiveCategory(category.category)}
-                            className="flex-shrink-0 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
-                          >
-                            <span className="flex items-center gap-1">
-                              {category.icon}
-                              {category.category}
-                            </span>
-                          </button>
-                        ))
-                    }
-                    
-                    {activeCategory && (
-                      <button
-                        onClick={() => setActiveCategory(null)}
-                        className="flex-shrink-0 bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
-                      >
-                        <X className="h-3 w-3 text-gray-700" />
-                      </button>
-                    )}
+                      }
+                      
+                      {activeCategory && (
+                        <button
+                          onClick={() => setActiveCategory(null)}
+                          className="flex-shrink-0 bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-full px-3 py-1 text-xs font-bold shadow-[0.1rem_0.1rem_0_#000] hover:translate-y-[-0.2rem] hover:translate-x-[-0.2rem] hover:shadow-[0.2rem_0.2rem_0_#000] transition-all"
+                        >
+                          <X className="h-3 w-3 text-gray-700" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Right Panel - Research Library */}
-      <div className="w-[35%] flex flex-col h-full overflow-hidden">
-        {/* Header */}
-        <div 
-          className="bg-[#4a88db] border-4 border-black rounded-xl p-6 shadow-[0.3rem_0.3rem_0_#000000] mb-4 relative"
-          style={{
-            clipPath: "polygon(0 0, 100% 0, 100% 0, 100% 40px, calc(100% - 40px) 40px, calc(100% - 40px) 0, 100% 0, 100% 100%, 0 100%)"
-          }}
-        >
-          <div className="absolute right-0 top-0 w-10 h-10 bg-[#3b79cc] border-l-4 border-b-4 border-black"></div>
-          <h1 className="text-2xl font-extrabold text-white tracking-wide">RESEARCH LIBRARY</h1>
-          <p className="text-white text-opacity-90 font-medium">
-            Save and reference important information for your cancer journey
-          </p>
-        </div>
         
-        {/* Search and Filter Area */}
-        <div className="border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white p-4 mb-4">
-          <div className="relative mb-3">
-            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search saved research..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 border-3 border-black rounded-lg shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#4a88db] focus-visible:ring-offset-2"
-            />
+        {/* Right Panel - Research Library */}
+        <div className="w-[35%] flex flex-col h-full">
+          {/* Header */}
+          <div 
+            className="bg-[#4a88db] border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] relative"
+            style={{
+              clipPath: "polygon(0 0, 100% 0, 100% 0, 100% 40px, calc(100% - 40px) 40px, calc(100% - 40px) 0, 100% 0, 100% 100%, 0 100%)"
+            }}
+          >
+            <div className="absolute right-0 top-0 w-10 h-10 bg-[#3b79cc] border-l-4 border-b-4 border-black"></div>
+            <h1 className="text-2xl font-extrabold text-white tracking-wide">RESEARCH LIBRARY</h1>
+            <p className="text-white text-opacity-90 font-medium">
+              Save and reference important information for your cancer journey
+            </p>
           </div>
           
-          {/* Filter tabs */}
-          <div className="flex border-3 border-black rounded-xl overflow-hidden">
-            <button
-              onClick={() => setFilter("all")}
-              className={`flex-1 py-3 text-center font-bold ${
-                filter === "all" 
-                  ? "bg-[#4a88db] text-white" 
-                  : "bg-white text-gray-700 hover:bg-blue-50"
-              }`}
-            >
-              ALL
-            </button>
-            <button
-              onClick={() => setFilter("treatment")}
-              className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
-                filter === "treatment" 
-                  ? "bg-[#4a88db] text-white" 
-                  : "bg-white text-gray-700 hover:bg-blue-50"
-              }`}
-            >
-              TREATMENTS
-            </button>
-            <button
-              onClick={() => setFilter("favorites")}
-              className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
-                filter === "favorites" 
-                  ? "bg-[#4a88db] text-white" 
-                  : "bg-white text-gray-700 hover:bg-blue-50"
-              }`}
-            >
-              <Star className="h-4 w-4 inline-block mr-1" />
-              FAVORITES
-            </button>
+          {/* Search and Filter Area */}
+          <div className="border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-white p-4 mb-4">
+            <div className="relative mb-3">
+              <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search saved research..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-12 border-3 border-black rounded-lg shadow-[0.2rem_0.2rem_0_#000] focus-visible:ring-[#4a88db] focus-visible:ring-offset-2"
+              />
+            </div>
+            
+            {/* Filter tabs */}
+            <div className="flex border-3 border-black rounded-xl overflow-hidden">
+              <button
+                onClick={() => setFilter("all")}
+                className={`flex-1 py-3 text-center font-bold ${
+                  filter === "all" 
+                    ? "bg-[#4a88db] text-white" 
+                    : "bg-white text-gray-700 hover:bg-blue-50"
+                }`}
+              >
+                ALL
+              </button>
+              <button
+                onClick={() => setFilter("treatment")}
+                className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
+                  filter === "treatment" 
+                    ? "bg-[#4a88db] text-white" 
+                    : "bg-white text-gray-700 hover:bg-blue-50"
+                }`}
+              >
+                TREATMENTS
+              </button>
+              <button
+                onClick={() => setFilter("favorites")}
+                className={`flex-1 py-3 text-center font-bold border-l-3 border-black ${
+                  filter === "favorites" 
+                    ? "bg-[#4a88db] text-white" 
+                    : "bg-white text-gray-700 hover:bg-blue-50"
+                }`}
+              >
+                <Star className="h-4 w-4 inline-block mr-1" />
+                FAVORITES
+              </button>
+            </div>
           </div>
-        </div>
-        
-        {/* Research Items */}
-        <div className="flex-1 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] bg-white overflow-hidden">
-          <ScrollArea className="h-full p-4">
-            {filteredResearchItems.length === 0 ? (
-              <div className="text-center p-8 mt-4">
-                <BookmarkPlus className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-extrabold text-gray-800 mb-2">NO SAVED RESEARCH</h3>
-                <p className="text-gray-600 mb-6">
-                  Save important information from your research sessions here for easy reference.
-                </p>
-                <NeoButton 
-                  buttonText="START RESEARCHING"
-                  color="cyan"
-                  className="bg-[#4a88db]"
-                  onClick={() => {
-                    toast({
-                      title: "Research Assistant",
-                      description: "Let's start researching! Ask a question to get started.",
-                    });
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {filteredResearchItems.map((item) => (
-                  <div 
-                    key={item.id} 
-                    className="relative bg-white border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] overflow-hidden mb-6"
-                  >
-                    {/* Colored indicator based on source type */}
+          
+          {/* Research Items */}
+          <div className="flex-grow min-h-0 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-white overflow-hidden">
+            <ScrollArea className="h-full p-4">
+              {filteredResearchItems.length === 0 ? (
+                <div className="text-center p-8 mt-4">
+                  <BookmarkPlus className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-xl font-extrabold text-gray-800 mb-2">NO SAVED RESEARCH</h3>
+                  <p className="text-gray-600 mb-6">
+                    Save important information from your research sessions here for easy reference.
+                  </p>
+                  <NeoButton 
+                    buttonText="START RESEARCHING"
+                    color="cyan"
+                    className="bg-[#4a88db]"
+                    onClick={() => {
+                      toast({
+                        title: "Research Assistant",
+                        description: "Let's start researching! Ask a question to get started.",
+                      });
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {filteredResearchItems.map((item) => (
                     <div 
-                      className="absolute left-0 top-0 bottom-0 w-3"
-                      style={{ backgroundColor: getSourceTypeColor(item.sourceType) }}
-                    ></div>
-                    
-                    <div className="p-5 pl-6">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-extrabold text-gray-900 pr-8">
-                          {item.title}
-                        </h3>
-                        <button 
-                          className={`h-8 w-8 flex items-center justify-center rounded-full border-2 border-black ${item.isFavorite ? 'bg-amber-200' : 'bg-gray-100'} hover:translate-y-[-2px] transition-all`}
-                          onClick={() => handleToggleFavorite(item.id, item.isFavorite)}
-                        >
-                          {item.isFavorite ? (
-                            <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-                          ) : (
-                            <StarOff className="h-5 w-5 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
+                      key={item.id} 
+                      className="relative bg-white border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000] translate-x-[-4px] translate-y-[-4px] overflow-hidden mb-6"
+                    >
+                      {/* Colored indicator based on source type */}
+                      <div 
+                        className="absolute left-0 top-0 bottom-0 w-3"
+                        style={{ backgroundColor: getSourceTypeColor(item.sourceType) }}
+                      ></div>
                       
-                      <p className="text-gray-700 line-clamp-3">
-                        {item.content}
-                      </p>
-                      
-                      <div className="flex justify-between items-center mt-4 pt-3 border-t-2 border-dashed border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <Badge className="px-3 py-1 font-medium border-2 border-black rounded-full bg-blue-50 text-[#4a88db] shadow-[0.1rem_0.1rem_0_#000]">
-                            {item.sourceType}
-                          </Badge>
-                          <span className="flex items-center text-xs font-medium text-gray-500">
-                            <Clock className="h-3.5 w-3.5 mr-1" />
-                            {new Date(item.dateCreated).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
+                      <div className="p-5 pl-6">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-extrabold text-gray-900 pr-8">
+                            {item.title}
+                          </h3>
+                          <button 
+                            className={`h-8 w-8 flex items-center justify-center rounded-full border-2 border-black ${item.isFavorite ? 'bg-amber-200' : 'bg-gray-100'} hover:translate-y-[-2px] transition-all`}
+                            onClick={() => handleToggleFavorite(item.id, item.isFavorite)}
+                          >
+                            {item.isFavorite ? (
+                              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                            ) : (
+                              <StarOff className="h-5 w-5 text-gray-400" />
+                            )}
+                          </button>
                         </div>
                         
-                        <div className="flex gap-2">
-                          <NeoButton 
-                            buttonText=""
-                            size="icon"
-                            color="red"
-                            className="h-9 w-9"
-                            icon={<Trash2 className="h-4 w-4" />}
-                            onClick={() => handleDeleteResearch(item.id)}
-                          />
+                        <p className="text-gray-700 line-clamp-3">
+                          {item.content}
+                        </p>
+                        
+                        <div className="flex justify-between items-center mt-4 pt-3 border-t-2 border-dashed border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <Badge className="px-3 py-1 font-medium border-2 border-black rounded-full bg-blue-50 text-[#4a88db] shadow-[0.1rem_0.1rem_0_#000]">
+                              {item.sourceType}
+                            </Badge>
+                            <span className="flex items-center text-xs font-medium text-gray-500">
+                              <Clock className="h-3.5 w-3.5 mr-1" />
+                              {new Date(item.dateCreated).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
                           
-                          <NeoButton 
-                            buttonText="ASK"
-                            size="sm"
-                            color="cyan"
-                            className="bg-[#4a88db]"
-                            icon={<MessageSquare className="h-4 w-4" />}
-                            onClick={() => {
-                              setInputValue(`Tell me more about ${item.title.replace(/\.\.\.$/, '')}`);
-                              setActiveTab("chat");
-                            }}
-                          />
+                          <div className="flex gap-2">
+                            <NeoButton 
+                              buttonText=""
+                              size="icon"
+                              color="red"
+                              className="h-9 w-9"
+                              icon={<Trash2 className="h-4 w-4" />}
+                              onClick={() => handleDeleteResearch(item.id)}
+                            />
+                            
+                            <NeoButton 
+                              buttonText="ASK"
+                              size="sm"
+                              color="cyan"
+                              className="bg-[#4a88db]"
+                              icon={<MessageSquare className="h-4 w-4" />}
+                              onClick={() => {
+                                setInputValue(`Tell me more about ${item.title.replace(/\.\.\.$/, '')}`);
+                                setActiveTab("chat");
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-        
-        {/* Export Button */}
-        <div className="mt-4">
-          <NeoButton
-            buttonText="EXPORT RESEARCH LIBRARY"
-            color="cyan"
-            className="w-full bg-[#4a88db]"
-            icon={<Download className="h-5 w-5" />}
-            onClick={handleExportResearch}
-          />
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          
+          {/* Export Button */}
+          <div className="mt-4">
+            <NeoButton
+              buttonText="EXPORT RESEARCH LIBRARY"
+              color="cyan"
+              className="w-full bg-[#4a88db]"
+              icon={<Download className="h-5 w-5" />}
+              onClick={handleExportResearch}
+            />
+          </div>
         </div>
       </div>
     </div>
