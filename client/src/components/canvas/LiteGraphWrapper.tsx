@@ -126,6 +126,9 @@ export default function LiteGraphWrapper({
         };
       }
 
+      // Add graph to window for external access (quick fix for now)
+      (window as any).sophGraph = graph;
+
     } catch (error) {
       console.error("Error initializing LiteGraph:", error);
     }

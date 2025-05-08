@@ -98,10 +98,14 @@ export default function CanvasContainer({
     setSelectedNode(null); // Clear selected node when changing tabs
   }, []);
   
+  // Graph reference
+  const graphWrapperRef = useRef<any>(null);
+  
   // Create a new node
   const addNode = useCallback((node: CanvasNode) => {
     if (!activeTabId) return;
     
+    // Add to state
     setTabs(prevTabs => 
       prevTabs.map(tab => 
         tab.id === activeTabId 
@@ -113,6 +117,15 @@ export default function CanvasContainer({
           : tab
       )
     );
+    
+    // Add to canvas
+    if (graphWrapperRef.current) {
+      const graph = graphWrapperRef.current.getGraph();
+      if (graph) {
+        NodeFactory.createLGraphNode(graph, node.type, node.properties, node.position);
+        console.log('Node added to canvas:', node);
+      }
+    }
   }, [activeTabId]);
   
   // Create a new edge
@@ -191,12 +204,107 @@ export default function CanvasContainer({
         </div>
       </div>
       
+      {/* Node palette */}
+      {activeTab && (
+        <div className="px-4 py-2 bg-muted/10 border-b border-border flex items-center gap-2">
+          <div className="text-sm font-medium mr-2">Add Node:</div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const position = { x: 100, y: 100 };
+              const node = NodeFactory.createNode(
+                'treatment', 
+                { title: 'New Treatment', description: 'Treatment details' },
+                position
+              );
+              addNode(node);
+            }}
+            className="neo-brutalism-btn"
+          >
+            <Stethoscope size={14} className="mr-1" />
+            Treatment
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const position = { x: 100, y: 200 };
+              const node = NodeFactory.createNode(
+                'symptom', 
+                { title: 'New Symptom', severity: 3 },
+                position
+              );
+              addNode(node);
+            }}
+            className="neo-brutalism-btn"
+          >
+            <Activity size={14} className="mr-1" />
+            Symptom
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const position = { x: 200, y: 100 };
+              const node = NodeFactory.createNode(
+                'journal', 
+                { title: 'Journal Entry', content: 'My thoughts for today...' },
+                position
+              );
+              addNode(node);
+            }}
+            className="neo-brutalism-btn"
+          >
+            <Book size={14} className="mr-1" />
+            Journal
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const position = { x: 300, y: 100 };
+              const node = NodeFactory.createNode(
+                'document', 
+                { title: 'Medical Document', documentType: 'Lab Results' },
+                position
+              );
+              addNode(node);
+            }}
+            className="neo-brutalism-btn"
+          >
+            <FileText size={14} className="mr-1" />
+            Document
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const position = { x: 300, y: 200 };
+              const node = NodeFactory.createNode(
+                'note', 
+                { title: 'Quick Note', content: 'Write your note here...' },
+                position
+              );
+              addNode(node);
+            }}
+            className="neo-brutalism-btn"
+          >
+            <Bookmark size={14} className="mr-1" />
+            Note
+          </Button>
+        </div>
+      )}
+      
       {/* Canvas area */}
       <div className="flex-grow relative">
         {activeTab && (
           <div className="absolute inset-0">
             <LiteGraphWrapper 
               onNodeSelected={handleNodeSelect}
+              onNodeCreated={(node) => {
+                console.log('Node created:', node);
+              }}
               className="w-full h-full"
             />
           </div>
