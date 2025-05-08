@@ -398,7 +398,10 @@ export default function CanvasContainer({
                     };
                     
                     // Add the edge to our data model
-                    addEdge(newEdge);
+                    const createdEdge = addEdge(newEdge);
+                    
+                    // Select the newly created edge for editing
+                    setSelectedEdge(createdEdge || newEdge);
                   }
                 } else if (!connected && sourceNodeId && targetNodeId) {
                   // Connection was removed - find and remove the edge from our data model
@@ -446,7 +449,7 @@ export default function CanvasContainer({
       </div>
       
       {/* Node details panel (conditionally rendered) */}
-      {selectedLGraphNode && activeTab && (
+      {selectedLGraphNode && activeTab && !selectedEdge && (
         <NodeDetailsPanel 
           selectedNode={selectedLGraphNode}
           onNodeUpdate={(node, props) => {
@@ -485,6 +488,21 @@ export default function CanvasContainer({
           }}
           onClose={handleCloseNodeDetails}
         />
+      )}
+      
+      {/* Edge details panel (conditionally rendered) */}
+      {selectedEdge && activeTab && (
+        <div className="absolute right-0 top-0 m-4">
+          <EdgeDetailsPanel
+            edge={selectedEdge}
+            sourceTitle={activeTab.nodes.find(n => n.id === selectedEdge.sourceNodeId)?.title ?? 'Source Node'}
+            targetTitle={activeTab.nodes.find(n => n.id === selectedEdge.targetNodeId)?.title ?? 'Target Node'}
+            onClose={() => setSelectedEdge(null)}
+            onUpdate={(edge, properties) => {
+              updateEdgeProperties(edge.id, properties);
+            }}
+          />
+        </div>
       )}
     </div>
   );

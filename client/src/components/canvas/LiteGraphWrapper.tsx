@@ -15,6 +15,7 @@ interface LiteGraphWrapperProps {
   onNodeCreated?: (node: any) => void;
   onNodeRemoved?: (node: any) => void;
   onConnectionChanged?: (connection: any) => void;
+  onLinkSelected?: (linkId: number, link: any) => void;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export default function LiteGraphWrapper({
   onNodeCreated,
   onNodeRemoved,
   onConnectionChanged,
+  onLinkSelected,
   className,
 }: LiteGraphWrapperProps) {
   const [isReady, setIsReady] = useState(false);
@@ -149,6 +151,30 @@ export default function LiteGraphWrapper({
           };
           
           onConnectionChanged(connectionInfo);
+        };
+      }
+
+      // Add link selection handling if the callback is provided
+      if (onLinkSelected && canvasInstance) {
+        // Override the processLinkSelection method to handle link clicks
+        const originalProcessLinkSelection = canvasInstance.processLinkSelection;
+        canvasInstance.processLinkSelection = function(e: any) {
+          // Call original method first
+          const result = originalProcessLinkSelection.call(this, e);
+          
+          // If a link was selected
+          if (this.selected_link) {
+            const link = this.selected_link;
+            
+            // Extract the link ID (this is custom logic since LiteGraph doesn't have link IDs)
+            // The link object contains the origin_node, origin_slot, target_node, and target_slot
+            const linkId = `${link.origin_node.id}-${link.origin_slot}-${link.target_node.id}-${link.target_slot}`;
+            
+            console.log('Link selected:', linkId, link);
+            onLinkSelected(parseInt(linkId), link);
+          }
+          
+          return result;
         };
       }
 
