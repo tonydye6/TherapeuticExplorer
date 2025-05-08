@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
 
-// We need to use a type-only import first to satisfy TypeScript
-import type { LGraph, LGraphCanvas } from 'litegraph.js';
-
-// LiteGraph will be loaded at runtime
+// Will be populated after dynamic import
 let LiteGraph: any = null;
 
 interface LiteGraphWrapperProps {
@@ -20,15 +17,17 @@ export default function LiteGraphWrapper({
   onNodeCreated,
   onNodeRemoved,
   onConnectionChanged,
-  className
+  className,
 }: LiteGraphWrapperProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const graphRef = useRef<LGraph | null>(null);
-  const canvasInstanceRef = useRef<LGraphCanvas | null>(null);
   const [isReady, setIsReady] = useState(false);
-
-  // Use resize detector to handle canvas resizing
-  const { width, height, ref: containerRef } = useResizeDetector({
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<any>(null);
+  const canvasInstanceRef = useRef<any>(null);
+  
+  // Setup resize detection
+  const { width, height } = useResizeDetector({
+    targetRef: containerRef,
     refreshMode: 'debounce',
     refreshRate: 100,
   });
