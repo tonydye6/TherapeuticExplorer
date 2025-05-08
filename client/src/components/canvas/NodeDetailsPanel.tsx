@@ -1,335 +1,485 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit, Trash, Calendar, Tag, Link as LinkIcon } from 'lucide-react';
+import { LGraphNode } from 'litegraph.js';
+import { NodeType } from '@shared/canvas-types';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from 'lucide-react';
 
-interface NodeDetailsProps {
-  nodeId: string;
-  tabId: string;
-  onClose: () => void;
+interface NodeDetailsPanelProps {
+  selectedNode: LGraphNode | null;
+  onNodeUpdate?: (node: LGraphNode, props: any) => void;
+  onClose?: () => void;
 }
 
-// This is a placeholder component that will be enhanced to handle actual node data
-const NodeDetailsPanel: React.FC<NodeDetailsProps> = ({ 
-  nodeId, 
-  tabId, 
+const NodeDetailsPanel: React.FC<NodeDetailsPanelProps> = ({ 
+  selectedNode, 
+  onNodeUpdate,
   onClose 
 }) => {
+  const [nodeProperties, setNodeProperties] = useState<Record<string, any>>({});
   const [isEditing, setIsEditing] = useState(false);
-  const [nodeDetails, setNodeDetails] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Simulate loading node data
+  
   useEffect(() => {
-    // This would be replaced with an actual API call or state lookup
-    const loadNodeDetails = async () => {
-      setLoading(true);
-      try {
-        // Simulated data - in reality, this would come from your state or API
-        const mockNodeData = {
-          id: nodeId,
-          type: 'treatment',
-          title: 'Chemotherapy Session',
-          description: 'Weekly chemotherapy session with Cisplatin and Fluorouracil (5-FU).',
-          properties: {
-            startDate: '2023-09-15',
-            endDate: '2023-10-15',
-            dosage: '100mg',
-            frequency: 'Weekly',
-            sideEffects: ['Nausea', 'Fatigue', 'Hair loss']
-          },
-          tags: ['High Priority', 'Active Treatment'],
-          connections: [
-            { nodeId: 'node123', title: 'Side Effect Log', type: 'journal' },
-            { nodeId: 'node456', title: 'Diet Recommendations', type: 'document' }
-          ]
-        };
-        
-        // Simulating API delay
-        setTimeout(() => {
-          setNodeDetails(mockNodeData);
-          setLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error('Error loading node details:', error);
-        setLoading(false);
-      }
-    };
-    
-    loadNodeDetails();
-  }, [nodeId]);
-
-  const handleEditToggle = () => {
-    setIsEditing(!isEditing);
+    if (selectedNode) {
+      // Initialize from node properties
+      setNodeProperties(selectedNode.properties || {});
+    } else {
+      setNodeProperties({});
+      setIsEditing(false);
+    }
+  }, [selectedNode]);
+  
+  if (!selectedNode) return null;
+  
+  // Determine node type
+  const nodeType = selectedNode.type ? selectedNode.type.split('/')[1] : 'unknown';
+  const nodeTitle = nodeProperties.title || nodeProperties.name || 'Untitled Node';
+  
+  const handleInputChange = (key: string, value: any) => {
+    setNodeProperties((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
-
+  
   const handleSave = () => {
-    // Save changes to node
-    console.log('Saving node changes:', nodeDetails);
+    if (selectedNode && onNodeUpdate) {
+      onNodeUpdate(selectedNode, nodeProperties);
+    }
     setIsEditing(false);
-    // In a real implementation, this would update state or call an API
   };
-
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this node?')) {
-      console.log('Deleting node:', nodeId);
-      onClose();
-      // In a real implementation, this would delete the node and update state
+  
+  const handleCancel = () => {
+    if (selectedNode) {
+      // Reset to original properties
+      setNodeProperties(selectedNode.properties || {});
+    }
+    setIsEditing(false);
+  };
+  
+  const getNodeIcon = () => {
+    switch (nodeType) {
+      case 'treatment':
+        return '💊';
+      case 'journal-entry':
+        return '📓';
+      case 'symptom':
+        return '🩹';
+      case 'document':
+        return '📄';
+      case 'note':
+        return '📝';
+      default:
+        return '📌';
     }
   };
-
-  // Render the edit form for the node
-  const renderEditForm = () => {
-    if (!nodeDetails) return null;
-    
+  
+  // Render different forms based on node type
+  const renderNodeForm = () => {
+    switch (nodeType) {
+      case 'treatment':
+        return renderTreatmentForm();
+      case 'journal-entry':
+        return renderJournalForm();
+      case 'symptom':
+        return renderSymptomForm();
+      case 'document':
+        return renderDocumentForm();
+      case 'note':
+        return renderNoteForm();
+      default:
+        return renderGenericForm();
+    }
+  };
+  
+  const renderTreatmentForm = () => {
     return (
-      <div className="space-y-4 p-4">
-        <Input
-          value={nodeDetails.title}
-          onChange={(e) => setNodeDetails({...nodeDetails, title: e.target.value})}
-          placeholder="Node title"
-          className="neo-brutalism-input"
-        />
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Treatment Name</label>
+          <Input 
+            value={nodeProperties.name || ''} 
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
         
-        <Textarea
-          value={nodeDetails.description}
-          onChange={(e) => setNodeDetails({...nodeDetails, description: e.target.value})}
-          placeholder="Description"
-          className="neo-brutalism-input h-24"
-        />
+        <div>
+          <label className="block text-sm font-medium mb-1">Type</label>
+          <Input 
+            value={nodeProperties.type || 'medication'} 
+            onChange={(e) => handleInputChange('type', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Start Date</label>
-            <Input
+            <label className="block text-sm font-medium mb-1">Start Date</label>
+            <Input 
               type="date"
-              value={nodeDetails.properties.startDate}
-              onChange={(e) => setNodeDetails({
-                ...nodeDetails, 
-                properties: {...nodeDetails.properties, startDate: e.target.value}
-              })}
-              className="neo-brutalism-input"
+              value={nodeProperties.startDate 
+                ? new Date(nodeProperties.startDate).toISOString().split('T')[0] 
+                : ''}
+              onChange={(e) => handleInputChange('startDate', new Date(e.target.value))}
+              readOnly={!isEditing}
+              className="w-full"
             />
           </div>
+          
           <div>
-            <label className="text-sm font-medium mb-1 block">End Date</label>
-            <Input
+            <label className="block text-sm font-medium mb-1">End Date</label>
+            <Input 
               type="date"
-              value={nodeDetails.properties.endDate}
-              onChange={(e) => setNodeDetails({
-                ...nodeDetails, 
-                properties: {...nodeDetails.properties, endDate: e.target.value}
-              })}
-              className="neo-brutalism-input"
+              value={nodeProperties.endDate 
+                ? new Date(nodeProperties.endDate).toISOString().split('T')[0] 
+                : ''}
+              onChange={(e) => handleInputChange('endDate', e.target.value ? new Date(e.target.value) : null)}
+              readOnly={!isEditing}
+              className="w-full"
             />
           </div>
         </div>
         
-        {/* Additional form fields would be rendered based on node type */}
-        
-        <div className="pt-4 flex justify-end space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setIsEditing(false)}
-            className="neo-brutalism-btn"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave}
-            className="neo-brutalism-btn"
-          >
-            Save Changes
-          </Button>
+        <div>
+          <label className="block text-sm font-medium mb-1">Notes</label>
+          <Textarea 
+            value={nodeProperties.notes || ''} 
+            onChange={(e) => handleInputChange('notes', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+            rows={4}
+          />
         </div>
       </div>
     );
   };
   
-  // Render the view mode for the node details
-  const renderViewMode = () => {
-    if (!nodeDetails) return null;
-    
+  const renderJournalForm = () => {
     return (
-      <Tabs defaultValue="details" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="connections">Connections</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <Input 
+            value={nodeProperties.title || ''} 
+            onChange={(e) => handleInputChange('title', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
         
-        <TabsContent value="details" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">{nodeDetails.title}</h3>
-            <p className="text-sm text-muted-foreground">{nodeDetails.type}</p>
-            
-            <div className="mt-2 flex flex-wrap gap-1">
-              {nodeDetails.tags.map((tag: string, index: number) => (
-                <Badge key={index} variant="secondary" className="neo-brutalism-badge">
-                  <Tag size={12} className="mr-1" /> {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          
-          <Separator />
-          
-          <div>
-            <p>{nodeDetails.description}</p>
-          </div>
-          
-          <Card className="neo-brutalism-card">
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center">
-                <Calendar size={16} className="mr-2" />
-                <span className="text-sm font-medium">Timeline</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="font-medium">Start</p>
-                  <p>{new Date(nodeDetails.properties.startDate).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="font-medium">End</p>
-                  <p>{nodeDetails.properties.endDate ? 
-                    new Date(nodeDetails.properties.endDate).toLocaleDateString() : 
-                    'Ongoing'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Additional content based on node type */}
-          {nodeDetails.type === 'treatment' && (
-            <Card className="neo-brutalism-card">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">Treatment Details</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="font-medium">Dosage</p>
-                    <p>{nodeDetails.properties.dosage}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Frequency</p>
-                    <p>{nodeDetails.properties.frequency}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="font-medium">Side Effects</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {nodeDetails.properties.sideEffects.map((effect: string, index: number) => (
-                      <Badge key={index} variant="outline" className="neo-brutalism-badge-subtle">
-                        {effect}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+        <div>
+          <label className="block text-sm font-medium mb-1">Date</label>
+          <Input 
+            type="date"
+            value={nodeProperties.dateCreated 
+              ? new Date(nodeProperties.dateCreated).toISOString().split('T')[0] 
+              : ''}
+            onChange={(e) => handleInputChange('dateCreated', new Date(e.target.value))}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
         
-        <TabsContent value="connections" className="space-y-4">
-          <h3 className="text-sm font-medium mb-2">Connected Nodes</h3>
-          
-          {nodeDetails.connections.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No connections</p>
-          ) : (
-            <div className="space-y-2">
-              {nodeDetails.connections.map((connection: any, index: number) => (
-                <Card key={index} className="neo-brutalism-card">
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{connection.title}</p>
-                      <p className="text-xs text-muted-foreground">{connection.type}</p>
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <LinkIcon size={16} />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-          
-          <Button variant="outline" className="w-full neo-brutalism-btn mt-4">
-            <LinkIcon size={16} className="mr-2" /> Add Connection
-          </Button>
-        </TabsContent>
+        <div>
+          <label className="block text-sm font-medium mb-1">Mood</label>
+          <Input 
+            value={nodeProperties.mood || ''} 
+            onChange={(e) => handleInputChange('mood', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
         
-        <TabsContent value="history" className="space-y-4">
-          <h3 className="text-sm font-medium mb-2">Activity History</h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-start">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-cyan-500 mr-2"></div>
-              <div>
-                <p className="text-sm">Node created</p>
-                <p className="text-xs text-muted-foreground">3 days ago</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-cyan-500 mr-2"></div>
-              <div>
-                <p className="text-sm">Connected to "Side Effect Log"</p>
-                <p className="text-xs text-muted-foreground">2 days ago</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-cyan-500 mr-2"></div>
-              <div>
-                <p className="text-sm">Description updated</p>
-                <p className="text-xs text-muted-foreground">1 day ago</p>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-    );
-  };
-
-  return (
-    <div className="fixed right-0 top-0 h-full w-80 bg-white border-l-2 border-black shadow-md z-10">
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <h2 className="text-lg font-semibold">Node Details</h2>
-        
-        <div className="flex items-center space-x-1">
-          {!isEditing && (
-            <>
-              <Button variant="ghost" size="icon" onClick={handleEditToggle}>
-                <Edit size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleDelete}>
-                <Trash size={16} />
-              </Button>
-            </>
-          )}
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X size={16} />
-          </Button>
+        <div>
+          <label className="block text-sm font-medium mb-1">Content</label>
+          <Textarea 
+            value={nodeProperties.content || ''} 
+            onChange={(e) => handleInputChange('content', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+            rows={6}
+          />
         </div>
       </div>
-      
-      <div className="overflow-y-auto h-[calc(100vh-60px)]">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+    );
+  };
+  
+  const renderSymptomForm = () => {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Symptom Name</label>
+          <Input 
+            value={nodeProperties.name || ''} 
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Severity (1-5)</label>
+          <Input 
+            type="number"
+            min={1}
+            max={5}
+            value={nodeProperties.severity || 3} 
+            onChange={(e) => handleInputChange('severity', parseInt(e.target.value))}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Frequency</label>
+          <Input 
+            value={nodeProperties.frequency || ''} 
+            onChange={(e) => handleInputChange('frequency', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">First Observed</label>
+            <Input 
+              type="date"
+              value={nodeProperties.dateStarted 
+                ? new Date(nodeProperties.dateStarted).toISOString().split('T')[0] 
+                : ''}
+              onChange={(e) => handleInputChange('dateStarted', new Date(e.target.value))}
+              readOnly={!isEditing}
+              className="w-full"
+            />
           </div>
-        ) : isEditing ? (
-          renderEditForm()
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Observed</label>
+            <Input 
+              type="date"
+              value={nodeProperties.dateEnded 
+                ? new Date(nodeProperties.dateEnded).toISOString().split('T')[0] 
+                : ''}
+              onChange={(e) => handleInputChange('dateEnded', e.target.value ? new Date(e.target.value) : null)}
+              readOnly={!isEditing}
+              className="w-full"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Notes</label>
+          <Textarea 
+            value={nodeProperties.notes || ''} 
+            onChange={(e) => handleInputChange('notes', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+            rows={4}
+          />
+        </div>
+      </div>
+    );
+  };
+  
+  const renderDocumentForm = () => {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <Input 
+            value={nodeProperties.title || ''} 
+            onChange={(e) => handleInputChange('title', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Document Type</label>
+          <Input 
+            value={nodeProperties.type || ''} 
+            onChange={(e) => handleInputChange('type', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Date</label>
+          <Input 
+            type="date"
+            value={nodeProperties.date 
+              ? new Date(nodeProperties.date).toISOString().split('T')[0] 
+              : ''}
+            onChange={(e) => handleInputChange('date', new Date(e.target.value))}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Provider/Source</label>
+          <Input 
+            value={nodeProperties.provider || ''} 
+            onChange={(e) => handleInputChange('provider', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Summary</label>
+          <Textarea 
+            value={nodeProperties.summary || ''} 
+            onChange={(e) => handleInputChange('summary', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+            rows={5}
+          />
+        </div>
+      </div>
+    );
+  };
+  
+  const renderNoteForm = () => {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <Input 
+            value={nodeProperties.title || ''} 
+            onChange={(e) => handleInputChange('title', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Content</label>
+          <Textarea 
+            value={nodeProperties.content || ''} 
+            onChange={(e) => handleInputChange('content', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+            rows={8}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Color</label>
+          <div className="flex space-x-2">
+            {['yellow', 'blue', 'green', 'pink', 'purple'].map((color) => (
+              <div 
+                key={color}
+                className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
+                  nodeProperties.color === color ? 'border-black' : 'border-transparent'
+                }`}
+                style={{ 
+                  backgroundColor: 
+                    color === 'yellow' ? '#FEF3C7' : 
+                    color === 'blue' ? '#DBEAFE' : 
+                    color === 'green' ? '#DCFCE7' : 
+                    color === 'pink' ? '#FCE7F3' : 
+                    color === 'purple' ? '#EDE9FE' : '#FEF3C7'
+                }}
+                onClick={() => isEditing && handleInputChange('color', color)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  const renderGenericForm = () => {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <Input 
+            value={nodeProperties.title || nodeProperties.name || ''} 
+            onChange={(e) => handleInputChange(nodeProperties.title ? 'title' : 'name', e.target.value)}
+            readOnly={!isEditing}
+            className="w-full"
+          />
+        </div>
+        
+        {Object.entries(nodeProperties)
+          .filter(([key]) => !['id', 'title', 'name'].includes(key))
+          .map(([key, value]) => {
+            // Skip rendering complex objects and arrays
+            if (typeof value === 'object' && value !== null) return null;
+            
+            return (
+              <div key={key}>
+                <label className="block text-sm font-medium mb-1 capitalize">
+                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                </label>
+                <Input 
+                  value={value?.toString() || ''} 
+                  onChange={(e) => handleInputChange(key, e.target.value)}
+                  readOnly={!isEditing}
+                  className="w-full"
+                />
+              </div>
+            );
+          })}
+      </div>
+    );
+  };
+  
+  return (
+    <div className="border-l-2 border-black w-72 h-full bg-white overflow-y-auto flex flex-col neo-brutalism shadow-md">
+      <div className="p-4 border-b-2 border-black bg-gray-50 flex justify-between items-center">
+        <h3 className="font-bold text-lg flex items-center">
+          <span className="mr-2">{getNodeIcon()}</span>
+          {nodeType.charAt(0).toUpperCase() + nodeType.slice(1).replace(/-/g, ' ')}
+        </h3>
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200"
+          >
+            ×
+          </button>
+        )}
+      </div>
+      
+      <div className="p-4 flex-grow overflow-y-auto">
+        {renderNodeForm()}
+      </div>
+      
+      <div className="p-4 border-t-2 border-black bg-gray-50 flex justify-end space-x-3">
+        {isEditing ? (
+          <>
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="neo-brutalism-btn border-2 border-black"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={handleSave}
+              className="neo-brutalism-btn border-2 border-black bg-cyan-200 hover:bg-cyan-300"
+            >
+              Save
+            </Button>
+          </>
         ) : (
-          renderViewMode()
+          <Button 
+            variant="default" 
+            onClick={() => setIsEditing(true)}
+            className="neo-brutalism-btn border-2 border-black bg-violet-200 hover:bg-violet-300"
+          >
+            Edit
+          </Button>
         )}
       </div>
     </div>

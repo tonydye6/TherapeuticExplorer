@@ -1,5 +1,13 @@
 import { NodeType, CanvasNode, CanvasPosition, CanvasSize } from '@shared/canvas-types';
 import { v4 as uuidv4 } from 'uuid';
+import { LiteGraph, LGraph, LGraphNode } from 'litegraph.js';
+
+// Import node types
+import TreatmentNode from './TreatmentNode';
+import JournalNode from './JournalNode';
+import SymptomNode from './SymptomNode';
+import DocumentNode from './DocumentNode';
+import NoteNode from './NoteNode';
 
 /**
  * NodeFactory provides a central system for creating and registering node types.
@@ -7,6 +15,80 @@ import { v4 as uuidv4 } from 'uuid';
  */
 export class NodeFactory {
   private static DEFAULT_NODE_SIZE: CanvasSize = { width: 200, height: 120 };
+  
+  /**
+   * Register all node types with LiteGraph
+   */
+  static initialize() {
+    // All node types should be imported at the top, which will
+    // automatically register them with LiteGraph
+    console.log('Initializing node factory with types:', 
+      Object.values(NodeType).join(', '));
+  }
+  
+  /**
+   * Create a LiteGraph node in the graph
+   */
+  static createLGraphNode(
+    graph: LGraph,
+    type: NodeType,
+    title: string,
+    position: CanvasPosition,
+    properties: Record<string, any> = {}
+  ): LGraphNode | null {
+    // Map our node types to LiteGraph node types
+    const nodeTypeMap = {
+      [NodeType.TREATMENT]: 'sophera/treatment',
+      [NodeType.MEDICATION]: 'sophera/treatment', // Use treatment node for now
+      [NodeType.SYMPTOM]: 'sophera/symptom',
+      [NodeType.LAB_RESULT]: 'sophera/document', // Use document node for now
+      [NodeType.JOURNAL_ENTRY]: 'sophera/journal-entry',
+      [NodeType.MOOD_ENTRY]: 'sophera/journal-entry',
+      [NodeType.SYMPTOM_LOG]: 'sophera/journal-entry', 
+      [NodeType.DIET_LOG]: 'sophera/journal-entry',
+      [NodeType.EXERCISE_LOG]: 'sophera/journal-entry',
+      [NodeType.DOCUMENT]: 'sophera/document',
+      [NodeType.MILESTONE]: 'sophera/note', // Use note node for now
+      [NodeType.HOPE_SNIPPET]: 'sophera/note', // Use note node for now
+      [NodeType.VICTORY]: 'sophera/note', // Use note node for now
+      [NodeType.NOTE]: 'sophera/note'
+    };
+    
+    // Get the LiteGraph node type
+    const liteGraphType = nodeTypeMap[type];
+    if (!liteGraphType) {
+      console.error(`Unknown node type: ${type}`);
+      return null;
+    }
+    
+    // Create the node
+    const node = LiteGraph.createNode(liteGraphType);
+    if (!node) {
+      console.error(`Failed to create node of type ${liteGraphType}`);
+      return null;
+    }
+    
+    // Set position
+    node.pos = [position.x, position.y];
+    
+    // Update properties (including title)
+    if (title) {
+      node.properties.name = title;
+      node.properties.title = title;
+    }
+    
+    // Add other properties
+    if (properties) {
+      Object.keys(properties).forEach(key => {
+        node.properties[key] = properties[key];
+      });
+    }
+    
+    // Add to graph
+    graph.add(node);
+    
+    return node;
+  }
   
   /**
    * Create a new node of the specified type
