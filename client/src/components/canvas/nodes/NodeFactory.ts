@@ -10,7 +10,8 @@ import DocumentNode from './DocumentNode';
 import NoteNode from './NoteNode';
 
 // String-based node types for flexibility
-export const NODE_TYPES = {
+// String-based node types for flexibility
+const NODE_TYPES = {
   TREATMENT: 'treatment',
   MEDICATION: 'medication',
   SYMPTOM: 'symptom',
@@ -32,6 +33,8 @@ export const NODE_TYPES = {
  * It handles the creation of various node types with appropriate defaults.
  */
 export class NodeFactory {
+  // Expose NODE_TYPES as a static property
+  static NODE_TYPES = NODE_TYPES;
   private static DEFAULT_NODE_SIZE: CanvasSize = { width: 200, height: 120 };
   
   /**
@@ -472,4 +475,4 @@ export class NodeFactory {
   }
 }
 
-export default NodeFactory;
+// We no longer export as default, just use the named export
