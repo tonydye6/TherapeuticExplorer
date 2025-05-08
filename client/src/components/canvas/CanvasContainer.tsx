@@ -386,8 +386,24 @@ export default function CanvasContainer({
                       handleCloseNodeDetails();
                     }
                     
-                    // Set the selected edge
-                    setSelectedEdge(edge);
+                    // Add visual indicator for clicked link
+                    const container = document.querySelector('.canvas-container');
+                    if (container) {
+                      const notification = document.createElement('div');
+                      notification.classList.add('connection-notification');
+                      notification.textContent = 'Connection selected! Edit details in the panel ➡️';
+                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 2s; border-left: 4px solid #FF7F50;';
+                      container.appendChild(notification);
+                      setTimeout(() => notification.remove(), 5000);
+                    }
+                    
+                    // Set the selected edge with logging
+                    console.log('Setting selectedEdge from link click:', edge);
+                    setSelectedEdge(null); // Clear first
+                    setTimeout(() => {
+                      setSelectedEdge(edge);
+                      console.log('Edge has been set from link click');
+                    }, 50);
                   }
                 }
               }}
@@ -441,16 +457,34 @@ export default function CanvasContainer({
                       const notification = document.createElement('div');
                       notification.classList.add('connection-notification');
                       notification.textContent = 'Connection created! Edit details in the panel ➡️';
-                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px; border-radius: 6px; z-index: 9999; animation: fadeOut 3s forwards 2s;';
+                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 2s; border-left: 4px solid #0D9488;';
                       container.appendChild(notification);
                       setTimeout(() => notification.remove(), 5000);
                     }
                     
                     // Force an update to render edge panel first by temporarily clearing then setting
+                    // Use a slightly longer timeout to ensure components have time to update
                     setSelectedEdge(null);
+                    
+                    // Log before setting
+                    console.log('About to set selectedEdge after delay...');
+                    
+                    // Use a 3-stage approach for higher reliability
                     setTimeout(() => {
-                      setSelectedEdge(createdEdge || newEdge);
-                    }, 50);
+                      console.log('First timeout completed, setting edge...');
+                      const edgeToSet = createdEdge || newEdge;
+                      setSelectedEdge(edgeToSet);
+                      console.log('Edge set to:', edgeToSet);
+                      
+                      // Double-check after another delay that the edge is still selected
+                      setTimeout(() => {
+                        console.log('Verifying edge is still selected...');
+                        if (!selectedEdge) {
+                          console.log('Edge was not selected, retrying...');
+                          setSelectedEdge(edgeToSet);
+                        }
+                      }, 100);
+                    }, 150);
                   }
                 } else if (!connected && sourceNodeId && targetNodeId) {
                   // Connection was removed - find and remove the edge from our data model
@@ -541,21 +575,40 @@ export default function CanvasContainer({
       
       {/* Edge details panel (conditionally rendered) */}
       {selectedEdge && activeTab && selectedEdge.sourceNodeId && selectedEdge.targetNodeId && (
-        <div className="fixed right-8 top-20 z-50">
-          {/* EdgeDetailsPanel being rendered */}
-          <EdgeDetailsPanel
-            edge={selectedEdge}
-            sourceTitle={activeTab.nodes.find(n => n.id === selectedEdge.sourceNodeId)?.title ?? 'Source Node'}
-            targetTitle={activeTab.nodes.find(n => n.id === selectedEdge.targetNodeId)?.title ?? 'Target Node'}
-            onClose={() => {
-              console.log('Closing edge panel');
-              setSelectedEdge(null);
-            }}
-            onUpdate={(edge, properties) => {
-              console.log('Updating edge properties:', edge.id, properties);
-              updateEdgeProperties(edge.id, properties);
-            }}
-          />
+        <div className="fixed right-8 top-20 z-50" id="edge-details-panel-container">
+          <div className="relative">
+            {/* Arrow indicator pointing to panel */}
+            <div className="absolute -left-8 top-10 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-black border-b-8 border-b-transparent"></div>
+            
+            {/* Highlight element to draw attention to panel */}
+            <div className="absolute -inset-2 bg-yellow-200 rounded-xl opacity-20 animate-pulse -z-10"></div>
+            
+            {/* EdgeDetailsPanel being rendered */}
+            <EdgeDetailsPanel
+              edge={selectedEdge}
+              sourceTitle={activeTab.nodes.find(n => n.id === selectedEdge.sourceNodeId)?.title ?? 'Source Node'}
+              targetTitle={activeTab.nodes.find(n => n.id === selectedEdge.targetNodeId)?.title ?? 'Target Node'}
+              onClose={() => {
+                console.log('Closing edge panel');
+                setSelectedEdge(null);
+              }}
+              onUpdate={(edge, properties) => {
+                console.log('Updating edge properties:', edge.id, properties);
+                updateEdgeProperties(edge.id, properties);
+                
+                // Show success notification
+                const container = document.querySelector('.canvas-container');
+                if (container) {
+                  const notification = document.createElement('div');
+                  notification.classList.add('connection-notification');
+                  notification.textContent = 'Connection updated successfully! ✓';
+                  notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(13, 148, 136, 0.9); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 1s; border-left: 4px solid #0D9488;';
+                  container.appendChild(notification);
+                  setTimeout(() => notification.remove(), 4000);
+                }
+              }}
+            />
+          </div>
         </div>
       )}
     </div>

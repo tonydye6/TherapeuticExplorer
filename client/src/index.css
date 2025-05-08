@@ -19,6 +19,16 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out forwards;
 }
