@@ -456,8 +456,9 @@ export default function CanvasContainer({
                     if (container) {
                       const notification = document.createElement('div');
                       notification.classList.add('connection-notification');
-                      notification.textContent = 'Connection created! Edit details in the panel ➡️';
-                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 2s; border-left: 4px solid #0D9488;';
+                      notification.textContent = 'Connection created! 🔗 Edit details in the panel ➡️';
+                      notification.classList.add('connection-notification');
+                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.85); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; border-left: 4px solid #FF7F50; box-shadow: 6px 6px 0 rgba(0,0,0,0.9);';
                       container.appendChild(notification);
                       setTimeout(() => notification.remove(), 5000);
                     }
@@ -601,8 +602,9 @@ export default function CanvasContainer({
                 if (container) {
                   const notification = document.createElement('div');
                   notification.classList.add('connection-notification');
-                  notification.textContent = 'Connection updated successfully! ✓';
-                  notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(13, 148, 136, 0.9); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 1s; border-left: 4px solid #0D9488;';
+                  notification.textContent = 'Connection updated! ✓';
+                  notification.classList.add('connection-notification');
+                  notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.85); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; border-left: 4px solid #0D9488; box-shadow: 6px 6px 0 rgba(0,0,0,0.9);';
                   container.appendChild(notification);
                   setTimeout(() => notification.remove(), 4000);
                 }

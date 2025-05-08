@@ -65,9 +65,11 @@ export default function EdgeDetailsPanel({
   };
 
   return (
-    <Card className="border-4 border-black shadow-neo-sm neo-brutalism-card w-80 ml-4 bg-white animate-fadeIn">
+    <Card className="border-4 border-black shadow-neo-sm neo-brutalism-card w-80 ml-4 bg-white animate-fadeIn edge-details-panel">
       <div className="absolute -top-1 -left-1 w-3 h-3 bg-secondary rounded-full animate-pulse"></div>
       <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full animate-pulse"></div>
+      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+      <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
       <CardHeader className="border-b-4 border-black p-4 bg-gradient-to-r from-primary/20 to-secondary/20">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg font-bold flex items-center">
