@@ -364,6 +364,33 @@ export default function CanvasContainer({
               onNodeCreated={(node) => {
                 console.log('Node created:', node);
               }}
+              onLinkSelected={(linkId, link) => {
+                if (!activeTab) return;
+                
+                console.log('Link selected:', linkId, link);
+                
+                // Get the canvas node IDs from our mapping
+                const sourceCanvasNodeId = nodeMapping.getCanvasNodeId(link.origin_node.id.toString());
+                const targetCanvasNodeId = nodeMapping.getCanvasNodeId(link.target_node.id.toString());
+                
+                if (sourceCanvasNodeId && targetCanvasNodeId) {
+                  // Find the corresponding edge in our data model
+                  const edge = activeTab.edges.find(e => 
+                    e.sourceNodeId === sourceCanvasNodeId && 
+                    e.targetNodeId === targetCanvasNodeId
+                  );
+                  
+                  if (edge) {
+                    // Clear any selected node
+                    if (selectedLGraphNode) {
+                      handleCloseNodeDetails();
+                    }
+                    
+                    // Set the selected edge
+                    setSelectedEdge(edge);
+                  }
+                }
+              }}
               onConnectionChanged={(connectionInfo) => {
                 // Handle connection changes
                 const { 

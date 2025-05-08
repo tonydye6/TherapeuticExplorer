@@ -191,7 +191,7 @@ export default function LiteGraphWrapper({
         graphRef.current.stop();
       }
     };
-  }, [onNodeSelected, onNodeCreated, onNodeRemoved, onConnectionChanged]);
+  }, [onNodeSelected, onNodeCreated, onNodeRemoved, onConnectionChanged, onLinkSelected]);
 
   // Handle resize events
   useEffect(() => {
