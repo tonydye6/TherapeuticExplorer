@@ -135,7 +135,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
     queryKey: ["/api/research"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/research");
+        const response = await fetch("/api/research", { method: "GET" });
         if (!response.ok) return [];
         return await response.json();
       } catch (error) {
@@ -395,16 +395,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
           
           {/* Main Chat Area */}
           <div className="flex-grow flex flex-col min-h-0 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-white overflow-hidden">
-            {/* Info Banner */}
-            <div className="p-4">
-              <Alert className="border-3 border-black bg-amber-50 rounded-xl p-4 shadow-[0.3rem_0.3rem_0_#000]">
-                <Info className="h-5 w-5 text-[#3db4ab]" />
-                <AlertTitle className="font-extrabold text-black">HUMAN-FRIENDLY EXPLANATIONS</AlertTitle>
-                <AlertDescription className="text-gray-800">
-                  We explain medical information in clear, everyday language to help you understand your options.
-                </AlertDescription>
-              </Alert>
-            </div>
+  
             
             {/* Message Area */}
             <div className="flex-grow min-h-0 overflow-hidden">
@@ -467,9 +458,9 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                                 <NeoButton
                                   buttonText="COPY"
                                   size="sm"
-                                  color="white"
+                                  color="primary"
                                   icon={<Copy className="h-4 w-4" />}
-                                  className="border-2 border-black text-gray-700"
+                                  className="border-2 border-black text-gray-700 bg-white"
                                   onClick={() => {
                                     navigator.clipboard.writeText(message.content);
                                     toast({
@@ -533,6 +524,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                       disabled={isProcessing}
                     />
                     <NeoButton
+                      buttonText=""
                       type="submit"
                       size="sm"
                       color="primary"
@@ -725,7 +717,7 @@ export default function ResearchAssistant({ inTabView = false }: ResearchAssista
                           <div className="flex gap-2">
                             <NeoButton 
                               buttonText=""
-                              size="icon"
+                              size="sm"
                               color="red"
                               className="h-9 w-9"
                               icon={<Trash2 className="h-4 w-4" />}

@@ -283,23 +283,7 @@ export default function MultimodalChatPage() {
           </div>
         </div>
         
-        {/* Privacy Notice - Only shown on larger screens */}
-        <div className="w-full bg-amber-50 border-4 border-black rounded-xl p-5 mb-4 shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] hidden md:block">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-[#fb9678] border-3 border-black shadow-[0.15rem_0.15rem_0_#000] flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-extrabold text-black">IMPORTANT PRIVACY INFORMATION</h3>
-              <p className="text-gray-800 mt-1">
-                Before uploading any medical images, please ensure they contain no personal identifying information. 
-                This tool is for informational purposes only and should not replace professional medical advice.
-              </p>
-            </div>
-          </div>
-        </div>
+
         
         {/* Main Chat Container - Flex-grow to fill available space */}
         <div className="flex-grow flex flex-col min-h-0 border-4 border-black rounded-xl shadow-[0.3rem_0.3rem_0_#000000] translate-x-[-4px] translate-y-[-4px] bg-[#3db4ab] overflow-hidden">
