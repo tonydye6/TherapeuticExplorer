@@ -1,0 +1,167 @@
+/* LiteGraph.js CSS Styles, adapted for Sophera with neo-brutalism aesthetics */
+
+/* Canvas container */
+.litegraph-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f4f8;
+    touch-action: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Canvas background pattern */
+.litegraph-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f4f8;
+    background-image: radial-gradient(#E2E8F0 1px, transparent 2px);
+    background-size: 25px 25px;
+}
+
+/* Node styles */
+.litegraph-node {
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    color: #1A202C;
+    cursor: move;
+    border: 4px solid #000;
+    border-radius: 12px;
+    box-shadow: 0.3rem 0.3rem 0 #000;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    transition: box-shadow 0.1s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.litegraph-node:hover {
+    box-shadow: 0.5rem 0.5rem 0 #000;
+    transform: translate(-2px, -2px);
+}
+
+.litegraph-node.selected {
+    border-color: #0D9488;
+    box-shadow: 0.3rem 0.3rem 0 #0D9488;
+}
+
+/* Node title bar */
+.litegraph-node-title {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px 10px;
+    border-bottom: 3px solid #000;
+    text-transform: uppercase;
+}
+
+/* Node header/title for each node type */
+.node-treatment .litegraph-node-title { background-color: #0D9488; color: white; }
+.node-journal .litegraph-node-title { background-color: #4A88DB; color: white; }
+.node-document .litegraph-node-title { background-color: #F59E0B; color: white; }
+.node-symptom .litegraph-node-title { background-color: #EF4444; color: white; }
+.node-milestone .litegraph-node-title { background-color: #8B5CF6; color: white; }
+.node-note .litegraph-node-title { background-color: #FBBF24; color: black; }
+
+/* Node content */
+.litegraph-node-content {
+    padding: 10px;
+    background-color: white;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Node slots (inputs/outputs) */
+.litegraph-slot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #000;
+    background-color: #CBD5E1;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.litegraph-slot:hover {
+    background-color: #0D9488;
+}
+
+.litegraph-slot-in {
+    left: -8px;
+}
+
+.litegraph-slot-out {
+    right: -8px;
+}
+
+/* Node connections (lines) */
+.litegraph-connection {
+    stroke: #000000;
+    stroke-width: 3px;
+    fill: none;
+}
+
+.litegraph-connection-outline {
+    stroke: white;
+    stroke-width: 5px;
+    fill: none;
+    opacity: 0.5;
+}
+
+.litegraph-connection.selected {
+    stroke: #0D9488;
+    stroke-width: 4px;
+}
+
+/* Mini-map */
+.litegraph-minimap {
+    background-color: #fff;
+    border: 3px solid #000;
+    box-shadow: 0.2rem 0.2rem 0 #000;
+    border-radius: 8px;
+}
+
+/* Litegraph context menu */
+.litegraph-context-menu {
+    border: 3px solid #000;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0.2rem 0.2rem 0 #000;
+    overflow: hidden;
+}
+
+.litegraph-context-menu .option {
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.litegraph-context-menu .option:hover {
+    background-color: #E6FFFA;
+    color: #0D9488;
+}
+
+.litegraph-context-menu .separator {
+    border-bottom: 2px solid #E2E8F0;
+    margin: 4px 0;
+}
+
+/* Mobile adaptations */
+@media (max-width: 768px) {
+    .litegraph-node {
+        border-width: 3px;
+        box-shadow: 0.2rem 0.2rem 0 #000;
+    }
+    
+    .litegraph-node-title {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    
+    .litegraph-node-content {
+        padding: 8px;
+    }
+}
