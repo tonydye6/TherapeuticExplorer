@@ -107,6 +107,24 @@ export default function LiteGraphWrapper({
       // Create the canvas instance
       const canvasInstance = new LiteGraph.LGraphCanvas(canvasRef.current, graph);
       canvasInstanceRef.current = canvasInstance;
+      
+      // Customize link appearance for better visibility
+      if (LiteGraph.LGraphCanvas.link_type_colors) {
+        // Set default link color to match our primary color
+        LiteGraph.LGraphCanvas.link_type_colors["default"] = "#0D9488";
+        
+        // Add different colors for different relationship types
+        LiteGraph.LGraphCanvas.link_type_colors["causes"] = "#EF4444"; // red
+        LiteGraph.LGraphCanvas.link_type_colors["treats"] = "#0D9488"; // teal
+        LiteGraph.LGraphCanvas.link_type_colors["improves"] = "#10B981"; // green
+        LiteGraph.LGraphCanvas.link_type_colors["worsens"] = "#F59E0B"; // amber
+      }
+      
+      // Increase link width for better visibility
+      if (canvasInstance) {
+        canvasInstance.default_link_width = 3; // Make links thicker
+        canvasInstance.highquality_render = true; // Enable high quality rendering
+      }
 
       // Start the graph
       graph.start();
@@ -150,6 +168,40 @@ export default function LiteGraphWrapper({
             targetInputIndex: inputIndex
           };
           
+          // If a connection was created
+          if (connected && linkInfo) {
+            // Get the newly created link from the graph
+            const links = graph.links;
+            const recentLink = Object.values(links || {}).pop() as any;
+            
+            if (recentLink) {
+              // Add a temporary visual effect to highlight the new connection
+              const originalWidth = recentLink.width || canvasInstance.default_link_width;
+              const originalColor = recentLink.color;
+              
+              // Animate the link to draw attention
+              recentLink.width = originalWidth * 3;
+              recentLink.color = "#FF7F50"; // Secondary color
+              
+              // Create a simple animation to return to normal
+              let animationStep = 0;
+              const animateLink = () => {
+                if (animationStep < 10) {
+                  recentLink.width = originalWidth * (3 - 0.2 * animationStep);
+                  canvasInstance.setDirtyCanvas(true, true);
+                  animationStep++;
+                  setTimeout(animateLink, 50);
+                } else {
+                  recentLink.width = originalWidth;
+                  recentLink.color = originalColor;
+                  canvasInstance.setDirtyCanvas(true, true);
+                }
+              };
+              
+              setTimeout(animateLink, 50);
+            }
+          }
+          
           onConnectionChanged(connectionInfo);
         };
       }
@@ -166,6 +218,32 @@ export default function LiteGraphWrapper({
           if (this.selected_link) {
             const link = this.selected_link;
             
+            // Apply visual changes to the selected link to make it more noticeable
+            // Save original properties to restore when deselected
+            if (!link._originalWidth) {
+              link._originalWidth = link.width || canvasInstance.default_link_width;
+              link._originalColor = link.color;
+              
+              // Make the selected link stand out
+              link.width = (link.width || canvasInstance.default_link_width) * 2;
+              link.color = "#FF7F50"; // secondary color (coral)
+              
+              // Request redraw
+              this.setDirtyCanvas(true, true);
+              
+              // Create a pulsing effect (optional)
+              const pulseLink = () => {
+                if (this.selected_link === link) {
+                  link.width = link.width * 0.9 + link._originalWidth * 0.1;
+                  this.setDirtyCanvas(true, true);
+                  
+                  // Schedule next pulse
+                  setTimeout(pulseLink, 100);
+                }
+              };
+              setTimeout(pulseLink, 100);
+            }
+            
             // Extract the link ID (this is custom logic since LiteGraph doesn't have link IDs)
             // The link object contains the origin_node, origin_slot, target_node, and target_slot
             const linkId = Math.floor(Math.random() * 100000);
@@ -176,6 +254,20 @@ export default function LiteGraphWrapper({
               targetId: link.target_node.id
             });
             onLinkSelected(linkId, link);
+          } else {
+            // Restore all links to their original state
+            if (graph && graph.links) {
+              for (const linkId in graph.links) {
+                const link = graph.links[linkId];
+                if (link._originalWidth) {
+                  link.width = link._originalWidth;
+                  link.color = link._originalColor;
+                  delete link._originalWidth;
+                  delete link._originalColor;
+                }
+              }
+              this.setDirtyCanvas(true, true);
+            }
           }
           
           return result;
