@@ -1,220 +1,268 @@
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { CanvasTab, CanvasNode, CanvasConnection, CanvasTabType } from '@shared/canvas-types';
+import { CanvasTab, CanvasNode, CanvasEdge, CanvasType, Position } from '@shared/canvas-types';
 
+// Define the shape of our context
 interface CanvasContextType {
-  // Tabs
   tabs: CanvasTab[];
   activeTabId: string | null;
-  createTab: (name: string, type: CanvasTabType) => Promise<string>;
-  updateTab: (tabId: string, updates: Partial<Omit<CanvasTab, 'id' | 'created' | 'updated'>>) => Promise<void>;
-  deleteTab: (tabId: string) => Promise<void>;
-  setActiveTabId: (tabId: string | null) => void;
-  
-  // Nodes
-  nodes: CanvasNode[];
-  createNode: (node: Omit<CanvasNode, 'id' | 'created' | 'updated'>) => Promise<string>;
-  updateNode: (nodeId: string, updates: Partial<Omit<CanvasNode, 'id' | 'created' | 'updated'>>) => Promise<void>;
-  deleteNode: (nodeId: string) => Promise<void>;
-  
-  // Connections
-  connections: CanvasConnection[];
-  createConnection: (connection: Omit<CanvasConnection, 'id'>) => Promise<string>;
-  deleteConnection: (connectionId: string) => Promise<void>;
-  
-  // Canvas state
-  scale: number;
-  offset: [number, number];
-  setScale: (scale: number) => void;
-  setOffset: (offset: [number, number]) => void;
-  
-  // Loading states
-  isLoading: boolean;
-  error: string | null;
+  setActiveTabId: (id: string | null) => void;
+  addTab: (type?: CanvasType) => void;
+  updateTab: (tabId: string, updates: Partial<CanvasTab>) => void;
+  deleteTab: (tabId: string) => void;
+  addNode: (node: Partial<CanvasNode>) => string;
+  updateNode: (nodeId: string, updates: Partial<CanvasNode>) => void;
+  deleteNode: (nodeId: string) => void;
+  addEdge: (edge: Partial<CanvasEdge>) => string;
+  updateEdge: (edgeId: string, updates: Partial<CanvasEdge>) => void;
+  deleteEdge: (edgeId: string) => void;
+  moveNode: (nodeId: string, position: Position) => void;
 }
 
+// Create the context with a default value
 const CanvasContext = createContext<CanvasContextType | null>(null);
 
-interface CanvasProviderProps {
-  children: ReactNode;
-  userId: string;
-}
-
-export const CanvasProvider = ({ children, userId }: CanvasProviderProps) => {
+// Provider component
+export const CanvasProvider: React.FC<{ children: ReactNode, userId?: string }> = ({ 
+  children,
+  userId = '1' // Default user ID
+}) => {
   const [tabs, setTabs] = useState<CanvasTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [nodes, setNodes] = useState<CanvasNode[]>([]);
-  const [connections, setConnections] = useState<CanvasConnection[]>([]);
-  const [scale, setScale] = useState<number>(1);
-  const [offset, setOffset] = useState<[number, number]>([0, 0]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Load user's tabs on init
-  useEffect(() => {
-    const loadUserTabs = async () => {
-      setIsLoading(true);
-      try {
-        // In the future, this will fetch from the API
-        // For now, we'll create a default tab if none exist
-        const defaultTab: CanvasTab = {
-          id: uuidv4(),
-          userId,
-          name: 'My Journey Canvas',
-          type: 'freeform',
-          config: {
-            gridSize: 25,
-            background: '#f0f4f8',
-          },
-          created: new Date(),
-          updated: new Date(),
-        };
-        
-        setTabs([defaultTab]);
-        setActiveTabId(defaultTab.id);
-        setIsLoading(false);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load canvas tabs');
-        setIsLoading(false);
-      }
-    };
+  // Add a new tab
+  const addTab = useCallback((type: CanvasType = CanvasType.FREEFORM) => {
+    const today = new Date();
     
-    if (userId) {
-      loadUserTabs();
-    }
-  }, [userId]);
-
-  // Load nodes and connections when active tab changes
-  useEffect(() => {
-    const loadTabContent = async () => {
-      if (!activeTabId) return;
-      
-      setIsLoading(true);
-      try {
-        // In the future, this will fetch from the API
-        // For now, we'll use empty arrays
-        setNodes([]);
-        setConnections([]);
-        setIsLoading(false);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load canvas content');
-        setIsLoading(false);
-      }
-    };
-    
-    loadTabContent();
-  }, [activeTabId]);
-
-  // Tab operations
-  const createTab = async (name: string, type: CanvasTabType): Promise<string> => {
     const newTab: CanvasTab = {
       id: uuidv4(),
-      userId,
-      name,
+      title: type === CanvasType.CALENDAR ? 'New Calendar' : 'New Canvas',
       type,
-      config: {
-        gridSize: 25,
-        background: '#f0f4f8',
-      },
-      created: new Date(),
-      updated: new Date(),
+      nodes: [],
+      edges: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      scale: 1,
+      offset: { x: 0, y: 0 },
+      userId,
+      // Add default config for calendar type
+      config: type === CanvasType.CALENDAR 
+        ? {
+            dateRange: {
+              startDate: new Date(today.getFullYear(), today.getMonth(), 1),
+              endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0)
+            }
+          } 
+        : undefined
     };
     
-    setTabs((prevTabs) => [...prevTabs, newTab]);
+    setTabs(prevTabs => [...prevTabs, newTab]);
+    setActiveTabId(newTab.id);
+    
     return newTab.id;
-  };
+  }, [userId]);
 
-  const updateTab = async (tabId: string, updates: Partial<Omit<CanvasTab, 'id' | 'created' | 'updated'>>) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === tabId
-          ? { ...tab, ...updates, updated: new Date() }
+  // Update a tab
+  const updateTab = useCallback((tabId: string, updates: Partial<CanvasTab>) => {
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === tabId 
+          ? { ...tab, ...updates, updatedAt: new Date() } 
           : tab
       )
     );
-  };
+  }, []);
 
-  const deleteTab = async (tabId: string) => {
-    setTabs((prevTabs) => prevTabs.filter((tab) => tab.id !== tabId));
-    
-    if (activeTabId === tabId) {
-      const remainingTabs = tabs.filter((tab) => tab.id !== tabId);
-      setActiveTabId(remainingTabs.length > 0 ? remainingTabs[0].id : null);
+  // Delete a tab
+  const deleteTab = useCallback((tabId: string) => {
+    // If active tab is being deleted, clear the selection
+    if (tabId === activeTabId) {
+      setActiveTabId(null);
     }
-  };
+    
+    // Remove the tab
+    setTabs(prevTabs => prevTabs.filter(tab => tab.id !== tabId));
+  }, [activeTabId]);
 
-  // Node operations
-  const createNode = async (node: Omit<CanvasNode, 'id' | 'created' | 'updated'>): Promise<string> => {
+  // Add a node to the active tab
+  const addNode = useCallback((node: Partial<CanvasNode>): string => {
+    if (!activeTabId) return '';
+    
+    const nodeId = node.id || uuidv4();
+    
     const newNode: CanvasNode = {
-      ...node,
-      id: uuidv4(),
-      created: new Date(),
-      updated: new Date(),
+      id: nodeId,
+      title: node.title || 'New Node',
+      type: node.type || 'default',
+      position: node.position || { x: 0, y: 0 },
+      size: node.size || { width: 200, height: 100 },
+      properties: node.properties || {},
+      createdAt: node.createdAt || new Date(),
     };
     
-    setNodes((prevNodes) => [...prevNodes, newNode]);
-    return newNode.id;
-  };
-
-  const updateNode = async (nodeId: string, updates: Partial<Omit<CanvasNode, 'id' | 'created' | 'updated'>>) => {
-    setNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, ...updates, updated: new Date() }
-          : node
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              nodes: [...tab.nodes, newNode],
+              updatedAt: new Date() 
+            } 
+          : tab
       )
     );
-  };
-
-  const deleteNode = async (nodeId: string) => {
-    // Delete node
-    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
     
-    // Delete any connections to/from this node
-    setConnections((prevConnections) =>
-      prevConnections.filter(
-        (conn) => conn.originNode !== nodeId && conn.targetNode !== nodeId
+    return nodeId;
+  }, [activeTabId]);
+
+  // Update a node in the active tab
+  const updateNode = useCallback((nodeId: string, updates: Partial<CanvasNode>) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              nodes: tab.nodes.map(node => 
+                node.id === nodeId 
+                  ? { ...node, ...updates } 
+                  : node
+              ),
+              updatedAt: new Date() 
+            } 
+          : tab
       )
     );
-  };
+  }, [activeTabId]);
 
-  // Connection operations
-  const createConnection = async (connection: Omit<CanvasConnection, 'id'>): Promise<string> => {
-    const newConnection: CanvasConnection = {
-      ...connection,
-      id: uuidv4(),
+  // Delete a node from the active tab
+  const deleteNode = useCallback((nodeId: string) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              // Remove the node
+              nodes: tab.nodes.filter(node => node.id !== nodeId),
+              // Remove any edges connected to this node
+              edges: tab.edges.filter(edge => 
+                edge.sourceNodeId !== nodeId && edge.targetNodeId !== nodeId
+              ),
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
+    );
+  }, [activeTabId]);
+
+  // Add an edge to the active tab
+  const addEdge = useCallback((edge: Partial<CanvasEdge>): string => {
+    if (!activeTabId) return '';
+    
+    const edgeId = edge.id || uuidv4();
+    
+    const newEdge: CanvasEdge = {
+      id: edgeId,
+      sourceNodeId: edge.sourceNodeId || '',
+      targetNodeId: edge.targetNodeId || '',
+      sourceOutputIndex: edge.sourceOutputIndex || 0,
+      targetInputIndex: edge.targetInputIndex || 0,
+      type: edge.type || 'default',
+      properties: edge.properties || {},
     };
     
-    setConnections((prevConnections) => [...prevConnections, newConnection]);
-    return newConnection.id;
-  };
-
-  const deleteConnection = async (connectionId: string) => {
-    setConnections((prevConnections) =>
-      prevConnections.filter((conn) => conn.id !== connectionId)
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              edges: [...tab.edges, newEdge],
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
     );
-  };
+    
+    return edgeId;
+  }, [activeTabId]);
 
+  // Update an edge in the active tab
+  const updateEdge = useCallback((edgeId: string, updates: Partial<CanvasEdge>) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              edges: tab.edges.map(edge => 
+                edge.id === edgeId 
+                  ? { ...edge, ...updates } 
+                  : edge
+              ),
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
+    );
+  }, [activeTabId]);
+
+  // Delete an edge from the active tab
+  const deleteEdge = useCallback((edgeId: string) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              edges: tab.edges.filter(edge => edge.id !== edgeId),
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
+    );
+  }, [activeTabId]);
+
+  // Move a node to a new position
+  const moveNode = useCallback((nodeId: string, position: Position) => {
+    if (!activeTabId) return;
+    
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === activeTabId 
+          ? { 
+              ...tab, 
+              nodes: tab.nodes.map(node => 
+                node.id === nodeId 
+                  ? { ...node, position } 
+                  : node
+              ),
+              updatedAt: new Date() 
+            } 
+          : tab
+      )
+    );
+  }, [activeTabId]);
+
+  // Create the context value object
   const contextValue: CanvasContextType = {
     tabs,
     activeTabId,
-    createTab,
+    setActiveTabId,
+    addTab,
     updateTab,
     deleteTab,
-    setActiveTabId,
-    nodes,
-    createNode,
+    addNode,
     updateNode,
     deleteNode,
-    connections,
-    createConnection,
-    deleteConnection,
-    scale,
-    offset,
-    setScale,
-    setOffset,
-    isLoading,
-    error,
+    addEdge,
+    updateEdge,
+    deleteEdge,
+    moveNode,
   };
 
   return (
@@ -224,10 +272,13 @@ export const CanvasProvider = ({ children, userId }: CanvasProviderProps) => {
   );
 };
 
-export const useCanvas = () => {
+// Hook to use the canvas context
+export function useCanvas() {
   const context = useContext(CanvasContext);
+  
   if (!context) {
     throw new Error('useCanvas must be used within a CanvasProvider');
   }
+  
   return context;
-};
+}

@@ -11,7 +11,8 @@ export enum CanvasType {
   JOURNEY = 'journey',
   MINDMAP = 'mindmap',
   SPREADSHEET = 'spreadsheet',
-  GALLERY = 'gallery'
+  GALLERY = 'gallery',
+  TEMPLATE = 'template'
 }
 
 /**
@@ -39,7 +40,12 @@ export enum NodeType {
   JOURNAL_ENTRY = 'journal_entry',
   SYMPTOM_LOG = 'symptom_log',
   HOPE_SNIPPET = 'hope_snippet',
-  CAREGIVER_NOTE = 'caregiver_note'
+  CAREGIVER_NOTE = 'caregiver_note',
+  // Additional node types used in the node palette
+  LAB_RESULT = 'lab_result',
+  MOOD_ENTRY = 'mood_entry',
+  DIET_LOG = 'diet_log',
+  EXERCISE_LOG = 'exercise_log'
 }
 
 /**

@@ -5,6 +5,7 @@ import { NodeFactory } from '@/components/canvas/nodes/NodeFactory';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Grid, Calendar, Table, Map, LayoutTemplate } from 'lucide-react';
+import { CanvasProvider } from '@/contexts/CanvasContext';
 
 interface NodePaletteProps {
   onNodeSelect: (nodeType: NodeType) => void;
@@ -206,7 +207,9 @@ const CanvasPage: React.FC = () => {
       
       <div className="flex-grow flex">
         <div className="flex-grow h-full">
-          <CanvasContainer className="h-full" />
+          <CanvasProvider userId="user-123">
+            <CanvasContainer className="h-full" />
+          </CanvasProvider>
         </div>
         
         {showNodePalette && (
