@@ -435,141 +435,141 @@ export default function CanvasContainer({
                   const sourceCanvasNodeId = nodeMapping.getCanvasNodeId(link.origin_node.id.toString());
                   const targetCanvasNodeId = nodeMapping.getCanvasNodeId(link.target_node.id.toString());
                 
-                if (sourceCanvasNodeId && targetCanvasNodeId) {
-                  // Find the corresponding edge in our data model
-                  const edge = activeTab.edges.find(e => 
-                    e.sourceNodeId === sourceCanvasNodeId && 
-                    e.targetNodeId === targetCanvasNodeId
-                  );
+                  if (sourceCanvasNodeId && targetCanvasNodeId) {
+                    // Find the corresponding edge in our data model
+                    const edge = activeTab.edges.find(e => 
+                      e.sourceNodeId === sourceCanvasNodeId && 
+                      e.targetNodeId === targetCanvasNodeId
+                    );
                   
-                  if (edge) {
-                    // Clear any selected node
-                    if (selectedLGraphNode) {
-                      handleCloseNodeDetails();
+                    if (edge) {
+                      // Clear any selected node
+                      if (selectedLGraphNode) {
+                        handleCloseNodeDetails();
+                      }
+                      
+                      // Add visual indicator for clicked link
+                      const container = document.querySelector('.canvas-container');
+                      if (container) {
+                        const notification = document.createElement('div');
+                        notification.classList.add('connection-notification');
+                        notification.textContent = 'Connection selected! Edit details in the panel ➡️';
+                        notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 2s; border-left: 4px solid #FF7F50;';
+                        container.appendChild(notification);
+                        setTimeout(() => notification.remove(), 5000);
+                      }
+                      
+                      // Set the selected edge with logging
+                      console.log('Setting selectedEdge from link click:', edge);
+                      setSelectedEdge(null); // Clear first
+                      setTimeout(() => {
+                        setSelectedEdge(edge);
+                        console.log('Edge has been set from link click');
+                      }, 50);
                     }
-                    
-                    // Add visual indicator for clicked link
-                    const container = document.querySelector('.canvas-container');
-                    if (container) {
-                      const notification = document.createElement('div');
-                      notification.classList.add('connection-notification');
-                      notification.textContent = 'Connection selected! Edit details in the panel ➡️';
-                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 500; z-index: 9999; animation: fadeOut 3s forwards 2s; border-left: 4px solid #FF7F50;';
-                      container.appendChild(notification);
-                      setTimeout(() => notification.remove(), 5000);
-                    }
-                    
-                    // Set the selected edge with logging
-                    console.log('Setting selectedEdge from link click:', edge);
-                    setSelectedEdge(null); // Clear first
-                    setTimeout(() => {
-                      setSelectedEdge(edge);
-                      console.log('Edge has been set from link click');
-                    }, 50);
                   }
-                }
               }}
                 onConnectionChanged={(connectionInfo) => {
-                // Handle connection changes
-                const { 
-                  connected, 
-                  sourceNodeId, 
-                  sourceOutputIndex, 
-                  targetNodeId, 
-                  targetInputIndex 
-                } = connectionInfo;
-                
-                if (connected && sourceNodeId && targetNodeId) {
-                  // Connection was created - add an edge to our data model
-                  console.log('Connection created:', sourceNodeId, '->', targetNodeId);
+                  // Handle connection changes
+                  const { 
+                    connected, 
+                    sourceNodeId, 
+                    sourceOutputIndex, 
+                    targetNodeId, 
+                    targetInputIndex 
+                  } = connectionInfo;
                   
-                  // Get the canvas node IDs from our mapping
-                  const canvasSourceNodeId = nodeMapping.getCanvasNodeId(sourceNodeId.toString());
-                  const canvasTargetNodeId = nodeMapping.getCanvasNodeId(targetNodeId.toString());
-                  
-                  if (canvasSourceNodeId && canvasTargetNodeId) {
-                    // Create a new edge
-                    const newEdge: CanvasEdge = {
-                      id: uuidv4(),
-                      sourceNodeId: canvasSourceNodeId,
-                      sourceOutputIndex: sourceOutputIndex || 0,
-                      targetNodeId: canvasTargetNodeId,
-                      targetInputIndex: targetInputIndex || 0,
-                      type: 'default',
-                      properties: { 
-                        createdAt: new Date(),
-                        relationship: 'related'
-                      }
-                    };
+                  if (connected && sourceNodeId && targetNodeId) {
+                    // Connection was created - add an edge to our data model
+                    console.log('Connection created:', sourceNodeId, '->', targetNodeId);
                     
-                    // Add the edge to our data model
-                    const createdEdge = addEdge(newEdge);
-                    
-                    // Select the newly created edge for editing
-                    console.log('Setting selectedEdge for editing:', createdEdge || newEdge);
-                    
-                    // Clear any selected node first to avoid UI conflicts
-                    if (selectedLGraphNode) {
-                      handleCloseNodeDetails();
-                    }
-                    
-                    // Add visual notification
-                    const container = document.querySelector('.canvas-container');
-                    if (container) {
-                      const notification = document.createElement('div');
-                      notification.classList.add('connection-notification');
-                      notification.textContent = 'Connection created! 🔗 Edit details in the panel ➡️';
-                      notification.classList.add('connection-notification');
-                      notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.85); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; border-left: 4px solid #FF7F50; box-shadow: 6px 6px 0 rgba(0,0,0,0.9);';
-                      container.appendChild(notification);
-                      setTimeout(() => notification.remove(), 5000);
-                    }
-                    
-                    // Force an update to render edge panel first by temporarily clearing then setting
-                    // Use a slightly longer timeout to ensure components have time to update
-                    setSelectedEdge(null);
-                    
-                    // Log before setting
-                    console.log('About to set selectedEdge after delay...');
-                    
-                    // Use a 3-stage approach for higher reliability
-                    setTimeout(() => {
-                      console.log('First timeout completed, setting edge...');
-                      const edgeToSet = createdEdge || newEdge;
-                      setSelectedEdge(edgeToSet);
-                      console.log('Edge set to:', edgeToSet);
-                      
-                      // Double-check after another delay that the edge is still selected
-                      setTimeout(() => {
-                        console.log('Verifying edge is still selected...');
-                        if (!selectedEdge) {
-                          console.log('Edge was not selected, retrying...');
-                          setSelectedEdge(edgeToSet);
-                        }
-                      }, 100);
-                    }, 150);
-                  }
-                } else if (!connected && sourceNodeId && targetNodeId) {
-                  // Connection was removed - find and remove the edge from our data model
-                  console.log('Connection removed:', sourceNodeId, '->', targetNodeId);
-                  
-                  // Find the corresponding edge in the active tab
-                  if (activeTab) {
+                    // Get the canvas node IDs from our mapping
                     const canvasSourceNodeId = nodeMapping.getCanvasNodeId(sourceNodeId.toString());
                     const canvasTargetNodeId = nodeMapping.getCanvasNodeId(targetNodeId.toString());
                     
                     if (canvasSourceNodeId && canvasTargetNodeId) {
-                      const edge = activeTab.edges.find(e => 
-                        e.sourceNodeId === canvasSourceNodeId &&
-                        e.targetNodeId === canvasTargetNodeId
-                      );
+                      // Create a new edge
+                      const newEdge: CanvasEdge = {
+                        id: uuidv4(),
+                        sourceNodeId: canvasSourceNodeId,
+                        sourceOutputIndex: sourceOutputIndex || 0,
+                        targetNodeId: canvasTargetNodeId,
+                        targetInputIndex: targetInputIndex || 0,
+                        type: 'default',
+                        properties: { 
+                          createdAt: new Date(),
+                          relationship: 'related'
+                        }
+                      };
                       
-                      if (edge) {
-                        // Remove the edge from our data model
-                        removeEdge(edge.id);
+                      // Add the edge to our data model
+                      const createdEdge = addEdge(newEdge);
+                      
+                      // Select the newly created edge for editing
+                      console.log('Setting selectedEdge for editing:', createdEdge || newEdge);
+                      
+                      // Clear any selected node first to avoid UI conflicts
+                      if (selectedLGraphNode) {
+                        handleCloseNodeDetails();
+                      }
+                      
+                      // Add visual notification
+                      const container = document.querySelector('.canvas-container');
+                      if (container) {
+                        const notification = document.createElement('div');
+                        notification.classList.add('connection-notification');
+                        notification.textContent = 'Connection created! 🔗 Edit details in the panel ➡️';
+                        notification.classList.add('connection-notification');
+                        notification.style.cssText = 'position: fixed; top: 60px; right: 20px; background: rgba(0,0,0,0.85); color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; z-index: 9999; border-left: 4px solid #FF7F50; box-shadow: 6px 6px 0 rgba(0,0,0,0.9);';
+                        container.appendChild(notification);
+                        setTimeout(() => notification.remove(), 5000);
+                      }
+                      
+                      // Force an update to render edge panel first by temporarily clearing then setting
+                      // Use a slightly longer timeout to ensure components have time to update
+                      setSelectedEdge(null);
+                      
+                      // Log before setting
+                      console.log('About to set selectedEdge after delay...');
+                      
+                      // Use a 3-stage approach for higher reliability
+                      setTimeout(() => {
+                        console.log('First timeout completed, setting edge...');
+                        const edgeToSet = createdEdge || newEdge;
+                        setSelectedEdge(edgeToSet);
+                        console.log('Edge set to:', edgeToSet);
+                        
+                        // Double-check after another delay that the edge is still selected
+                        setTimeout(() => {
+                          console.log('Verifying edge is still selected...');
+                          if (!selectedEdge) {
+                            console.log('Edge was not selected, retrying...');
+                            setSelectedEdge(edgeToSet);
+                          }
+                        }, 100);
+                      }, 150);
+                    }
+                  } else if (!connected && sourceNodeId && targetNodeId) {
+                    // Connection was removed - find and remove the edge from our data model
+                    console.log('Connection removed:', sourceNodeId, '->', targetNodeId);
+                    
+                    // Find the corresponding edge in the active tab
+                    if (activeTab) {
+                      const canvasSourceNodeId = nodeMapping.getCanvasNodeId(sourceNodeId.toString());
+                      const canvasTargetNodeId = nodeMapping.getCanvasNodeId(targetNodeId.toString());
+                      
+                      if (canvasSourceNodeId && canvasTargetNodeId) {
+                        const edge = activeTab.edges.find(e => 
+                          e.sourceNodeId === canvasSourceNodeId &&
+                          e.targetNodeId === canvasTargetNodeId
+                        );
+                        
+                        if (edge) {
+                          // Remove the edge from our data model
+                          removeEdge(edge.id);
+                        }
                       }
                     }
-                  }
                 }
               }}
               className="w-full h-full"
