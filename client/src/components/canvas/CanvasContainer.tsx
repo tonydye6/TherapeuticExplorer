@@ -68,40 +68,7 @@ export default function CanvasContainer({
       
       {/* Toolbar */}
       <div className="px-4 pt-2 bg-muted/20 border-b border-border">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex space-x-2">
-            <Button 
-              onClick={() => addTab(CanvasType.FREEFORM)} 
-              className="neo-brutalism-btn"
-              size="sm"
-            >
-              <PlusCircle size={14} className="mr-1" />
-              New Canvas
-            </Button>
-            <Button 
-              onClick={() => addTab(CanvasType.CALENDAR)} 
-              className="neo-brutalism-btn"
-              size="sm"
-            >
-              <PlusCircle size={14} className="mr-1" />
-              New Calendar
-            </Button>
-          </div>
-        </div>
-        
-        {/* Simple Tab bar */}
-        <div className="flex overflow-x-auto space-x-2 pb-2">
-          {tabs.map(tab => (
-            <div 
-              key={tab.id}
-              className={`px-3 py-1 cursor-pointer rounded-md border-2 border-black 
-                ${tab.id === activeTabId ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
-              onClick={() => setActiveTabId(tab.id)}
-            >
-              {tab.title}
-            </div>
-          ))}
-        </div>
+        <CanvasToolbar />
       </div>
       
       {/* Canvas area */}
