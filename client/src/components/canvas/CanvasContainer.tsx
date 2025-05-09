@@ -4,6 +4,7 @@ import LiteGraphWrapper from './LiteGraphWrapper';
 import CanvasTabBar from './CanvasTabBar';
 import NodeDetailsPanel from './NodeDetailsPanel';
 import EdgeDetailsPanel from './EdgeDetailsPanel';
+import CalendarCanvasRenderer from './calendar/CalendarCanvasRenderer';
 import { PlusCircle, Stethoscope, Activity, FileText, Book, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LGraphNode, LGraph } from 'litegraph.js';
@@ -391,11 +392,40 @@ export default function CanvasContainer({
       <div className="flex-grow relative">
         {activeTab && (
           <div className="absolute inset-0">
-            <LiteGraphWrapper 
-              onNodeSelected={handleNodeSelect}
-              onNodeCreated={(node) => {
-                console.log('Node created:', node);
-              }}
+            {/* Render different canvas types based on tab type */}
+            {activeTab.type === CanvasType.CALENDAR ? (
+              <div className="w-full h-full">
+                <CalendarCanvasRenderer
+                  activeTab={activeTab}
+                  onNodeClick={(nodeId: string) => selectNode(nodeId)}
+                  onNodeCreate={async (node: Partial<CanvasNode>) => {
+                    const addedNode = addNode(node);
+                    return addedNode ? addedNode.id : '';
+                  }}
+                  onNodeUpdate={async (nodeId: string, updates: Partial<CanvasNode>) => {
+                    updateNodeProperties(nodeId, updates);
+                  }}
+                  onNodeDelete={async (nodeId: string) => {
+                    console.log('Delete node:', nodeId);
+                  }}
+                  onEdgeCreate={async (edge: Partial<CanvasEdge>) => {
+                    const addedEdge = addEdge(edge as CanvasEdge);
+                    return addedEdge ? addedEdge.id : '';
+                  }}
+                  onEdgeUpdate={async (edgeId: string, updates: Partial<CanvasEdge>) => {
+                    updateEdgeProperties(edgeId, updates);
+                  }}
+                  onEdgeDelete={async (edgeId: string) => {
+                    removeEdge(edgeId);
+                  }}
+                />
+              </div>
+            ) : (
+              <LiteGraphWrapper 
+                onNodeSelected={handleNodeSelect}
+                onNodeCreated={(node) => {
+                  console.log('Node created:', node);
+                }}
               onLinkSelected={(linkId, link) => {
                 if (!activeTab) return;
                 
