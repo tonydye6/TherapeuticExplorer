@@ -426,14 +426,14 @@ export default function CanvasContainer({
                 onNodeCreated={(node) => {
                   console.log('Node created:', node);
                 }}
-              onLinkSelected={(linkId, link) => {
-                if (!activeTab) return;
+                onLinkSelected={(linkId, link) => {
+                  if (!activeTab) return;
+                  
+                  console.log('Link selected:', linkId, link);
                 
-                console.log('Link selected:', linkId, link);
-                
-                // Get the canvas node IDs from our mapping
-                const sourceCanvasNodeId = nodeMapping.getCanvasNodeId(link.origin_node.id.toString());
-                const targetCanvasNodeId = nodeMapping.getCanvasNodeId(link.target_node.id.toString());
+                  // Get the canvas node IDs from our mapping
+                  const sourceCanvasNodeId = nodeMapping.getCanvasNodeId(link.origin_node.id.toString());
+                  const targetCanvasNodeId = nodeMapping.getCanvasNodeId(link.target_node.id.toString());
                 
                 if (sourceCanvasNodeId && targetCanvasNodeId) {
                   // Find the corresponding edge in our data model
@@ -469,7 +469,7 @@ export default function CanvasContainer({
                   }
                 }
               }}
-              onConnectionChanged={(connectionInfo) => {
+                onConnectionChanged={(connectionInfo) => {
                 // Handle connection changes
                 const { 
                   connected, 
@@ -582,13 +582,22 @@ export default function CanvasContainer({
             <div className="text-center p-8">
               <h3 className="text-xl font-semibold mb-4">No Canvas Selected</h3>
               <p className="mb-4">Create a new canvas to get started.</p>
-              <Button 
-                onClick={() => addTab(CanvasType.FREEFORM)} 
-                className="neo-brutalism-btn"
-              >
-                <PlusCircle size={16} className="mr-2" />
-                Create New Canvas
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={() => addTab(CanvasType.FREEFORM)} 
+                  className="neo-brutalism-btn"
+                >
+                  <PlusCircle size={16} className="mr-2" />
+                  New Freeform Canvas
+                </Button>
+                <Button 
+                  onClick={() => addTab(CanvasType.CALENDAR)} 
+                  className="neo-brutalism-btn"
+                >
+                  <PlusCircle size={16} className="mr-2" />
+                  New Calendar Canvas
+                </Button>
+              </div>
             </div>
           </div>
         )}
