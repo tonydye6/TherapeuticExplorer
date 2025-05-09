@@ -7,8 +7,8 @@ import NodeDetailsPanel from './NodeDetailsPanel';
 import EdgeDetailsPanel from './EdgeDetailsPanel';
 import LiteGraphWrapper from './LiteGraphWrapper';
 import CalendarCanvasRenderer from './calendar/CalendarCanvasRenderer';
-import { CanvasTab, CanvasNode, CanvasEdge, CanvasType } from '@/types/canvas';
-import NodeMapping from '@/lib/NodeMapping';
+import { CanvasTab, CanvasNode, CanvasEdge, CanvasType } from '@shared/canvas-types';
+import NodeMapping from '../../lib/canvas/NodeMapping';
 
 interface CanvasContainerProps {
   initialTabs?: CanvasTab[];
