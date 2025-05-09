@@ -34,6 +34,8 @@ export default function CanvasContainer({
 
   // Function to add a new tab
   const addTab = useCallback((type: CanvasType = CanvasType.FREEFORM) => {
+    const today = new Date();
+    
     const newTab: CanvasTab = {
       id: uuidv4(),
       title: type === CanvasType.CALENDAR ? 'New Calendar' : 'New Canvas',
@@ -44,7 +46,16 @@ export default function CanvasContainer({
       updatedAt: new Date(),
       scale: 1,
       offset: { x: 0, y: 0 },
-      userId
+      userId,
+      // Add default config for calendar type
+      config: type === CanvasType.CALENDAR 
+        ? {
+            dateRange: {
+              startDate: new Date(today.getFullYear(), today.getMonth(), 1),
+              endDate: new Date(today.getFullYear(), today.getMonth() + 1, 0)
+            }
+          } 
+        : undefined
     };
     
     setTabs(prevTabs => [...prevTabs, newTab]);
@@ -57,28 +68,40 @@ export default function CanvasContainer({
       
       {/* Toolbar */}
       <div className="px-4 pt-2 bg-muted/20 border-b border-border">
-        <CanvasToolbar 
-          tabs={tabs}
-          activeTabId={activeTabId}
-          onTabChange={setActiveTabId}
-          onTabAdd={addTab}
-          onTabUpdate={(tabId, updates) => {
-            setTabs(prevTabs => 
-              prevTabs.map(tab => 
-                tab.id === tabId ? { ...tab, ...updates } : tab
-              )
-            );
-          }}
-          onTabDelete={(tabId) => {
-            // If we're deleting the active tab, clear the selection
-            if (tabId === activeTabId) {
-              setActiveTabId(null);
-            }
-            
-            // Remove the tab from our tabs array
-            setTabs(prevTabs => prevTabs.filter(tab => tab.id !== tabId));
-          }}
-        />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => addTab(CanvasType.FREEFORM)} 
+              className="neo-brutalism-btn"
+              size="sm"
+            >
+              <PlusCircle size={14} className="mr-1" />
+              New Canvas
+            </Button>
+            <Button 
+              onClick={() => addTab(CanvasType.CALENDAR)} 
+              className="neo-brutalism-btn"
+              size="sm"
+            >
+              <PlusCircle size={14} className="mr-1" />
+              New Calendar
+            </Button>
+          </div>
+        </div>
+        
+        {/* Simple Tab bar */}
+        <div className="flex overflow-x-auto space-x-2 pb-2">
+          {tabs.map(tab => (
+            <div 
+              key={tab.id}
+              className={`px-3 py-1 cursor-pointer rounded-md border-2 border-black 
+                ${tab.id === activeTabId ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+              onClick={() => setActiveTabId(tab.id)}
+            >
+              {tab.title}
+            </div>
+          ))}
+        </div>
       </div>
       
       {/* Canvas area */}

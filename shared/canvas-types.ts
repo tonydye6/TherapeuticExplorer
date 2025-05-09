@@ -15,6 +15,34 @@ export enum CanvasType {
 }
 
 /**
+ * Type of node - determines node behavior and appearance
+ */
+export enum NodeType {
+  DEFAULT = 'default',
+  NOTE = 'note',
+  DOCUMENT = 'document',
+  TREATMENT = 'treatment',
+  APPOINTMENT = 'appointment',
+  SYMPTOM = 'symptom',
+  MEDICATION = 'medication',
+  RESEARCH = 'research',
+  GOAL = 'goal',
+  QUESTION = 'question',
+  TASK = 'task',
+  PERSON = 'person',
+  IMAGE = 'image',
+  EVENT = 'event',
+  // Additional node types for calendar view
+  DOCTOR_NOTE = 'doctor_note',
+  MILESTONE = 'milestone',
+  VICTORY = 'victory',
+  JOURNAL_ENTRY = 'journal_entry',
+  SYMPTOM_LOG = 'symptom_log',
+  HOPE_SNIPPET = 'hope_snippet',
+  CAREGIVER_NOTE = 'caregiver_note'
+}
+
+/**
  * Position in 2D space
  */
 export interface Position {
@@ -71,6 +99,17 @@ export interface CanvasEdge {
 }
 
 /**
+ * Tab configuration options - varies based on canvas type
+ */
+export interface TabConfig {
+  dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  };
+  [key: string]: any;
+}
+
+/**
  * Canvas Tab - represents a single canvas workspace
  */
 export interface CanvasTab {
@@ -84,4 +123,5 @@ export interface CanvasTab {
   offset: Position;
   scale: number;
   userId: string;
+  config?: TabConfig;
 }
