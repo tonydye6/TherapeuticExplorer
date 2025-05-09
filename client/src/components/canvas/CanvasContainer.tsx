@@ -399,7 +399,18 @@ export default function CanvasContainer({
                   activeTab={activeTab}
                   onNodeClick={(nodeId: string) => selectNode(nodeId)}
                   onNodeCreate={async (node: Partial<CanvasNode>) => {
-                    const addedNode = addNode(node);
+                    // Ensure all required properties of CanvasNode are provided before adding
+                    const nodeToAdd: CanvasNode = {
+                      id: node.id || uuidv4(),
+                      title: node.title || 'New Node',
+                      type: node.type || 'default',
+                      position: node.position || { x: 0, y: 0 },
+                      size: node.size || { width: 200, height: 100 },
+                      properties: node.properties || {},
+                      createdAt: node.createdAt || new Date(),
+                      updatedAt: node.updatedAt || new Date()
+                    };
+                    const addedNode = addNode(nodeToAdd);
                     return addedNode ? addedNode.id : '';
                   }}
                   onNodeUpdate={async (nodeId: string, updates: Partial<CanvasNode>) => {
