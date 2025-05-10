@@ -1,202 +1,169 @@
 import React from 'react';
-import { 
-  FileText, Pill, Calendar, Book, HeartPulse, 
-  BookOpen, FileQuestion, Clock, Search, BarChart, 
-  Feather, Leaf, 
-  Microscope
-} from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion';
-
-export interface NodeTemplate {
-  id: string;
-  type: string;
-  title: string;
-  category: string;
-  description: string;
-  icon: React.ReactNode;
-}
+import { NodeType } from '@shared/canvas-types';
 
 interface NodePaletteProps {
-  onNodeSelect: (template: NodeTemplate) => void;
+  onNodeSelect: (nodeType: NodeType) => void;
 }
 
 export default function NodePalette({ onNodeSelect }: NodePaletteProps) {
-  // Node templates categorized
-  const nodeTemplates: NodeTemplate[] = [
-    // Journey Nodes
-    {
-      id: 'treatment-node',
-      type: 'treatment',
-      title: 'Treatment',
-      category: 'journey',
-      description: 'Track a treatment or medication',
-      icon: <Pill className="h-4 w-4" />
-    },
-    {
-      id: 'appointment-node',
-      type: 'appointment',
-      title: 'Appointment',
-      category: 'journey',
-      description: 'Schedule a healthcare appointment',
-      icon: <Calendar className="h-4 w-4" />
-    },
-    {
-      id: 'milestone-node',
-      type: 'milestone',
-      title: 'Milestone',
-      category: 'journey',
-      description: 'Mark an important point in your journey',
-      icon: <HeartPulse className="h-4 w-4" />
-    },
-    
-    // Document Nodes
-    {
-      id: 'report-node',
-      type: 'report',
-      title: 'Medical Report',
-      category: 'documents',
-      description: 'Medical or lab report',
-      icon: <FileText className="h-4 w-4" />
-    },
-    {
-      id: 'journal-node',
-      type: 'journal',
-      title: 'Journal Entry',
-      category: 'documents',
-      description: 'Personal reflection or journal entry',
-      icon: <Book className="h-4 w-4" />
-    },
-    {
-      id: 'resource-node',
-      type: 'resource',
-      title: 'Resource',
-      category: 'documents',
-      description: 'Link to helpful resource',
-      icon: <BookOpen className="h-4 w-4" />
-    },
-    
-    // Research Nodes
-    {
-      id: 'question-node',
-      type: 'question',
-      title: 'Research Question',
-      category: 'research',
-      description: 'Question for research',
-      icon: <FileQuestion className="h-4 w-4" />
-    },
-    {
-      id: 'clinical-trial-node',
-      type: 'clinicalTrial',
-      title: 'Clinical Trial',
-      category: 'research',
-      description: 'Information about a clinical trial',
-      icon: <Microscope className="h-4 w-4" />
-    },
-    {
-      id: 'finding-node',
-      type: 'finding',
-      title: 'Research Finding',
-      category: 'research',
-      description: 'Insights from research',
-      icon: <Search className="h-4 w-4" />
-    },
-    
-    // Insights Nodes
-    {
-      id: 'symptom-tracker-node',
-      type: 'symptomTracker',
-      title: 'Symptom Tracker',
-      category: 'insights',
-      description: 'Track and analyze symptoms',
-      icon: <BarChart className="h-4 w-4" />
-    },
-    {
-      id: 'timeline-node',
-      type: 'timeline',
-      title: 'Timeline',
-      category: 'insights',
-      description: 'Visualize event timeline',
-      icon: <Clock className="h-4 w-4" />
-    },
-    
-    // Hope Nodes
-    {
-      id: 'hope-snippet-node',
-      type: 'hopeSnippet',
-      title: 'Hope Snippet',
-      category: 'hope',
-      description: 'Inspirational note or reminder',
-      icon: <Feather className="h-4 w-4" />
-    },
-    {
-      id: 'mindfulness-node',
-      type: 'mindfulness',
-      title: 'Mindfulness',
-      category: 'hope',
-      description: 'Mindfulness exercise or reflection',
-      icon: <Leaf className="h-4 w-4" />
-    }
-  ];
-  
-  // Group templates by category
-  const categories = nodeTemplates.reduce((acc, node) => {
-    if (!acc[node.category]) {
-      acc[node.category] = [];
-    }
-    acc[node.category].push(node);
-    return acc;
-  }, {} as Record<string, NodeTemplate[]>);
-  
-  // Render the palette
   return (
-    <div className="w-full flex flex-col">
-      <div className="mb-4">
-        <Input
-          type="text"
-          placeholder="Search nodes..."
-          className="mb-2"
-        />
+    <div className="w-64 bg-neutral-900 text-white h-full flex flex-col">
+      <div className="p-4 border-b border-neutral-700">
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
+          <Input 
+            placeholder="Search nodes" 
+            className="pl-8 bg-neutral-800 border-neutral-700 text-white"
+          />
+        </div>
       </div>
-      
-      <ScrollArea className="h-[calc(100vh-270px)] pr-3">
-        <Accordion type="multiple" defaultValue={['journey', 'documents', 'research']}>
-          {Object.entries(categories).map(([category, templates]) => (
-            <AccordionItem key={category} value={category}>
-              <AccordionTrigger className="text-sm font-semibold capitalize">
-                {category}
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 gap-2 pt-2">
-                  {templates.map((template) => (
-                    <div
-                      key={template.id}
-                      className="bg-white p-3 rounded-md border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all"
-                      onClick={() => onNodeSelect(template)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-md bg-gray-100">
-                          {template.icon}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-sm">{template.title}</h3>
-                          <p className="text-xs text-gray-500">{template.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </ScrollArea>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <section>
+          <h3 className="text-sm font-semibold mb-2 text-neutral-400">MEDICAL</h3>
+          <div className="space-y-1">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.TREATMENT)}
+            >
+              Treatment
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.MEDICATION)}
+            >
+              Medication
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.SYMPTOM)}
+            >
+              Symptom
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.LAB_RESULT)}
+            >
+              Lab Result
+            </Button>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-sm font-semibold mb-2 text-neutral-400">JOURNAL</h3>
+          <div className="space-y-1">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.MOOD_ENTRY)}
+            >
+              Mood
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.SYMPTOM_LOG)}
+            >
+              Symptom Log
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.DIET_LOG)}
+            >
+              Diet Log
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.EXERCISE_LOG)}
+            >
+              Exercise
+            </Button>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-sm font-semibold mb-2 text-neutral-400">SUPPORT</h3>
+          <div className="space-y-1">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.MILESTONE)}
+            >
+              Milestone
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.HOPE_SNIPPET)}
+            >
+              Hope Snippet
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.VICTORY)}
+            >
+              Victory Marker
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.CAREGIVER_NOTE)}
+            >
+              Caregiver Note
+            </Button>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-sm font-semibold mb-2 text-neutral-400">DOCUMENTS</h3>
+          <div className="space-y-1">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.RESEARCH)}
+            >
+              Research Article
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.DOCTOR_NOTE)}
+            >
+              Doctor's Note
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.MEDICAL_IMAGE)}
+            >
+              Medical Image
+            </Button>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="text-sm font-semibold mb-2 text-neutral-400">OTHER</h3>
+          <div className="space-y-1">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-neutral-100 hover:bg-neutral-800"
+              onClick={() => onNodeSelect(NodeType.CUSTOM)}
+            >
+              Custom Node
+            </Button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

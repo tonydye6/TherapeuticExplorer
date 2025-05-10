@@ -1,74 +1,81 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Calendar as CalendarIcon, Grid3X3 } from 'lucide-react';
-import { CanvasTab, CanvasType } from '@shared/canvas-types';
+import { Plus, Calendar, Grid, FileText, Pill, Brain, Book, Layout, PlusCircle, Files } from 'lucide-react';
+import { CanvasType } from '@shared/canvas-types';
 import { useCanvas } from '@/contexts/CanvasContext';
 
 export interface CanvasToolbarProps {
   className?: string;
 }
 
-/**
- * Canvas Toolbar Component
- * Provides controls for managing canvas tabs and operations
- */
 export default function CanvasToolbar({ className = '' }: CanvasToolbarProps) {
-  const { 
-    tabs, 
-    activeTabId, 
-    setActiveTabId, 
-    addTab,
-    updateTab, 
-    deleteTab 
-  } = useCanvas();
+  const { addTab } = useCanvas();
 
   return (
-    <div className={`canvas-toolbar ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex space-x-2">
-          <Button 
-            onClick={() => addTab(CanvasType.FREEFORM)} 
-            className="neo-brutalism-btn"
-            size="sm"
-          >
-            <Grid3X3 size={14} className="mr-1" />
-            New Canvas
-          </Button>
-          <Button 
-            onClick={() => addTab(CanvasType.CALENDAR)} 
-            className="neo-brutalism-btn"
-            size="sm"
-          >
-            <CalendarIcon size={14} className="mr-1" />
-            New Calendar
-          </Button>
-        </div>
-      </div>
+    <div className="canvas-toolbar flex items-center gap-1 p-2 bg-neutral-900 text-white border-b border-neutral-700">
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className="text-white hover:bg-neutral-800"
+        onClick={() => addTab(CanvasType.FREEFORM)}
+      >
+        <Plus size={16} className="mr-1" />
+        New Canvas
+      </Button>
       
-      {/* Tab bar */}
-      <div className="flex overflow-x-auto space-x-2 pb-2">
-        {tabs.map(tab => (
-          <div 
-            key={tab.id}
-            className={`px-3 py-1 cursor-pointer rounded-md border-2 border-black 
-              ${tab.id === activeTabId ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
-            onClick={() => setActiveTabId(tab.id)}
-          >
-            {tab.title}
-            
-            {/* Delete button */}
-            <button 
-              className="ml-2 text-xs opacity-50 hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteTab(tab.id);
-              }}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+      <div className="h-4 w-px bg-neutral-700 mx-1" />
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Grid size={16} className="mr-1" />
+        Explore
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Calendar size={16} className="mr-1" />
+        Calendar
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Files size={16} className="mr-1" />
+        Spreadsheet
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <FileText size={16} className="mr-1" />
+        Records
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Pill size={16} className="mr-1" />
+        Treatment
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Brain size={16} className="mr-1" />
+        Symptom
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Book size={16} className="mr-1" />
+        Journal
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <Layout size={16} className="mr-1" />
+        Templates
+      </Button>
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        <PlusCircle size={16} className="mr-1" />
+        Quick Note
+      </Button>
+      
+      <div className="flex-grow" />
+      
+      <Button variant="ghost" size="sm" className="text-white hover:bg-neutral-800">
+        Hide Palette
+      </Button>
     </div>
   );
 }
